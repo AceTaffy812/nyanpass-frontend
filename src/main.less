@@ -1,0 +1,145 @@
+body,
+html {
+    margin: 0;
+    height: 100%;
+}
+
+.fullscreen-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+}
+
+.ant-select {
+    width: 100%;
+}
+
+.ant-select-dropdown {
+    z-index: 99999999;
+}
+
+.ant-flex {
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+.ant-flex2 {
+    align-items: baseline;
+}
+
+.ant-flex3 {
+    align-items: center;
+}
+
+// 表格里面的 flex 打横，不要 wrap
+td>.ant-flex {
+    flex-wrap: nowrap;
+}
+
+// 和 .ant-flex 对着干
+.neko-flex {
+    align-items: unset;
+}
+
+.neko-settings-flex-line {
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0;
+    white-space: nowrap;
+}
+
+.always-wrap-text {
+    width: 100%;
+    white-space: wrap;
+    overflow-wrap: anywhere;
+}
+
+// 表格
+
+.ant-table-wrapper {
+    width: 100%;
+}
+
+.ant-pro-table {
+    width: 100%;
+}
+
+.ant-table {
+    overflow-x: auto;
+}
+
+.ant-table th {
+    white-space: nowrap;
+}
+
+.ant-table td {
+    white-space: nowrap;
+}
+
+// modal
+
+.ant-modal {
+    overflow: auto;
+}
+
+.ant-modal-confirm-paragraph {
+    overflow: auto;
+    max-width: 100% !important;
+}
+
+.ant-modal-confirm-title {
+    margin-bottom: 1em;
+}
+
+// card
+
+.ant-card {
+    width: 100%; // 不要超界了
+}
+
+// 对齐(全屏用)
+
+@media (min-width: 800px) {
+    .dq-1 {
+        flex: 1;
+        // max-width: 50%;
+    }
+}
+
+.dq-1 {
+    font-weight: bold;
+}
+
+@media (min-width: 800px) {
+    .dq-2 {
+        flex: 1;
+        max-width: 50%;
+    }
+}
+
+.dq-2 .ant-switch {
+    margin-left: 2em;
+}
+
+
+// 对齐(弹窗用)
+
+.dq-3 {
+    width: 100%;
+}
+
+.dq-3>:first-child {
+    width: 100%;
+}
+
+.left-margin {
+    margin-left: 2em;
+}
+
+// 对齐 ?
+
+.dq-4 {
+    flex: 1;
+    text-align: right;
+}

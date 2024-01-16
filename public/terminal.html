@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>终端</title>
+    <link href="https://testingcf.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" type="text/css" rel="stylesheet" />
+    <script src="https://testingcf.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"
+        type="application/javascript"></script>
+    <script src="https://testingcf.jsdelivr.net/npm/xterm-addon-attach@0.9.0/lib/xterm-addon-attach.min.js"></script>
+    <script src="https://testingcf.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+</head>
+
+<style>
+    html,
+    body,
+    #terminal-container {
+        padding: unset;
+        margin: unset;
+        width: 100vw;
+        height: 100vh;
+    }
+
+    body {
+        background-color: black;
+    }
+</style>
+
+<body onresize="onResize()">
+    <div id="terminal-container"></div>
+    <script>
+        let sendResizing = false;
+
+        function doResize() {
+            fitAddon.fit()
+            const w = fitAddon.proposeDimensions();
+            const prefix = new Int8Array([1]);
+            const resizeMessage = new TextEncoder().encode(JSON.stringify({
+                Rows: w.rows,
+                Cols: w.cols,
+            }));
+
+            var msg = new Int8Array(prefix.length + resizeMessage.length);
+            msg.set(prefix);
+            msg.set(resizeMessage, prefix.length);
+
+            socket.send(msg)
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function onResize() {
+            if (sendResizing) return;
+            sendResizing = true;
+            try {
+                await sleep(1500);
+                doResize();
+            } catch (error) {
+                console.log('resize', error);
+            } finally {
+                sendResizing = false
+            }
+        }
+
+        const hashs = window.location.hash.split("#")
+
+        const term = new Terminal({
+            screenKeys: true,
+            useStyle: true,
+            cursorBlink: true,
+        });
+
+        if (hashs.length < 2) {
+            alert("网页参数有误")
+        }
+
+        if (hashs.length >= 3) {
+            document.title = "终端@" + hashs[2]
+        } else {
+            document.title = "终端"
+        }
+
+        const sessionId = hashs[1];
+        let wsurl = 'wss://' + window.location.host + '/api/v1/system/node/terminal_ws/' + sessionId + "?token=" + localStorage.getItem("Authorization");
+        if (sessionId.includes("://")) wsurl = sessionId;
+        const socket = new WebSocket(wsurl);
+        const attachAddon = new AttachAddon.AttachAddon(socket);
+        const fitAddon = new FitAddon.FitAddon();
+        socket.onopen = () => {
+            onResize()
+        }
+        socket.onclose = () => {
+            alert('Terminal 连接超时或会话已结束')
+            window.close()
+        }
+        socket.onerror = () => {
+            alert('Terminal 连接失败，请检查 \/terminal\/* 的 WebSocket 反代情况')
+        }
+        term.loadAddon(attachAddon);
+        term.loadAddon(fitAddon);
+        term.open(document.getElementById('terminal-container'));
+    </script>
+</body>
+
+</html>
