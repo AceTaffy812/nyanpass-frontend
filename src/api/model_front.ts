@@ -79,6 +79,7 @@ export const OrderStatus = {
 export const OrderType = {
     DepositToBalance: "OrderType_DepositToBalance",
     PurchaseByBalance: "OrderType_PurchaseByBalance",
+    Accounting: "OrderType_Accounting",
 }
 
 const ConstTextMap = {
@@ -96,6 +97,7 @@ const ConstTextMap = {
     "PlanType_Day": "日付",
     "OrderType_DepositToBalance": "充值到余额",
     "OrderType_PurchaseByBalance": "余额消费",
+    "OrderType_Accounting": "手动记账",
     "OrderStatus_Open": "待支付",
     "OrderStatus_Closed": "交易关闭",
     "OrderStatus_Finished": "交易完成",

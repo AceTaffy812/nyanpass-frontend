@@ -161,6 +161,15 @@ export class apiAdmin {
         return data;
     }
 
+    async shop_order_accounting(obj: any): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/shop/order/accounting", {
+            method: "POST",
+            body: JSON.stringify(obj)
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
     async shop_order_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/shop/order?" + qs);
         var data = await rsp.json();

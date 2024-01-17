@@ -94,7 +94,9 @@ export function MyApp(props: { isDarkMode: boolean }) {
         getItem(nav, "side", "/userinfo"),
         getItem(nav, "side", "/forward_rules"),
       )
-      if (ignoreError(() => siteInfo.allow_single_tunnel)) {
+      if (ignoreError(() => {
+        return userInfo.allow_device || siteInfo.allow_single_tunnel
+      })) {
         navMenu.push(getItem(nav, "side", "/device_group"))
       }
       navMenu.push(

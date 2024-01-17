@@ -10,7 +10,7 @@ import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
 import { newPromiseRejectNow } from '../util/promise';
 import { byteConverter, formatBoolean, formatInfoTraffic } from '../util/format';
-import { PlanType, translateBackendString, translatePlanType } from '../api/model_front';
+import { PlanType, translatePlanType } from '../api/model_front';
 import { DragSortTable, ProColumns } from '@ant-design/pro-components';
 
 export function AdminPlansView() {

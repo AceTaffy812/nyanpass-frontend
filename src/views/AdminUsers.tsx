@@ -194,6 +194,7 @@ export function AdminUsersView() {
     },
     { title: '最大规则数', key: 'max_rules', dataIndex: 'max_rules', sorter: true },
     { title: '钱包余额', key: 'balance', dataIndex: 'balance', render: (e: any) => e + " " + displayCurrency, sorter: true },
+    { title: 'Telegram', key: 'telegram_id', dataIndex: 'telegram_id', },
     { title: '管理员', key: 'admin', dataIndex: 'admin', render: formatBoolean, filters: filtersBoolean },
     { title: '封禁', key: 'banned', dataIndex: 'banned', render: formatBoolean, filters: filtersBoolean },
     {

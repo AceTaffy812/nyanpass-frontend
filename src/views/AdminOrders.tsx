@@ -1,19 +1,21 @@
-import { Button, Card, Flex, Table, Tooltip } from 'antd';
+import { Button, Card, Flex, Input, InputNumber, Table, Tooltip, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { OrderStatus, OrderType, translateBackendString } from '../api/model_front';
 import { TableParams, tableParams2Qs } from '../api/model_api';
-import { DeleteOutlined, PropertySafetyOutlined } from '@ant-design/icons';
+import { DeleteOutlined, FileAddOutlined, PropertySafetyOutlined } from '@ant-design/icons';
 import { displayCurrency, renderFilterBackendString, tableSearchDropdown, tableShowTotal } from '../util/ui';
 import { formatUnix } from '../util/format';
-import { MyModal } from '../util/MyModal';
+import { MyMessage, MyModal, MyModalCannotDismiss } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { findObjByIdId } from '../util/misc';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
+import { newPromiseRejectNow } from '../util/promise';
 
 export function AdminOrdersView() {
+  const editingObj = useRef<any>(null)
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [tableParams, setTableParams] = useState<TableParams>({
@@ -107,6 +109,72 @@ export function AdminOrdersView() {
     })
   }
 
+  function accounting() {
+    editingObj.current = {} // 可以开新的 editingObj
+    MyModal.confirm({
+      icon: <p />,
+      title: "手动记账",
+      content: <Flex vertical>
+        <p>手动记账，金额计入用户余额，负数金额代表扣除。</p>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>用户 ID</Typography.Text>
+          <div className='dq-3'>
+            <InputNumber
+              min={0}
+              step={0}
+              onChange={(e) => editingObj.current.uid = e} />
+          </div>
+        </Flex>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>订单信息</Typography.Text>
+          <Input
+            onChange={(e) => editingObj.current.message = e.target.value}
+          ></Input>
+        </Flex>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>金额</Typography.Text>
+          <div className='dq-3'>
+            <InputNumber
+              step={0.01}
+              addonAfter={displayCurrency}
+              onChange={(e) => editingObj.current.amount = e} />
+          </div>
+        </Flex>
+      </Flex>,
+      onOk: () => {
+        if (!editingObj.current.uid) return newPromiseRejectNow(null)
+        if (!editingObj.current.amount) return newPromiseRejectNow(null)
+        asyncFetchJson(api.admin.user_list("id=" + editingObj.current.uid), (ret) => {
+
+          try {
+            if (ret.data.length != 1) {
+              MyMessage.error("该用户不存在");
+              return
+            }
+            const user = ret.data[0];
+            MyModalCannotDismiss.confirm({
+              icon: <p />,
+              title: `为用户 ${user.username} (#${user.id}) 记账 ${editingObj.current.amount} ${displayCurrency}`,
+              content: <div>
+                <p>操作前余额: {user.balance} {displayCurrency}</p>
+                <p>操作后余额: {Number(user.balance) + Number(editingObj.current.amount)} {displayCurrency}</p>
+                <p>若操作后余额为负数，则操作无法完成。</p>
+              </div>,
+              onOk: () => {
+                asyncFetchJson(api.admin.shop_order_accounting(editingObj.current), (ret) => {
+                  showCommonError(ret, ["", "更新失败"], updateData)
+                })
+              }
+            })
+          } catch (error: any) {
+            MyMessage.error("查询用户失败")
+            console.log(error)
+          }
+
+        })
+      }
+    })
+  }
 
   function renderBudan(e: number) {
     const obj = findObjByIdId(data, e)
@@ -157,7 +225,7 @@ export function AdminOrdersView() {
     <Card title="订单管理">
       <Flex vertical>
         <Flex>
-          {/* <Button icon={<FileAddOutlined />} onClick={() => message.info("TODO")}>分配订单</Button> */}
+          <Button icon={<FileAddOutlined />} onClick={accounting}>手动记账</Button>
           <Button icon={<DeleteOutlined />} onClick={() => deleteOrders(selectedRowKeys)}>删除选中</Button>
         </Flex>
         <Table
