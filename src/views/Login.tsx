@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Card, Flex, Form, Input, Typography } from "antd";
+import { Button, Card, Flex, Form, Input, Tag, Typography } from "antd";
 import { asyncFetchJson } from '../util/fetch';
 import { myvar, reloadMyVar } from '../myvar';
 import { showCommonError } from '../util/commonError';
@@ -7,18 +7,20 @@ import { api } from '../api/api';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { CaptchaApp } from "../widget/captcha/CaptchaApp.js"
 import { ignoreError } from '../util/promise.js';
+import { useParams } from 'react-router-dom';
 
-
-export function LoginView() {
+export function LoginView(props: { reg: boolean }) {
   const [requesting, setRequesting] = useState(false);
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(props.reg);
+  const params = useParams();
+  const [inviter, setInviter] = useState(params["inviter"]);
 
   function onFinish(values: any) {
     setRequesting(true)
     myvar.captchaReset()
     var req: any = null
     if (isRegister) {
-      req = api.auth.register(values.username, values.password, myvar.captchaKey)
+      req = api.auth.register(values, inviter, myvar.captchaKey)
     } else {
       req = api.auth.login(values.username, values.password)
     }
@@ -40,6 +42,15 @@ export function LoginView() {
     }
     return <></>
   }
+
+  const YaoQingZhe = <Input style={{ marginBottom: "1em" }}
+    prefix={<Tag>邀请者 ID</Tag>}
+    type="number"
+    defaultValue={inviter}
+    value={inviter}
+    onChange={e => setInviter(e.target.value)}
+    placeholder="选填"
+  />
 
   return (
     <Card title={isRegister ? "注册" : "登录"}>
@@ -71,6 +82,8 @@ export function LoginView() {
             </Form.Item> */}
 
           </Form.Item>
+
+          {isRegister ? YaoQingZhe : <></>}
 
           <Form.Item>
             <Button type="primary" htmlType="submit">{isRegister ? "注册" : "登录"}</Button>

@@ -95,7 +95,7 @@ export class apiUser {
     }
 
     async devicegroup_reset_token(id: number): Promise<any> {
-        var rsp = await fetchApi("/api/v1/user/devicegroup/reset_token", {
+        var rsp = await fetchApi("/api/v1/user/devicegroup/" + id + "/reset_token", {
             method: "POST"
         });
         var data = await rsp.json();
@@ -156,6 +156,29 @@ export class apiUser {
 
     async shop_order_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/order?" + qs);
+        var data = await rsp.json();
+        return data;
+    }
+
+    async aff_log(qs: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/aff/log?" + qs);
+        var data = await rsp.json();
+        return data;
+    }
+
+    async aff_config(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/aff/config");
+        var data = await rsp.json();
+        return data;
+    }
+
+    async aff_deposit(amount: number): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/aff/deposit", {
+            method: "POST",
+            body: JSON.stringify({
+                "amount": amount,
+            })
+        });
         var data = await rsp.json();
         return data;
     }

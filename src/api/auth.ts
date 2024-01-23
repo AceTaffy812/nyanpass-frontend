@@ -21,14 +21,17 @@ export class apiAuth {
         return data;
     }
 
-    async register(username: string, password: string, captcha_key: string): Promise<any> {
+    async register(req: any, inviter: string | undefined, captcha_key: string): Promise<any> {
+        req.captcha_key = captcha_key
+        const inv = Number(inviter)
+        if (isNaN(inv)) {
+            req.inviter = 0
+        } else {
+            req.inviter = inv
+        }
         var rsp = await fetchApi("/api/v1/auth/register", {
             method: "POST",
-            body: JSON.stringify({
-                username: username.trim(),
-                password: password.trim(),
-                captcha_key: captcha_key,
-            })
+            body: JSON.stringify(req)
         });
         var data = await rsp.json();
         return data;

@@ -18,11 +18,28 @@ export function myFilter(arr: any, key: string, values: any[]) {
     return ret
 }
 
-export function findObjByIdId(arr: any[], id: number) {
+export function findObjByIdId(arr: any[], id: any, key?: string) {
+    if (!isNotBlank(key)) key = "id"
     for (let i = 0; i < arr.length; i++) {
-        if (arr[i].id == id) return arr[i]
+        if (arr[i][String(key)] == id) return arr[i]
     }
     return null
+}
+
+export function findObjIndexByIdId(arr: any[], id: any, key?: string) {
+    if (!isNotBlank(key)) key = "id"
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i][String(key)] == id) return i
+    }
+    return -1
+}
+
+export function removeFromArray(arr: any[], id: any, key?: string) {
+    const i = findObjIndexByIdId(arr, id, key)
+    if (i >= 0) {
+        arr = arr.splice(i, 1)
+    }
+    return arr
 }
 
 export function isInt(a: any) {

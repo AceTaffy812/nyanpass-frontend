@@ -1,6 +1,6 @@
 import { NavigateFunction } from "react-router-dom";
 import { ignoreError } from "./util/promise";
-import { AimOutlined, CloudServerOutlined, DashboardOutlined, DesktopOutlined, HomeOutlined, OrderedListOutlined, SettingOutlined, ShoppingOutlined, TagsOutlined, TransactionOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
+import { AimOutlined, CloudServerOutlined, DashboardOutlined, DesktopOutlined, HomeOutlined, OrderedListOutlined, RedEnvelopeOutlined, SettingOutlined, ShoppingOutlined, TagsOutlined, TransactionOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
 
 export function myNavFactory(nav: NavigateFunction, setBreadTitle: (t: string) => void, callback: () => void) {
     return function (to: string, onlyUpdateTitle?: boolean) {
@@ -20,7 +20,7 @@ export function myNavFactory(nav: NavigateFunction, setBreadTitle: (t: string) =
 export const myNavMap: any = {
     "/": ["主页", <HomeOutlined />],
     "/login": ["登录或注册"],
-    "/userinfo": ["用户信息", <UserOutlined />],
+    "/userinfo": ["个人中心", <UserOutlined />],
     "/forward_rules": ["转发规则", <UnorderedListOutlined />],
     "/device_group": ["单端隧道", <DesktopOutlined />],
     "/shop": ["商城", <ShoppingOutlined />],
@@ -32,6 +32,7 @@ export const myNavMap: any = {
     "/admin/orders": ["管理/订单管理", <OrderedListOutlined />],
     "/admin/device_group": ["管理/设备组管理", <CloudServerOutlined />],
     "/admin/plans": ["管理/套餐管理", <TagsOutlined />],
+    "/admin/afflog": ["管理/邀请记录", <RedEnvelopeOutlined />],
 }
 
 export function getItem(nav: (a: string) => void, prefix: string, to: string) {

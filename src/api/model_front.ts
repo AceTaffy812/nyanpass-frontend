@@ -7,6 +7,13 @@ export class FrontSiteInfo {
     allow_looking_glass: boolean = false
 }
 
+export class FrontInviteConfig {
+    enable = false;
+    commission_rate = "0";
+    cycle = false;
+    force_bind_telegram = false;
+}
+
 export class FrontPaymentInfo {
     min_deposit: number = 10
     gateways: FrontPaymentInfoGateway[] = simpleGateways()
@@ -70,16 +77,26 @@ export const SelectorType = {
     least_load: "least_load",
 }
 
+export const OrderType = {
+    DepositToBalance: "OrderType_DepositToBalance",
+    PurchaseByBalance: "OrderType_PurchaseByBalance",
+    Accounting: "OrderType_Accounting",
+}
+
 export const OrderStatus = {
     Open: "OrderStatus_Open",
     Closed: "OrderStatus_Closed",
     Finished: "OrderStatus_Finished",
 }
 
-export const OrderType = {
-    DepositToBalance: "OrderType_DepositToBalance",
-    PurchaseByBalance: "OrderType_PurchaseByBalance",
-    Accounting: "OrderType_Accounting",
+export const AffLogType = {
+    Commission: "AffiliateLogType_Commission",
+    Withdraw: "AffiliateLogType_Withdraw",
+    Deposit: "AffiliateLogType_Deposit",
+    Accounting: "AffiliateLogType_Accounting",
+}
+
+export const AffLogStatus = {
 }
 
 const ConstTextMap = {
@@ -101,6 +118,10 @@ const ConstTextMap = {
     "OrderStatus_Open": "待支付",
     "OrderStatus_Closed": "交易关闭",
     "OrderStatus_Finished": "交易完成",
+    "AffiliateLogType_Commission": "产生佣金",
+    "AffiliateLogType_Withdraw": "佣金提现",
+    "AffiliateLogType_Deposit": "佣金转余额",
+    "AffiliateLogType_Accounting": "手动记账",
     // 负载均衡类型
     random: "随机",
     round: "轮询",

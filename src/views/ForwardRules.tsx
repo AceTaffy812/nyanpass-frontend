@@ -548,8 +548,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
       return <>
         <Typography.Text strong>落地地址</Typography.Text>
         <Input.TextArea
-          rows={4}
-          placeholder={"一行一个，空行会被忽略，格式如下:\n1.2.3.4:5678\n[2001::]:80\nexample.com:443"}
+          rows={5}
+          placeholder={"一行一个，空行会被忽略，格式如下:\n\n1.2.3.4:5678\n[2001::]:80\nexample.com:443"}
           defaultValue={ignoreError(() => editingForwardConfig.current.dest.join("\n"))}
           onChange={(e) => editingForwardConfig.current.dest = e.target.value.split("\n").filter((v) => v.trim() != "")}
         ></Input.TextArea>

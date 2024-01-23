@@ -51,6 +51,14 @@ export class apiAdmin {
         return data;
     }
 
+    async user_delete_unused(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/user/delete_unused", {
+            method: "DELETE",
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
     async forward_delete(ids: any[]): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/forward", {
             method: "DELETE",
@@ -207,6 +215,32 @@ export class apiAdmin {
         var rsp = await fetchApi("/api/v1/admin/search_rules", {
             method: "POST",
             body: JSON.stringify(req),
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async aff_log(qs: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/aff/log?" + qs);
+        var data = await rsp.json();
+        return data;
+    }
+
+    async aff_log_delete(ids: any[]): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/aff/log", {
+            method: "DELETE",
+            body: JSON.stringify({
+                ids: batchIds(ids)
+            })
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async aff_log_accounting(obj: any): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/aff/log/accounting", {
+            method: "POST",
+            body: JSON.stringify(obj)
         });
         var data = await rsp.json();
         return data;

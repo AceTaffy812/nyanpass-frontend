@@ -4,8 +4,8 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { byteConverter, formartDests as displayDests, formatBoolean, formatInfoTraffic, formatUnix } from '../util/format';
-import { allFalseMap, findObjByIdId, myFilter } from '../util/misc';
-import { BackwardOutlined, DeleteOutlined, EditOutlined, LogoutOutlined, PaperClipOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
+import { allFalseMap, findObjByIdId, isNotBlank, myFilter } from '../util/misc';
+import { BackwardOutlined, DeleteOutlined, EditOutlined, LogoutOutlined, PaperClipOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
 import { commonEx, showCommonError } from '../util/commonError';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { myvar, reloadMyVar } from '../myvar';
@@ -15,7 +15,8 @@ import { displayCurrency, filtersBoolean, renderSelectIdName, tableSearchDropdow
 import { ReqSearchRules, TableParams, tableParams2Qs } from '../api/model_api';
 import dayjs, { unix } from 'dayjs';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
-import { DeviceGroupType, PlanType, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, FrontInviteConfig, PlanType, translateBackendString } from '../api/model_front';
+import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 
 export function AdminUsersView() {
   const newUsername = useRef("")
@@ -206,6 +207,7 @@ export function AdminUsersView() {
           <Tooltip title="重置密码"><Button icon={<LogoutOutlined />} onClick={() => resetUserPassword(e)} /></Tooltip>
           <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editUser(findObjByIdId(data, e))} /></Tooltip>
           <Tooltip title="编辑用户套餐"><Button icon={<ShoppingOutlined />} onClick={() => changePlan(findObjByIdId(data, e))} /></Tooltip>
+          <Tooltip title="邀请注册"><Button icon={<RedEnvelopeOutlined />} onClick={() => editInviteConfig(findObjByIdId(data, e))} /></Tooltip>
         </Flex>
       }
     },
@@ -357,6 +359,55 @@ export function AdminUsersView() {
     })
   }
 
+  function editInviteConfig(obj: any) {
+    obj = clone(obj)
+    editingObj.current = obj
+    editingObj.current.qd_follow_site_invite_config = !isNotBlank(obj.invite_config)
+    setTimeout(() => {
+      on_qd_follow_site_invite_config_Change(editingObj.current.qd_follow_site_invite_config)
+    }, 300);
+    let cfg = new FrontInviteConfig()
+    try {
+      cfg = JSON.parse(obj.invite_config);
+    } catch (e: any) { }
+    const yaoQingRen = obj.inviter > 0 ? <p>此用户的邀请人 ID: {obj.inviter}</p> : <></>
+    MyModal.confirm({
+      icon: <p />,
+      title: "编辑邀请注册设置 " + obj.username + " (UID=" + obj.id + ")",
+      content: <Flex vertical>
+        {yaoQingRen}
+        <Flex className='neko-settings-flex-line'>
+          <Tooltip title="关闭此选项后，可为此用户单独调整邀请返利倍率等设置。">
+            <Typography.Text style={{ flex: 1 }} strong>跟随全站设置 (?)</Typography.Text>
+          </Tooltip>
+          <Switch
+            defaultChecked={editingObj.current.qd_follow_site_invite_config}
+            onChange={(e) => on_qd_follow_site_invite_config_Change(e)} />
+        </Flex>
+        <div className='vis-custom' style={{ display: "none" }}>
+          <InviteSettings data={cfg}></InviteSettings>
+        </div>
+      </Flex>,
+      onOk: () => {
+        if (editingObj.current.qd_follow_site_invite_config) {
+          editingObj.current.invite_config = ""
+        } else {
+          editingObj.current.invite_config = JSON.stringify(editingInviteSettings)
+        }
+        return promiseFetchJson(api.admin.user_update(obj.id, editingObj.current), (ret) => {
+          showCommonError(ret, ["", "用户更新失败"], updateData)
+        })
+      }
+    })
+  }
+
+  const on_qd_follow_site_invite_config_Change = (e: boolean) => {
+    editingObj.current.qd_follow_site_invite_config = e
+    // 更新可视
+    document.querySelectorAll(".vis-custom").forEach((el) => (el as HTMLElement).style.display = e ? "none" : "")
+  }
+
+
   function changePlan(obj: any) {
     // TODO 改用 shop_plan_push 这个接口？
     obj = clone(obj)
@@ -445,6 +496,19 @@ export function AdminUsersView() {
     })
   }
 
+  function btn_delete_unused_onclick() {
+    MyModal.confirm({
+      icon: <p />,
+      title: "清理无效用户",
+      content: "用户组与余额均为 0 的用户，即从未付费的用户，将被删除，且不可恢复。",
+      onOk: () => {
+        return promiseFetchJson(api.admin.user_delete_unused(), (ret) => {
+          showCommonError(ret, ["清理成功", "清理失败"], updateData)
+        })
+      }
+    })
+  }
+
   function deleteRules(e: string[] | number[] | React.Key[]) {
     if (e.length == 0) return
     let content = <p>你确定要删除 {e.length} 条规则吗？</p>
@@ -486,6 +550,7 @@ export function AdminUsersView() {
           <Flex>
             <Button icon={<UserAddOutlined />} onClick={btn_create_onclick}>添加用户</Button>
             <Button icon={<SearchOutlined />} onClick={btn_search_rules_onclick}>搜索规则</Button>
+            <Button icon={<DeleteOutlined />} onClick={btn_delete_unused_onclick}>清理无效用户</Button>
           </Flex>
           <Table
             rowKey="id"

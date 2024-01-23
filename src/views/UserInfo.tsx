@@ -3,18 +3,20 @@ import { api } from '../api/api';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic, formatUnix } from '../util/format';
 import { ignoreError } from '../util/promise';
-import { Button, Card, Flex, Form, Input, Space, Switch, Tag, Typography } from 'antd';
+import { Button, Card, Flex, Form, Input, InputNumber, Space, Switch, Tag, Typography } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
-import { MyModal } from '../util/MyModal';
+import { MyMessage, MyModal } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
 import MySyntaxHighlighter from '../widget/MySyntaxHighlither';
-import { reloadMyVar } from '../myvar';
+import { myvar, reloadMyVar } from '../myvar';
+import { FrontInviteConfig } from '../api/model_front';
 
 export function UserInfoView(props: { userInfo: any }) {
   const { userInfo } = props;
   const mounted = useRef(false);
   const [notice, setNotice] = useState('');
+  const [affConfig, setAffConfig] = useState(new FrontInviteConfig());
   const [requesting, setRequesting] = useState(false);
   const [autoRenew, setAutoRenew] = useState(false);
 
@@ -23,6 +25,11 @@ export function UserInfoView(props: { userInfo: any }) {
       mounted.current = true
       asyncFetchJson(api.guest.kv("site_notice", "user"), (ret) => {
         setNotice(ret.data)
+      })
+      asyncFetchJson(api.user.aff_config(), (ret) => {
+        if (ret.data != null) {
+          setAffConfig(ret.data)
+        }
       })
     }
   }, [])
@@ -88,6 +95,35 @@ export function UserInfoView(props: { userInfo: any }) {
       onOk: () => {
         return promiseFetchJson(api.user.renew(), (ret) => {
           showCommonError(ret, ["续费成功", "续费失败"], () => reloadMyVar({ userInfo: true }))
+        })
+      }
+    })
+  }
+
+  const editingAffDepositAmount = useRef(0);
+  function btn_aff_deposit_onclick() {
+    MyModal.confirm({
+      icon: <p />,
+      title: "划转余额",
+      content: <div>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>划转的金额</Typography.Text>
+          <div className='dq-3'>
+            <InputNumber
+              min={0}
+              step={0.01}
+              addonAfter={displayCurrency}
+              defaultValue={editingAffDepositAmount.current}
+              onChange={e => editingAffDepositAmount.current = e!}
+            ></InputNumber>
+          </div>
+        </Flex>
+        <h3>Tips:</h3>
+        <p>Aff 佣金划转到余额后，可以站内消费，不可提现。</p>
+      </div>,
+      onOk: () => {
+        return promiseFetchJson(api.user.aff_deposit(editingAffDepositAmount.current), (ret) => {
+          showCommonError(ret, ["划转成功", "划转失败"], () => reloadMyVar({ userInfo: true }))
         })
       }
     })
@@ -201,6 +237,19 @@ export function UserInfoView(props: { userInfo: any }) {
               </Form.Item>
             </Flex>
           </Form>
+        </Flex>
+      </Card>
+      <Card title="邀请注册" hidden={!affConfig.enable}>
+        <Flex vertical>
+          <h2>佣金比例: {(Number(affConfig.commission_rate) * 100).toFixed(2)}% ({affConfig.cycle ? "循环返利" : "首次消费返利"})</h2>
+          <Flex className='ant-flex2'>
+            <h2>佣金余额: {ignoreError(() => userInfo.aff_balance)} {displayCurrency}</h2>
+            <Button onClick={btn_aff_deposit_onclick}>划转余额</Button>
+          </Flex>
+          <Card title="邀请注册链接">
+            <Typography.Paragraph copyable>{location.origin + "/#register/" + ignoreError(() => userInfo.id)}</Typography.Paragraph>
+            <Button onClick={() => myvar.nav("/afflog")}>查看邀请记录</Button>
+          </Card>
         </Flex>
       </Card>
     </Flex>

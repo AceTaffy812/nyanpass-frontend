@@ -4,12 +4,12 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { allFalseMap, cleanupDefaultValue, findObjByIdId, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
-import { DeviceGroupType, DeviceGroupType_AdminCanAdd, SelectorType, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, DeviceGroupType_AdminCanAdd, translateBackendString } from '../api/model_front';
 import { copyToClipboard, renderSelect, renderSelectBackendString } from '../util/ui';
 import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
-import { ignoreError, ignoreErrorAndBlank, newPromiseRejectNow } from '../util/promise';
+import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { formatInfoTraffic } from '../util/format';
 import { MEditor, getEditor } from '../widget/MEditor';
 import { myvar } from '../myvar';
@@ -284,16 +284,6 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             ></InputNumber>
           </div>
         </Flex>
-        <Flex className='neko-settings-flex-line vis-outbound' style={!props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title={<p>当出口组可用服务器大于一个时，连接使用的负载均衡策略</p>}>
-            <Typography.Text strong>负载均衡 (?)</Typography.Text>
-          </Tooltip>
-          <Select
-            defaultValue={ignoreErrorAndBlank(() => editingObjConfig.current.selector, "random")}
-            options={renderSelectBackendString(SelectorType)}
-            onChange={(e) => editingObjConfig.current.selector = e}
-          ></Select>
-        </Flex>
         {/* 最后 */}
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>{beizhu}</Typography.Text>
@@ -327,10 +317,15 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
   }
 
   function resetToken(e: number) {
+    const obj = findObjByIdId(data, e);
     MyModal.confirm({
       icon: <p />,
       title: "重置 token",
-      content: <p>你确定要重置设备组 {findObjByIdId(data, e).display_name} 的 token 吗？</p>,
+      content: <div>
+        <p>你确定要重置设备组 {obj.display_name} 的 token 吗？</p>
+        <p>重置后，一定要卸载节点端，用新的命令重新对接，机器才会上线。</p>
+        <p>当前token: {obj.token}</p>
+      </div>,
       onOk: () => {
         return promiseFetchJson(api2.devicegroup_reset_token(e), (ret) => {
           showCommonError(ret, ["重置成功", "重置失败"], updateData)

@@ -232,6 +232,11 @@
             const d = new Date()
             return d.getTime()
         }
+
+        function undefinedToZero(i) {
+            if (!i) return 0
+            return i
+        }
     </script>
 
     <script>
@@ -240,6 +245,10 @@
             const nyanpass_config = JSON.parse(localStorage.getItem("nyanpass_config"))
             const nyanpass_update = JSON.parse(localStorage.getItem("nyanpass_update"))
             window.ncVersion = nyanpass_update.ncVersion
+            window.ncVersionMessage = nyanpass_update.ncVersion
+            if (nyanpass_update.ncMessage != null) {
+                window.ncVersionMessage += nyanpass_update.ncMessage
+            }
             window.clientScript = nyanpass_config.clientScript
         } catch (e) {
             console.log("初始化", e)
@@ -430,7 +439,6 @@
                                 down: new mdui.Tooltip(`#down-${server.SessionId}`, {}),
                                 cpu: new mdui.Tooltip(`#cpu-${server.SessionId}`, {}),
                                 mem: new mdui.Tooltip(`#mem-${server.SessionId}`, {}),
-                                swap: new mdui.Tooltip(`#swap-${server.SessionId}`, {}),
                                 disk: new mdui.Tooltip(`#disk-${server.SessionId}`, {}),
                                 uptime: new mdui.Tooltip(`#uptime-${server.SessionId}`, {}),
                             }
@@ -438,11 +446,14 @@
 
                         var tip = Tips[server.SessionId];
                         tip.info.$element[0].innerHTML = `在线 ${server.BackendObj.online ? "true" : "false"}<br><br>组ID ${server.gid}<br>组内编号 ${server.BackendObj.name}<br><br>系统 ${server.Host.Platform} ${server.Host.PlatformVersion}<br>架构 ${server.Host.Arch}<br>节点端版本 ${server.Host.Version}`;
-                        tip.up.$element[0].innerHTML = "总上传 " + statusCard.readableBytes(server.State.NetOutTransfer) + "<br><br>连接数:<br>TCP " + server.State.TcpConnCount + "<br>UDP " + server.State.UdpConnCount;
-                        tip.down.$element[0].innerHTML = "总下载 " + statusCard.readableBytes(server.State.NetInTransfer) + "<br><br>连接数:<br>TCP " + server.State.TcpConnCount + "<br>UDP " + server.State.UdpConnCount;
-                        tip.cpu.$element[0].innerHTML = "CPU:<br>" + server.Host.CPU.join("<br>") + "<br><br>平均负载 " + server.State.Load1 + " / " + server.State.Load5 + " / " + server.State.Load15 + "<br>进程数 " + server.State.ProcessCount;
-                        tip.mem.$element[0].innerHTML = "内存: " + statusCard.formatByteSize(server.State.MemUsed) + ' / ' + statusCard.formatByteSize(server.Host.MemTotal);
-                        tip.swap.$element[0].innerHTML = "Swap: " + statusCard.formatByteSize(server.State.SwapUsed) + ' / ' + statusCard.formatByteSize(server.Host.SwapTotal);
+                        tip.up.$element[0].innerHTML = "总上传 " + statusCard.readableBytes(server.State.NetOutTransfer) + "<br><br>连接数:<br>TCP " + undefinedToZero(server.State.TcpConnCount) + "<br>UDP " + undefinedToZero(server.State.UdpConnCount);
+                        tip.down.$element[0].innerHTML = "总下载 " + statusCard.readableBytes(server.State.NetInTransfer) + "<br><br>连接数:<br>TCP " + undefinedToZero(server.State.TcpConnCount) + "<br>UDP " + undefinedToZero(server.State.UdpConnCount);
+                        tip.cpu.$element[0].innerHTML = "CPU:<br>" + server.Host.CPU.join("<br>") + "<br><br>平均负载 " + undefinedToZero(server.State.Load1) + " / " + undefinedToZero(server.State.Load5) + " / " + undefinedToZero(server.State.Load15) + "<br>进程数 " + server.State.ProcessCount;
+                        let memoryHTML = "内存: " + statusCard.formatByteSize(server.State.MemUsed) + ' / ' + statusCard.formatByteSize(server.Host.MemTotal);
+                        if (server.Host.SwapTotal > 0) {
+                            memoryHTML += "<br> Swap: " + statusCard.formatByteSize(server.State.SwapUsed) + ' / ' + statusCard.formatByteSize(server.Host.SwapTotal);
+                        }
+                        tip.mem.$element[0].innerHTML = memoryHTML
                         tip.disk.$element[0].innerHTML = "储存: " + statusCard.formatByteSize(server.State.DiskUsed) + ' / ' + statusCard.formatByteSize(server.Host.DiskTotal);
                         tip.uptime.$element[0].innerHTML = `启动时间 ${statusCard.formatTimestamp(server.Host.BootTime)}<br>最近在线 ${statusCard.formatTimestamp(server.BackendObj.last_seen)}<br>最近同步 ${statusCard.formatTimestamp(server.BackendObj.last_pull)}`;
                     }
@@ -518,7 +529,7 @@
             }).catch(() => mdui.alert("更新请求失败", title))
         }
         function updateNodeClient(server) {
-            const text = `IP: ${server.BackendObj.ip4}<br>当前版本号: ${server.Host.Version}<br>可更新版本: ${window.ncVersion}<br>如果当前版本号比可用新，请不要更新。<br><br><button onclick="updateAll()">为所有服务器下发更新</button>`
+            const text = `IP: ${server.BackendObj.ip4}<br>当前版本号: ${server.Host.Version}<br>可更新版本: ${window.ncVersionMessage}<br>如果当前版本号比可用新，请不要更新。<br><br><button onclick="updateAll()">为所有服务器下发更新</button>`
             const title = "更新节点端: " + server.Name
             alertDialog = mdui.confirm(text, title, () => {
                 fetch("/api/v1/system/node/update/" + server.SessionId, {

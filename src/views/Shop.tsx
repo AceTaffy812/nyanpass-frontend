@@ -100,17 +100,6 @@ export function ShopView(props: { userInfo: any }) {
 
   return (
     <Flex vertical>
-      <Card title="购买套餐">
-        <List
-          grid={{ gutter: 32 }}
-          dataSource={plans}
-          renderItem={(item: any) => (
-            <List.Item>
-              {renderPlanCard(item)}
-            </List.Item>
-          )}
-        />
-      </Card>
       <Card title="我的钱包">
         <Flex vertical>
           <h2>钱包余额: {ignoreError(() => userInfo.balance) + " " + displayCurrency}</h2>
@@ -138,6 +127,17 @@ export function ShopView(props: { userInfo: any }) {
           </Card>
           <Typography.Text>由于支付手续费，最终支付金额可能大于您充值的金额。</Typography.Text>
         </Flex>
+      </Card>
+      <Card title="购买套餐">
+        <List
+          grid={{ gutter: 32 }}
+          dataSource={plans}
+          renderItem={(item: any) => (
+            <List.Item>
+              {renderPlanCard(item)}
+            </List.Item>
+          )}
+        />
       </Card>
     </Flex>
   )

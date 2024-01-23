@@ -18,8 +18,7 @@ import { DeviceGroupsView } from './views/DeviceGroups';
 import { MyMessage, setModalCtx } from './util/MyModal';
 import { ShopView } from './views/Shop';
 import { AdminPlansView } from './views/AdminPlans';
-import { AdminOrdersView } from './views/AdminOrders';
-import { OrdersView } from './views/Orders';
+import { OrdersView, OrdersViewType } from './views/Orders';
 import { LookingGlassView } from './views/LookingGlass';
 import { AdminMainView } from './views/AdminMain';
 import { Colors } from './material-color';
@@ -130,6 +129,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
           getItem(nav, "side", "/admin/orders"),
           getItem(nav, "side", "/admin/plans"),
           getItem(nav, "side", "/admin/device_group"),
+          getItem(nav, "side", "/admin/afflog"),
         ]
       })
     }
@@ -213,19 +213,23 @@ export function MyApp(props: { isDarkMode: boolean }) {
             <Card>
               <Routes>
                 <Route path="/" element={<MainView siteInfo={siteInfo} backendInfo={backendInfo} userInfo={userInfo} />} />
-                <Route path="/login" element={<LoginView />} />
+                <Route path="/login" element={<LoginView reg={false} />} />
+                <Route path="/register" element={<LoginView reg={true} />} />
+                <Route path="/register/:inviter" element={<LoginView reg={true} />} />
                 <Route path="/userinfo" element={<UserInfoView userInfo={userInfo} />} />
                 <Route path="/device_group" element={<DeviceGroupsView isAdmin={false} adminShowUserOutbound={false} />} />
                 <Route path="/forward_rules" element={<ForwardRulesView userInfo={userInfo} />} />
                 <Route path="/shop" element={<ShopView userInfo={userInfo} />} />
-                <Route path="/orders" element={<OrdersView />} />
+                <Route path="/orders" element={<OrdersView type={OrdersViewType.UserOrder} />} />
+                <Route path="/afflog" element={<OrdersView type={OrdersViewType.UserAffLog} />} />
                 <Route path="/looking_glass" element={<LookingGlassView />} />
                 <Route path="/admin/main" element={<AdminMainView />} />
                 <Route path="/admin/settings" element={<AdminSettingsView userInfo={userInfo} siteInfo={siteInfo} />} />
                 <Route path="/admin/users" element={<AdminUsersView />} />
                 <Route path="/admin/device_group" element={<DeviceGroupsView isAdmin={true} adminShowUserOutbound={false} />} />
                 <Route path="/admin/plans" element={<AdminPlansView />} />
-                <Route path="/admin/orders" element={<AdminOrdersView />} />
+                <Route path="/admin/orders" element={<OrdersView type={OrdersViewType.AdminOrder} />} />
+                <Route path="/admin/afflog" element={<OrdersView type={OrdersViewType.AdminAffLog} />} />
               </Routes>
             </Card>
           </Layout.Content>

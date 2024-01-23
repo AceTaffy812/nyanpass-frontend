@@ -5,9 +5,10 @@ import { asyncFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
-import { FrontPaymentInfo, FrontSiteInfo } from '../api/model_front';
+import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo } from '../api/model_front';
 import { displayCurrency } from '../util/ui';
 import { cleanupDefaultValue } from '../util/misc';
+import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 
 export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInfo }) {
   const mounted = useRef(false);
@@ -19,6 +20,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
   const [allowSingle, setAllowSingle] = useState(false);
   const [allowLookingGlass, setAllowLookingGlass] = useState(false);
   const [notice, setNotice] = useState('');
+  const [inviteConfig, setInviteConfig] = useState(new FrontInviteConfig());
 
   const [min_deposit, set_min_deposit] = useState(10);
   const [enable_epay, set_enable_epay] = useState(false);
@@ -43,6 +45,12 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       mounted.current = true
       asyncFetchJson(api.guest.kv("site_notice", "admin"), (ret) => {
         setNotice(ret.data)
+      })
+      asyncFetchJson(api.guest.kv("invite_config", "admin"), (ret) => {
+        try {
+          let info = JSON.parse(ret.data)
+          setInviteConfig(info)
+        } catch (e: any) { }
       })
       asyncFetchJson(api.guest.kv("payment_info", "admin"), (ret) => {
         try {
@@ -130,6 +138,13 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
     payment.gateways[2].fee_ratio = cyber_fee
     //
     asyncFetchJson(api.admin.kv_put("payment_info", JSON.stringify(payment)), (ret) => {
+      setRequesting(true)
+      showCommonError(ret, ["保存成功", "保存失败"], () => setRequesting(false))
+    })
+  }
+
+  function btn_save_invite_onclick() {
+    asyncFetchJson(api.admin.kv_put("invite_config", JSON.stringify(editingInviteSettings)), (ret) => {
       setRequesting(true)
       showCommonError(ret, ["保存成功", "保存失败"], () => setRequesting(false))
     })
@@ -321,6 +336,14 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
           loading={requesting}
           style={{ margin: "1em 0 0 0", float: 'right' }}
           onClick={btn_save_payment_onclick}
+        >保存</Button>
+      </Card>
+      <Card title="邀请设置">
+        <InviteSettings data={inviteConfig}></InviteSettings>
+        <Button type="primary"
+          loading={requesting}
+          style={{ margin: "1em 0 0 0", float: 'right' }}
+          onClick={btn_save_invite_onclick}
         >保存</Button>
       </Card>
     </Flex>
