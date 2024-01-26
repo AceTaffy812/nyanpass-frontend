@@ -17,6 +17,7 @@ import dayjs, { unix } from 'dayjs';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
 import { DeviceGroupType, FrontInviteConfig, PlanType, translateBackendString } from '../api/model_front';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
+import { apiForward } from '../api/forward';
 
 export function AdminUsersView() {
   const newUsername = useRef("")
@@ -511,13 +512,14 @@ export function AdminUsersView() {
 
   function deleteRules(e: string[] | number[] | React.Key[]) {
     if (e.length == 0) return
+    const apiFw = new apiForward("0");
     let content = <p>你确定要删除 {e.length} 条规则吗？</p>
     MyModal.confirm({
       icon: <p />,
       title: "删除规则",
       content: content,
       onOk: () => {
-        return promiseFetchJson(api.admin.forward_delete(e), (ret) => {
+        return promiseFetchJson(apiFw.forward_delete(e), (ret) => {
           showCommonError(ret, ["", "删除规则失败"], updateData)
         })
       }

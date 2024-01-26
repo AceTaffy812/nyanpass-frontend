@@ -59,17 +59,6 @@ export class apiAdmin {
         return data;
     }
 
-    async forward_delete(ids: any[]): Promise<any> {
-        var rsp = await fetchApi("/api/v1/admin/forward", {
-            method: "DELETE",
-            body: JSON.stringify({
-                ids: batchIds(ids)
-            })
-        });
-        var data = await rsp.json();
-        return data;
-    }
-
     async devicegroup_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/devicegroup?" + qs);
         var data = await rsp.json();

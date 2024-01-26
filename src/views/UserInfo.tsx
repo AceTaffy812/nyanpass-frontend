@@ -4,7 +4,7 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic, formatUnix } from '../util/format';
 import { ignoreError } from '../util/promise';
 import { Button, Card, Flex, Form, Input, InputNumber, Space, Switch, Tag, Typography } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
+import { LockOutlined, PlusCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { MyMessage, MyModal } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
@@ -169,7 +169,7 @@ export function UserInfoView(props: { userInfo: any }) {
           <Flex className='ant-flex3'>
             <Typography.Text strong>续费价格</Typography.Text>
             <Typography.Text>{ignoreError(() => userInfo.renew_price)} {displayCurrency}</Typography.Text>
-            <Button onClick={btn_renew_onclick}>立即续费</Button>
+            <Button icon={<SyncOutlined />} onClick={btn_renew_onclick}>立即续费</Button>
           </Flex>
           <Flex>
             <Typography.Text strong>流量</Typography.Text>
@@ -181,9 +181,10 @@ export function UserInfoView(props: { userInfo: any }) {
           </Flex>
           {speed_limit}
           {ip_limit}
-          <Flex>
+          <Flex className='ant-flex3'>
             <Typography.Text strong>钱包余额</Typography.Text>
             <Typography.Text>{ignoreError(() => userInfo.balance)} {displayCurrency}</Typography.Text>
+            <Button icon={<PlusCircleOutlined />} onClick={() => myvar.nav("/shop")}>充值</Button>
           </Flex>
           <Flex className='ant-flex3'>
             <Typography.Text strong>Telegram 关联</Typography.Text>
