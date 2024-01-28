@@ -238,7 +238,7 @@ export function AdminUsersView() {
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Tooltip title="组 ID 必须 >= 0, 分组为 0 的用户无法使用转发。">
-            <Typography.Text strong>组ID (?)</Typography.Text>
+            <Typography.Text strong>用户组 ID (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
             <InputNumber

@@ -187,7 +187,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Input>
         </Flex>
         <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title={<p>可以使用的 User Group ID (使用英文逗号分割)</p>}>
+          <Tooltip title={<p>有权使用此组转发的用户组 ID (使用英文逗号分割， 0 表示无套餐用户可以查看探针。)</p>}>
             <Typography.Text strong>用户组 ID (?)</Typography.Text>
           </Tooltip>
           <Input

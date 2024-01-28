@@ -32,10 +32,17 @@ export function ShopView(props: { userInfo: any }) {
   }, [])
 
   function renderPlanCard(item: any) {
-    const shuoming = isNotBlank(item.desc) ? <Flex>
-      <Typography.Text strong>说明</Typography.Text>
-      <Typography.Text>{item.desc}</Typography.Text>
-    </Flex> : <></>
+    let shuoming = <></>
+    if (isNotBlank(item.desc)) {
+      let shuoming2 = <Typography.Text>{item.desc}</Typography.Text>
+      if (item.desc.startsWith("<")) {
+        shuoming2 = <div dangerouslySetInnerHTML={{ __html: item.desc }}></div>
+      }
+      shuoming = <Flex>
+        <Typography.Text strong>说明</Typography.Text>
+        {shuoming2}
+      </Flex>
+    }
     const speed_limit = item.speed_limit > 0 ? <Flex>
       <Typography.Text strong>速率限制</Typography.Text>
       <Typography.Text>{byteConverter(item.speed_limit, "M_Net").toFixed(0)} Mbps</Typography.Text>

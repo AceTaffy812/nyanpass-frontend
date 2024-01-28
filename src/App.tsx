@@ -22,6 +22,7 @@ import { OrdersView, OrdersViewType } from './views/Orders';
 import { LookingGlassView } from './views/LookingGlass';
 import { AdminMainView } from './views/AdminMain';
 import { Colors } from './material-color';
+import { AdminUserGroupsView } from './views/AdminUserGroup';
 
 export function MyApp(props: { isDarkMode: boolean }) {
   const url = new URL(location as any)
@@ -126,6 +127,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
           getItem(nav, "side", "/admin/main"),
           getItem(nav, "side", "/admin/settings"),
           getItem(nav, "side", "/admin/users"),
+          getItem(nav, "side", "/admin/user_group"),
           getItem(nav, "side", "/admin/orders"),
           getItem(nav, "side", "/admin/plans"),
           getItem(nav, "side", "/admin/device_group"),
@@ -226,6 +228,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
                 <Route path="/admin/main" element={<AdminMainView />} />
                 <Route path="/admin/settings" element={<AdminSettingsView userInfo={userInfo} siteInfo={siteInfo} />} />
                 <Route path="/admin/users" element={<AdminUsersView />} />
+                <Route path="/admin/user_group" element={<AdminUserGroupsView />} />
                 <Route path="/admin/device_group" element={<DeviceGroupsView isAdmin={true} adminShowUserOutbound={false} />} />
                 <Route path="/admin/plans" element={<AdminPlansView />} />
                 <Route path="/admin/orders" element={<OrdersView type={OrdersViewType.AdminOrder} />} />

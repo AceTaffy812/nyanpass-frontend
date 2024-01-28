@@ -1,6 +1,6 @@
 import { NavigateFunction } from "react-router-dom";
 import { ignoreError } from "./util/promise";
-import { AimOutlined, CloudServerOutlined, DashboardOutlined, DesktopOutlined, HomeOutlined, OrderedListOutlined, RedEnvelopeOutlined, SettingOutlined, ShoppingOutlined, TagsOutlined, TransactionOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
+import { AimOutlined, CloudServerOutlined, DashboardOutlined, DesktopOutlined, HomeOutlined, OrderedListOutlined, RedEnvelopeOutlined, SettingOutlined, ShoppingOutlined, TagsOutlined, TeamOutlined, TransactionOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
 
 export function myNavFactory(nav: NavigateFunction, setBreadTitle: (t: string) => void, callback: () => void) {
     return function (to: string, onlyUpdateTitle?: boolean) {
@@ -29,6 +29,7 @@ export const myNavMap: any = {
     "/admin/main": ["管理/仪表盘", <DashboardOutlined />],
     "/admin/settings": ["管理/站点设置", <SettingOutlined />],
     "/admin/users": ["管理/用户管理", <UserOutlined />],
+    "/admin/user_group": ["管理/用户组管理", <TeamOutlined />],
     "/admin/orders": ["管理/订单管理", <OrderedListOutlined />],
     "/admin/device_group": ["管理/设备组管理", <CloudServerOutlined />],
     "/admin/plans": ["管理/套餐管理", <TagsOutlined />],

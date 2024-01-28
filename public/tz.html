@@ -445,7 +445,7 @@
                         }
 
                         var tip = Tips[server.SessionId];
-                        tip.info.$element[0].innerHTML = `在线 ${server.BackendObj.online ? "true" : "false"}<br><br>组ID ${server.gid}<br>组内编号 ${server.BackendObj.name}<br><br>系统 ${server.Host.Platform} ${server.Host.PlatformVersion}<br>架构 ${server.Host.Arch}<br>节点端版本 ${server.Host.Version}`;
+                        tip.info.$element[0].innerHTML = `在线 ${server.BackendObj.online ? "true" : "false"}<br><br>设备组 ID ${server.gid}<br>组内编号 ${server.BackendObj.name}<br><br>系统 ${server.Host.Platform} ${server.Host.PlatformVersion}<br>架构 ${server.Host.Arch}<br>节点端版本 ${server.Host.Version}`;
                         tip.up.$element[0].innerHTML = "总上传 " + statusCard.readableBytes(server.State.NetOutTransfer) + "<br><br>连接数:<br>TCP " + undefinedToZero(server.State.TcpConnCount) + "<br>UDP " + undefinedToZero(server.State.UdpConnCount);
                         tip.down.$element[0].innerHTML = "总下载 " + statusCard.readableBytes(server.State.NetInTransfer) + "<br><br>连接数:<br>TCP " + undefinedToZero(server.State.TcpConnCount) + "<br>UDP " + undefinedToZero(server.State.UdpConnCount);
                         tip.cpu.$element[0].innerHTML = "CPU:<br>" + server.Host.CPU.join("<br>") + "<br><br>平均负载 " + undefinedToZero(server.State.Load1) + " / " + undefinedToZero(server.State.Load5) + " / " + undefinedToZero(server.State.Load15) + "<br>进程数 " + server.State.ProcessCount;

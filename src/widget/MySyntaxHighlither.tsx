@@ -8,6 +8,11 @@ import { myvar } from '../myvar';
 SyntaxHighlighter.registerLanguage('json', json);
 
 export default function MySyntaxHighlighter(props: SyntaxHighlighterProps): JSX.Element {
+    const innerStr = String(props.children)
+    if (innerStr.startsWith("<")) {
+        // < 开头的当作 HTML 格式直接输出
+        return <div dangerouslySetInnerHTML={{ __html: innerStr }}></div>
+    }
     const p = clone(props)
     if (myvar.isDarkMode) {
         p.style = vscDarkPlus

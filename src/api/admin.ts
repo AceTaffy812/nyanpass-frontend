@@ -234,4 +234,39 @@ export class apiAdmin {
         var data = await rsp.json();
         return data;
     }
+
+    async usergroup_list(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/usergroup");
+        var data = await rsp.json();
+        return data;
+    }
+
+    async usergroup_create(obj: any): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/usergroup", {
+            method: "PUT",
+            body: JSON.stringify(obj)
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async usergroup_update(id: number, obj: any): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/usergroup/" + id, {
+            method: "POST",
+            body: JSON.stringify(obj)
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async usergroup_delete(ids: any[]): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/usergroup", {
+            method: "DELETE",
+            body: JSON.stringify({
+                ids: batchIds(ids)
+            })
+        });
+        var data = await rsp.json();
+        return data;
+    }
 }

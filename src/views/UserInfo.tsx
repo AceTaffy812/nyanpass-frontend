@@ -156,7 +156,7 @@ export function UserInfoView(props: { userInfo: any }) {
           })()}
           <Flex>
             <Typography.Text strong>用户组</Typography.Text>
-            <Typography.Text>{ignoreError(() => userInfo.group_id)}</Typography.Text>
+            <Typography.Text>{ignoreError(() => userInfo.group_name)}</Typography.Text>
           </Flex>
           <Flex>
             <Typography.Text strong>套餐</Typography.Text>
