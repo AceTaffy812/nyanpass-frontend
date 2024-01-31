@@ -5,11 +5,11 @@ import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
 import { api } from "../api/api";
 import { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
-import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cleanupDefaultValue } from "../util/misc";
+import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cleanupDefaultValue, batchIds } from "../util/misc";
 import { commonEx, showCommonError } from "../util/commonError";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
 import { copyToClipboard, renderP, renderSelectBackendString, renderSelectIdName, tableShowTotal } from "../util/ui";
-import { BackwardOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined } from "@ant-design/icons";
+import { BackwardOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined } from "@ant-design/icons";
 import { MyMessage, MyModal } from "../util/MyModal";
 import { clone } from "lodash-es";
 import { MEditor, getEditor } from "../widget/MEditor";
@@ -317,8 +317,52 @@ export function ForwardRulesView(props: { userInfo: any }) {
   }
 
   function pauseRules(ids: any[], pause: boolean) {
-    return promiseFetchJson(forward.update_column(ids, "paused", pause), (ret) => {
+    return promiseFetchJson(forward.batch_update([{ ids: ids, column: "paused", value: pause }]), (ret) => {
       showCommonError(ret, ["", "规则更新失败"], updateData)
+    })
+  }
+
+  function batchUpdateRules(ids: any[]) {
+    if (ids.length == 0) return;
+    const obj = {
+      qdDgIn: "",
+      qdDgOut: "",
+    }
+    ids = batchIds(ids)
+    MyModal.confirm({
+      icon: <p />,
+      title: `批量更新 ${ids.length} 条规则`,
+      content: <Flex vertical>
+        <h3>批量更改可能需要等待一段时间才能生效。</h3>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>入口 (留空不更新)</Typography.Text>
+          <Select
+            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
+            onChange={(e) => { obj.qdDgIn = String(e) }}
+          ></Select>
+        </Flex>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>出口 (留空不更新)</Typography.Text>
+          <Select
+            options={(() => {
+              const list: any[] = [{ value: "0", label: "#0 (无需出口)" }]
+              list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])))
+              return list
+            })()}
+            onChange={(e) => { obj.qdDgOut = String(e) }}
+          ></Select>
+        </Flex>
+      </Flex>,
+      onOk: () => {
+        const req: any[] = []
+        if (isNotBlank(obj.qdDgIn)) req.push({ ids: ids, column: "device_group_in", value: obj.qdDgIn })
+        if (isNotBlank(obj.qdDgOut)) req.push({ ids: ids, column: "device_group_out", value: obj.qdDgOut })
+        if (req.length > 0) {
+          return promiseFetchJson(forward.batch_update(req), (ret) => {
+            showCommonError(ret, ["更新成功", "更新失败"], updateData)
+          })
+        }
+      }
     })
   }
 
@@ -551,7 +595,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           rows={5}
           placeholder={"一行一个，空行会被忽略，格式如下:\n\n1.2.3.4:5678\n[2001::]:80\nexample.com:443"}
           defaultValue={ignoreError(() => editingForwardConfig.current.dest.join("\n"))}
-          onChange={(e) => editingForwardConfig.current.dest = e.target.value.split("\n").filter((v) => v.trim() != "")}
+          onChange={(e) => editingForwardConfig.current.dest = e.target.value.split("\n").map(v => v.trim()).filter(isNotBlank)}
         ></Input.TextArea>
       </>
     }
@@ -692,6 +736,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             <Button icon={<FileAddOutlined />} onClick={() => editRule(null)} >添加规则</Button>
             <Button icon={<FileAddOutlined />} onClick={() => editRule("batchAdd")} >批量添加</Button>
             <Button icon={<CopyOutlined />} onClick={() => copyRules(selectedRowKeys)}>批量导出</Button>
+            <Button icon={<CheckSquareOutlined />} onClick={() => batchUpdateRules(selectedRowKeys)}>批量切换</Button>
             <Button icon={<FireOutlined />} onClick={() => resetTraffic(selectedRowKeys)}>清空流量</Button>
             <Button icon={<DeleteOutlined />} onClick={() => deleteRules(selectedRowKeys)}>删除选中</Button>
           </Flex>
@@ -715,6 +760,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
         </Tooltip>
         <Tooltip title="批量导出">
           <FloatButton shape="square" icon={<CopyOutlined />} description="导出" onClick={() => copyRules(selectedRowKeys)}></FloatButton>
+        </Tooltip>
+        <Tooltip title="批量切换">
+          <FloatButton shape="square" icon={<CheckSquareOutlined />} description="切换" onClick={() => batchUpdateRules(selectedRowKeys)}></FloatButton>
         </Tooltip>
         <Tooltip title="清空流量">
           <FloatButton shape="square" icon={<FireOutlined />} description="流量" onClick={() => resetTraffic(selectedRowKeys)}></FloatButton>

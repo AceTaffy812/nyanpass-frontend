@@ -8,16 +8,12 @@ export class apiForward {
         this.affectId = affectId
     }
 
-    async update_column(ids: number[], column: string, value: any): Promise<any> {
-        let url = "/api/v1/user/forward/update_column"
-        if (this.affectId != null) url = "/api/v1/admin/user/" + this.affectId + "/forward/update_column"
+    async batch_update(req: { ids: number[], column: string, value: any }[]): Promise<any> {
+        let url = "/api/v1/user/forward/batch_update"
+        if (this.affectId != null) url = "/api/v1/admin/user/" + this.affectId + "/forward/batch_update"
         var rsp = await fetchApi(url, {
             method: "POST",
-            body: JSON.stringify({
-                ids: ids,
-                column: column,
-                value: value,
-            })
+            body: JSON.stringify(req)
         });
         var data = await rsp.json();
         return data;
