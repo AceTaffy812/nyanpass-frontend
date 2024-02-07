@@ -1,4 +1,4 @@
-import { Card, Flex, Space, Typography } from 'antd';
+import { Card, Collapse, Flex, Space, Typography } from 'antd';
 import { formatUnix } from '../util/format';
 import { ignoreError } from '../util/promise';
 import MySyntaxHighlighter from '../widget/MySyntaxHighlither';
@@ -28,17 +28,23 @@ export function MainView(props: { siteInfo: any, backendInfo: any, userInfo: any
             <Typography.Paragraph>
                 <Typography.Title level={4}>欢迎使用</Typography.Title>
                 <Typography.Title level={4}>nyanpass 面板版本: {ignoreError(() => props.backendInfo.version)}</Typography.Title>
+                <a href='https://nyanpass.pages.dev'>官方文档（请挂代理访问），花点时间看看，你想问的问题 90% 答案都在里面。</a>
                 {renderExpireTime()}
             </Typography.Paragraph>
             <Card title="站点公告">
                 <MySyntaxHighlighter>{notice}</MySyntaxHighlighter>
             </Card>
-            <Card title="站点信息">
-                <MySyntaxHighlighter language='json'>{JSON.stringify(props.siteInfo, null, 2)}</MySyntaxHighlighter>
-            </Card>
-            <Card title="后端信息">
-                <MySyntaxHighlighter language='json'>{JSON.stringify(props.backendInfo, null, 2)}</MySyntaxHighlighter>
-            </Card>
+            <Collapse items={[
+                {
+                    key: '1',
+                    label: '站点信息',
+                    children: <MySyntaxHighlighter language='json'>{JSON.stringify(props.siteInfo, null, 2)}</MySyntaxHighlighter>
+                }, {
+                    key: '2',
+                    label: '后端信息',
+                    children: <MySyntaxHighlighter language='json'>{JSON.stringify(props.backendInfo, null, 2)}</MySyntaxHighlighter>
+                }
+            ]} style={{ width: "100%" }} />
         </Flex>
     )
 }

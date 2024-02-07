@@ -5,17 +5,15 @@ import { byteConverter, formatInfoTraffic, formatUnix } from '../util/format';
 import { ignoreError } from '../util/promise';
 import { Button, Card, Flex, Form, Input, InputNumber, Space, Switch, Tag, Typography } from 'antd';
 import { LockOutlined, PlusCircleOutlined, SyncOutlined } from '@ant-design/icons';
-import { MyMessage, MyModal } from '../util/MyModal';
+import { MyModal } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
-import MySyntaxHighlighter from '../widget/MySyntaxHighlither';
 import { myvar, reloadMyVar } from '../myvar';
 import { FrontInviteConfig } from '../api/model_front';
 
 export function UserInfoView(props: { userInfo: any }) {
   const { userInfo } = props;
   const mounted = useRef(false);
-  const [notice, setNotice] = useState('');
   const [affConfig, setAffConfig] = useState(new FrontInviteConfig());
   const [requesting, setRequesting] = useState(false);
   const [autoRenew, setAutoRenew] = useState(false);
@@ -23,9 +21,6 @@ export function UserInfoView(props: { userInfo: any }) {
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true
-      asyncFetchJson(api.guest.kv("site_notice", "user"), (ret) => {
-        setNotice(ret.data)
-      })
       asyncFetchJson(api.user.aff_config(), (ret) => {
         if (ret.data != null) {
           setAffConfig(ret.data)
@@ -193,9 +188,6 @@ export function UserInfoView(props: { userInfo: any }) {
             <Button onClick={btn_telegram_unbind_onclick}>解除关联</Button>
           </Flex>
         </Space>
-      </Card>
-      <Card title="站点公告">
-        <MySyntaxHighlighter>{notice}</MySyntaxHighlighter>
       </Card>
       <Card title="账户设置">
         <Flex vertical className='ant-flex2'>

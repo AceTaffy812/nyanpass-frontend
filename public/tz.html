@@ -80,7 +80,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="server in group.servers" :id="server.SessionId">
-                            <td class="mdui-text-center">
+                            <td class="mdui-text-center" :id="'area-'+server.SessionId">
                                 <div class="mdui-chip" style="width: 100%;">
                                     <span :class="'fi fi-'+server.CountryCode" style="vertical-align: bottom;"></span>
                                 </div>
@@ -434,6 +434,7 @@
 
                         if (Tips[server.SessionId] == null) {
                             Tips[server.SessionId] = {
+                                area: new mdui.Tooltip(`#area-${server.SessionId}`, {}),
                                 info: new mdui.Tooltip(`#info-${server.SessionId}`, {}),
                                 up: new mdui.Tooltip(`#up-${server.SessionId}`, {}),
                                 down: new mdui.Tooltip(`#down-${server.SessionId}`, {}),
@@ -444,7 +445,10 @@
                             }
                         }
 
+                        const haveIpv6 = server.BackendObj.ip6_geo != null && server.BackendObj.ip6_geo != ""
+
                         var tip = Tips[server.SessionId];
+                        tip.area.$element[0].innerHTML = `IPv6: ${haveIpv6 ? "支持" : "不支持"} (仅供参考)`;
                         tip.info.$element[0].innerHTML = `在线 ${server.BackendObj.online ? "true" : "false"}<br><br>设备组 ID ${server.gid}<br>组内编号 ${server.BackendObj.name}<br><br>系统 ${server.Host.Platform} ${server.Host.PlatformVersion}<br>架构 ${server.Host.Arch}<br>节点端版本 ${server.Host.Version}`;
                         tip.up.$element[0].innerHTML = "总上传 " + statusCard.readableBytes(server.State.NetOutTransfer) + "<br><br>连接数:<br>TCP " + undefinedToZero(server.State.TcpConnCount) + "<br>UDP " + undefinedToZero(server.State.UdpConnCount);
                         tip.down.$element[0].innerHTML = "总下载 " + statusCard.readableBytes(server.State.NetInTransfer) + "<br><br>连接数:<br>TCP " + undefinedToZero(server.State.TcpConnCount) + "<br>UDP " + undefinedToZero(server.State.UdpConnCount);

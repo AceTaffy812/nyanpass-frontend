@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button, Card, Flex, Form, Input, Tag, Typography } from "antd";
 import { asyncFetchJson } from '../util/fetch';
 import { myvar, reloadMyVar } from '../myvar';
@@ -14,6 +14,19 @@ export function LoginView(props: { reg: boolean }) {
   const [isRegister, setIsRegister] = useState(props.reg);
   const params = useParams();
   const [inviter, setInviter] = useState(params["inviter"]);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      const token = params["token"]
+      if (token != null) {
+        localStorage.setItem("Authorization", token);
+        reloadMyVar()
+        myvar.nav("/")
+      }
+    }
+  }, [])
 
   function onFinish(values: any) {
     setRequesting(true)

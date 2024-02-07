@@ -216,6 +216,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
               <Routes>
                 <Route path="/" element={<MainView siteInfo={siteInfo} backendInfo={backendInfo} userInfo={userInfo} />} />
                 <Route path="/login" element={<LoginView reg={false} />} />
+                <Route path="/token_login/:token" element={<LoginView reg={false} />} />
                 <Route path="/register" element={<LoginView reg={true} />} />
                 <Route path="/register/:inviter" element={<LoginView reg={true} />} />
                 <Route path="/userinfo" element={<UserInfoView userInfo={userInfo} />} />

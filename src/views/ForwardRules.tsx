@@ -140,7 +140,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     // TODO 啊？
     try {
       const dgIn = findObjByIdId(deviceGroupList, currentInboundDgId);
-      let options = renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser]));
+      let options = renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite]));
       if (dgIn != null && isNotBlank(dgIn.allowed_out)) {
         const allowed = String(dgIn.allowed_out).trim().split(",").map(v => {
           const n = Number(v)
@@ -148,6 +148,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
           return n
         })
         options = myFilter(options, "value", allowed)
+      }
+      const disallowUserOutbound = dgIn != null && String(dgIn.allowed_out).includes("禁止单端")
+      if (!disallowUserOutbound) {
+        options.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundByUser])));
       }
       // console.log(options)
       render2Node(<Flex className='neko-settings-flex-line'>
@@ -275,7 +279,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       copyStr.push(`${obj.name}#${obj.listen_port}#${lddz}#${lddk}`)
     })
     if (copyStr.length == 0) return
-    copyToClipboard(copyStr.join("\n"), `成功复制 ${copyStr.length} 条规则`)
+    copyToClipboard(copyStr.reverse().join("\n"), `成功复制 ${copyStr.length} 条规则`)
   }
 
   function deleteRules(e: string[] | number[] | React.Key[]) {
