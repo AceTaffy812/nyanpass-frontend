@@ -59,6 +59,12 @@ export class apiUser {
         return data;
     }
 
+    async get_statistic(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/statistic");
+        var data = await rsp.json();
+        return data;
+    }
+
     async devicegroup_list(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/devicegroup");
         var data = await rsp.json();
@@ -149,6 +155,14 @@ export class apiUser {
                 "amount": amount,
                 "currency": currency,
             })
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async shop_get_deposit(orderNo: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/shop/get_deposit/" + orderNo, {
+            method: "GET",
         });
         var data = await rsp.json();
         return data;

@@ -78,7 +78,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     { title: '倍率', key: 'ratio', dataIndex: 'ratio' },
     { title: '已用流量', key: 'yyll', dataIndex: 'display_traffic' },
     { title: '在线设备', key: 'zxsbsl', dataIndex: 'display_num' },
-    { title: '备注', key: 'note', dataIndex: 'note' },
+    { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => String(n).split("\n")[0] },
     {
       title: '操作', key: 'action', dataIndex: 'id', renderText: function (e: number) {
         return <Flex gap={8}>
@@ -283,6 +283,15 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
               onChange={(e) => editingObj.current.down_sec = e}
             ></InputNumber>
           </div>
+        </Flex>
+        <Flex className='neko-settings-flex-line vis-outbound' gap={"1em"}>
+          <Typography.Text strong>故障转移组 ID</Typography.Text>
+          <InputNumber
+            min="0"
+            step="1"
+            defaultValue={obj.fallback_group}
+            onChange={(e) => editingObj.current.fallback_group = e}
+          ></InputNumber>
         </Flex>
         {/* 最后 */}
         <Flex className='neko-settings-flex-line'>

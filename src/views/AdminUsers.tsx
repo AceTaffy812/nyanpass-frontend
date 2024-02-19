@@ -144,7 +144,7 @@ export function AdminUsersView() {
             onChange={(e) => searchObj.current.listen_port = Number(e)} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text strong>落地地址或端口 (模糊)</Typography.Text>
+          <Typography.Text strong>目标地址或端口 (模糊)</Typography.Text>
           <Input
             onChange={(e) => searchObj.current.dest = e.target.value} />
         </Flex>
@@ -212,7 +212,7 @@ export function AdminUsersView() {
         </Flex>
       }
     },
-    { title: '备注', key: 'note', dataIndex: 'note', },
+    { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => String(n).split("\n")[0] },
   ];
 
   function editUser(obj: any) {
@@ -578,7 +578,7 @@ export function AdminUsersView() {
               { title: '入口', key: 'listen_port', dataIndex: 'display_in' },
               { title: '监听端口', key: 'listen_port', dataIndex: 'listen_port' },
               { title: '出口', key: 'listen_port', dataIndex: 'display_out' },
-              { title: '落地地址', key: 'lddz', dataIndex: 'config', render: (config: string) => displayDests(config) },
+              { title: '目标地址', key: 'lddz', dataIndex: 'config', render: (config: string) => displayDests(config) },
               { title: '已用流量', key: 'traffic_used', dataIndex: 'display_traffic' },
               {
                 title: '状态', key: 'status', dataIndex: 'id', render: (e: any) => {

@@ -9,7 +9,7 @@ import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cl
 import { commonEx, showCommonError } from "../util/commonError";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
 import { copyToClipboard, renderP, renderSelectBackendString, renderSelectIdName, tableShowTotal } from "../util/ui";
-import { BackwardOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined } from "@ant-design/icons";
+import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
 import { MyMessage, MyModal } from "../util/MyModal";
 import { clone } from "lodash-es";
 import { MEditor, getEditor } from "../widget/MEditor";
@@ -441,7 +441,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             onChange={(e) => obj.listen_port = Number(e)} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text strong>落地地址或端口 (模糊)</Typography.Text>
+          <Typography.Text strong>目标地址或端口 (模糊)</Typography.Text>
           <Input
             onChange={(e) => obj.dest = e.target.value} />
         </Flex>
@@ -450,6 +450,18 @@ export function ForwardRulesView(props: { userInfo: any }) {
         searchObj.current = obj
         return promiseFetchJson(api.user.search(obj), searchedRetProcess(true))
       }
+    })
+  }
+
+  function showUserStatistic() {
+    asyncFetchJson(api.user.get_statistic(), ret => {
+      MyModal.info({
+        title: "统计数据，流量不计倍率。",
+        content: <div>
+          <p>今日流量: {byteConverter(ret.data.traffic_today, "GB").toFixed(2)} GiB</p>
+          <p>昨日流量: {byteConverter(ret.data.traffic_yesterday, "GB").toFixed(2)} GiB</p>
+        </div>,
+      })
     })
   }
 
@@ -462,8 +474,11 @@ export function ForwardRulesView(props: { userInfo: any }) {
         let fw = findObjByIdId(data, e)
         if (fw == null) return <Typography.Text>加载失败</Typography.Text>
         let devWtf = findObjByIdId(deviceGroupList, fw.device_group_in)
-        if (devWtf == null) return <Typography.Text>加载失败 (#{fw.device_group_in})</Typography.Text>
-        devWtf = clone(devWtf) // 乱改对象之前，先复制
+        if (devWtf == null) {
+          devWtf = { name: "加载失败", connect_host: "加载失败" }
+        } else {
+          devWtf = clone(devWtf) // 乱改对象之前，先复制
+        }
         devWtf.port_range = fw.listen_port
         devWtf.display_name = fw.display_name
         return <Flex vertical gap={1}>
@@ -478,7 +493,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       title: '出口', key: 'device_group_out', dataIndex: 'id', render: function (e: number) {
         let fw = findObjByIdId(data, e)
         const chukou = <Typography.Text >出口: {ignoreError(() => findObjByIdId(deviceGroupList, fw.device_group_out).name, "#" + fw.device_group_out)}</Typography.Text>
-        const luodi = <Typography.Text >落地: {formartDests(fw.config)}</Typography.Text>
+        const luodi = <Typography.Text>{formartDests(fw.config)}</Typography.Text>
         if (fw.device_group_out == 0) {
           return luodi
         }
@@ -545,7 +560,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         label: '高级选项',
         children: <Flex vertical>
           <Flex className='neko-settings-flex-line' gap={"1em"}>
-            <Tooltip title={<p>当落地地址大于一个时，连接使用的负载均衡策略</p>}>
+            <Tooltip title={<p>当目标地址大于一个时，连接使用的负载均衡策略</p>}>
               <Typography.Text strong>负载均衡 (?)</Typography.Text>
             </Tooltip>
             <Select
@@ -588,13 +603,13 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <Typography.Text strong>批量规则</Typography.Text>
           <Input.TextArea
             rows={6}
-            placeholder={"一行一个，空行会被忽略，格式如下:\n\n名称#入口端口#落地地址#落地端口"}
+            placeholder={"一行一个，空行会被忽略，格式如下:\n\n名称#监听端口#目标地址#目标端口"}
             onChange={(e) => editingObj.current.content = e.target.value}
           ></Input.TextArea>
         </>
       }
       return <>
-        <Typography.Text strong>落地地址</Typography.Text>
+        <Typography.Text strong>目标地址</Typography.Text>
         <Input.TextArea
           rows={5}
           placeholder={"一行一个，空行会被忽略，格式如下:\n\n1.2.3.4:5678\n[2001::]:80\nexample.com:443"}
@@ -703,14 +718,20 @@ export function ForwardRulesView(props: { userInfo: any }) {
       title += ` (规则ID=${gotoId})`
     }
     //
-    let title2 = <h3>{title}</h3>
+    let title2 = <span>{title}</span>
     // 用户规则搜索按钮
     let search = <Button icon={<SearchOutlined />} onClick={btn_search_rules_onclick}>搜索规则</Button>
     if (searched) search = <Button icon={<BackwardOutlined />} onClick={() => { searchObj.current = null; setSearched(false); updateData() }}>返回所有规则</Button>
-    if (affectId != null) {
-      search = <></>
-    }
-    return <Flex className="ant-flex2">{title2}{search}</Flex>
+    if (affectId != null) search = <></>
+    // 统计数据按钮
+    let tjsjButton = <Button icon={<BarChartOutlined />} onClick={showUserStatistic}>统计数据</Button>
+    if (affectId != null) tjsjButton = <></>
+    return <Flex className="ant-flex2" style={{ marginBottom: "1em", marginTop: "1em" }}>
+      {title2}
+      {search}
+      <Button icon={<SyncOutlined />} onClick={updateData}>刷新</Button>
+      {tjsjButton}
+    </Flex>
   }
 
   function renderTags() {

@@ -14,6 +14,7 @@ class apiCommon {
         objs.forEach((obj: any, index: number) => {
             req.ids.push(obj.id)
             req.show_order.push(index)
+            obj.show_order = index
         })
         var rsp = await fetchApi(path, {
             method: "POST",

@@ -1,11 +1,11 @@
-import { Button, Card, Flex, Input, InputNumber, Table, Tooltip, Typography } from 'antd';
+import { Button, Card, Flex, Input, InputNumber, QRCode, Table, Tooltip, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { AffLogStatus, AffLogType, OrderStatus, OrderType, translateBackendString } from '../api/model_front';
 import { TableParams, tableParams2Qs } from '../api/model_api';
-import { DeleteOutlined, FileAddOutlined, PropertySafetyOutlined } from '@ant-design/icons';
+import { DeleteOutlined, FileAddOutlined, PropertySafetyOutlined, TransactionOutlined } from '@ant-design/icons';
 import { displayCurrency, renderFilterBackendString, tableSearchDropdown, tableShowTotal } from '../util/ui';
 import { formatUnix } from '../util/format';
 import { MyMessage, MyModal, MyModalCannotDismiss } from '../util/MyModal';
@@ -145,6 +145,19 @@ export function OrdersView(props: { type: number }) {
   } else {
     removeFromArray(columns, "用户", "title")
   }
+  if (props.type == OrdersViewType.UserOrder) {
+    columns.push({
+      title: '操作', key: 'action', dataIndex: 'id', render: function (e: number) {
+        const obj = findObjByIdId(data, e)
+        if (obj.status == OrderStatus.Open) {
+          return <Flex gap={8}>
+            <Button onClick={() => contiunePay(obj)}>继续支付</Button>
+          </Flex>
+        }
+        return <></>
+      }
+    })
+  }
   if (isAff) {
     removeFromArray(columns, "订单号", "title")
     removeFromArray(columns, "支付时间", "title")
@@ -267,6 +280,25 @@ export function OrdersView(props: { type: number }) {
         return promiseFetchJson(api.admin.shop_order_manual_callback(e), (ret) => {
           showCommonError(ret, ["补单成功", "补单失败"], updateData)
         })
+      }
+    })
+  }
+
+  function contiunePay(obj: any) {
+    asyncFetchJson(api.user.shop_get_deposit(obj.order_no), (ret) => {
+      // 处理与 Shop.tsx 里面的充值按钮相同，因为后端返回内容是相同的
+      if (ret.code == 0) {
+        let data = ret.data
+        if (data.qr) {
+          MyModalCannotDismiss.info({
+            title: "请扫码支付",
+            content: <QRCode value={data.url}></QRCode>
+          })
+        } else {
+          window.location.href = data.url
+        }
+      } else {
+        showCommonError(ret, "充值请求失败")
       }
     })
   }
