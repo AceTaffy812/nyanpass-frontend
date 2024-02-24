@@ -5,6 +5,7 @@ export class FrontSiteInfo {
     allow_register: boolean = false
     allow_single_tunnel: boolean = false
     allow_looking_glass: boolean = false
+    register_policy: number = 0
 }
 
 export class FrontInviteConfig {
@@ -98,6 +99,12 @@ export const AffLogType = {
 
 export const AffLogStatus = {
 }
+
+export const RegisterPolicy = [
+    [0, "无限制"],
+    [1, "不允许邀请注册"],
+    [2, "仅开放邀请注册"],
+]
 
 const ConstTextMap = {
     "DeviceGroupType_AgentOnly": "仅监控",

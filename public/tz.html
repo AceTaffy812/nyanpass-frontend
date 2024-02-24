@@ -86,7 +86,10 @@
                                 </div>
                             </td>
                             <td class="mdui-text-center" v-if="window.isAdmin">@#server.BackendObj.ip4#@</td>
-                            <td class="mdui-text-center" :id="'info-'+server.SessionId">@#server.StatusEmoji#@</td>
+                            <td class="mdui-text-center" :id="'info-'+server.SessionId">
+                                <span v-if="server.BackendObj.online">在线</span>
+                                <span v-if="!server.BackendObj.online" style="color: red;">离线</span>
+                            </td>
                             <td class="mdui-text-center" :id="'up-'+server.SessionId">
                                 <at>@#formatNetByteSize(server.State.NetOutSpeed)#@</at>
                             </td>
@@ -388,8 +391,8 @@
                             obj.State["CPU"] = 0
                         }
                         //
-                        let flagemoji = srv.ip6_geo
-                        let flagtext = srv.ip6_geo.toLowerCase()
+                        let flagemoji = srv.ip4_geo
+                        let flagtext = srv.ip4_geo.toLowerCase()
                         try {
                             flagemoji = countryCodeEmoji(flagemoji.toLowerCase())
                         } catch (e) {
@@ -397,8 +400,8 @@
                             flagtext = ""
                         }
                         if (flagemoji == null || flagemoji == "") {
-                            flagemoji = srv.ip4_geo
-                            flagtext = srv.ip4_geo.toLowerCase()
+                            flagemoji = srv.ip6_geo
+                            flagtext = srv.ip6_geo.toLowerCase()
                             try {
                                 flagemoji = countryCodeEmoji(flagemoji.toLowerCase())
                             } catch (e) {
@@ -409,7 +412,6 @@
                         //
                         obj.FlagEmoji = flagemoji
                         obj.CountryCode = flagtext
-                        obj.StatusEmoji = srv.online ? "在线" : "离线"
                         //
                         servers.push(obj)
                     })

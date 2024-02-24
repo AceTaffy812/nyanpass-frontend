@@ -9,7 +9,7 @@ import { CaptchaApp } from "../widget/captcha/CaptchaApp.js"
 import { ignoreError } from '../util/promise.js';
 import { useParams } from 'react-router-dom';
 
-export function LoginView(props: { reg: boolean }) {
+export function LoginView(props: { reg: boolean, siteInfo: any }) {
   const [requesting, setRequesting] = useState(false);
   const [isRegister, setIsRegister] = useState(props.reg);
   const params = useParams();
@@ -57,13 +57,13 @@ export function LoginView(props: { reg: boolean }) {
   }
 
   const YaoQingZhe = <Input style={{ marginBottom: "1em" }}
-    prefix={<Tag>邀请者 ID</Tag>}
-    type="number"
+    prefix={<Tag>邀请代码</Tag>}
     defaultValue={inviter}
     value={inviter}
     onChange={e => setInviter(e.target.value)}
     placeholder="选填"
   />
+  const qdAllowRegister = props.siteInfo.allow_register && props.siteInfo.register_policy != 2
 
   return (
     <Card title={isRegister ? "注册" : "登录"}>
@@ -96,7 +96,7 @@ export function LoginView(props: { reg: boolean }) {
 
           </Form.Item>
 
-          {isRegister ? YaoQingZhe : <></>}
+          {isRegister && props.siteInfo.register_policy == 0 ? YaoQingZhe : <></>}
 
           <Form.Item>
             <Button type="primary" htmlType="submit">{isRegister ? "注册" : "登录"}</Button>
@@ -104,7 +104,7 @@ export function LoginView(props: { reg: boolean }) {
 
           <Flex className='neko-settings-flex-line' >
             {renderCaptcha()}
-            <Typography.Link onClick={() => setIsRegister(!isRegister)}>{!isRegister ? "前往注册" : "前往登录"}</Typography.Link>
+            {qdAllowRegister ? <Typography.Link onClick={() => setIsRegister(!isRegister)}>{!isRegister ? "前往注册" : "前往登录"}</Typography.Link> : <></>}
           </Flex>
 
         </Form>

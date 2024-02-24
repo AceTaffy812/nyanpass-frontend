@@ -113,10 +113,9 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
       }
     },
   ];
-  if (!props.isAdmin) columns.splice(0, 1) // 隐藏列
-  if (!props.isAdmin) columns.splice(2 - 1, 1) // 隐藏列
-  if (!props.isAdmin) columns.splice(4 - 2, 1) // 隐藏列
-  if (!props.isAdmin) columns.splice(5 - 3, 1) // 隐藏列
+  if (!props.isAdmin) columns.splice(2 - 0, 1) // 隐藏列
+  if (!props.isAdmin) columns.splice(4 - 1, 1) // 隐藏列
+  if (!props.isAdmin) columns.splice(5 - 2, 1) // 隐藏列
 
   const onTypeChange = (e: string) => {
     editingObj.current.type = e
@@ -372,7 +371,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
       noDistConfig()
     }
     let copyStr = `bash <(curl -fLSs ${myvar.distConfig.clientScript}) rel_nodeclient ${argsForGroup(obj)}`
-    copyToClipboard(copyStr, "命令复制成功（国内服务器如果无法运行，请挂代理）")
+    copyToClipboard(copyStr, "命令复制成功（国内服务器如果无法运行，请挂代理，或者使用离线部署）")
   }
 
   function offlineCommand(obj: any) {
@@ -385,7 +384,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     MyModal.info({
       title: "离线部署",
       content: <div>
-        <p>请在墙外 Linux 机器执行以下命令生成安装包。</p>
+        <p>请在【墙外 Linux 机器】执行以下命令生成离线安装包。</p>
         <Card title="打包 amd64 机器的离线包">
           <Typography.Paragraph copyable>{copyStr1 + " linux_amd64"}</Typography.Paragraph>
         </Card>
@@ -405,7 +404,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         <Card>
           <Typography.Paragraph copyable>{copyStr2}</Typography.Paragraph>
         </Card>
-        <p>请在包含安装包的目录运行以上命令。</p>
+        <p>请上传【生成的离线包】到【需要对接的机器】，然后在【离线包所在目录】运行以上命令。</p>
       </div>
     })
   }
@@ -444,7 +443,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
   ) => {
     setData(newData)
     setLoading(true)
-    asyncFetchJson(api.common.reorder("/api/v1/admin/devicegroup/reorder", newData), (ret) => {
+    asyncFetchJson(api.common.reorder(props.isAdmin ? "/api/v1/admin/devicegroup/reorder" : "/api/v1/user/devicegroup/reorder", newData), (ret) => {
       setLoading(false)
       showCommonError(ret, true)
     })

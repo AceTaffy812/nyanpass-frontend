@@ -10,6 +10,7 @@ import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
 import { myvar, reloadMyVar } from '../myvar';
 import { FrontInviteConfig } from '../api/model_front';
+import { generateBigCharacter } from '../util/misc';
 
 export function UserInfoView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -69,6 +70,21 @@ export function UserInfoView(props: { userInfo: any }) {
   function btn_telegram_unbind_onclick() {
     asyncFetchJson(api.user.telegram_bind(true), (ret) => {
       showCommonError(ret, ["取消绑定 Telegram", "取消绑定 Telegram"], () => reloadMyVar({ userInfo: true }))
+    })
+  }
+
+  function resetInviteCode() {
+    MyModal.confirm({
+      icon: <p />,
+      title: "重置邀请代码",
+      content: <p>旧的邀请代码将被无法继续使用。</p>,
+      onOk: () => {
+        setRequesting(true)
+        return promiseFetchJson(api.user.update_column("invite_code", generateBigCharacter(10)), (ret) => {
+          setRequesting(false)
+          reloadMyVar({ userInfo: true })
+        })
+      }
     })
   }
 
@@ -132,6 +148,8 @@ export function UserInfoView(props: { userInfo: any }) {
     <Typography.Text strong>IP 限制</Typography.Text>
     <Typography.Text>{ignoreError(() => userInfo.ip_limit)}</Typography.Text>
   </Flex> : <></>
+
+  const invite_code = ignoreError(() => userInfo.invite_code, "");
 
   return (
     <Flex vertical>
@@ -240,8 +258,13 @@ export function UserInfoView(props: { userInfo: any }) {
             <Button onClick={btn_aff_deposit_onclick}>划转余额</Button>
           </Flex>
           <Card title="邀请注册链接">
-            <Typography.Paragraph copyable>{location.origin + "/#register/" + ignoreError(() => userInfo.id)}</Typography.Paragraph>
-            <Button onClick={() => myvar.nav("/afflog")}>查看邀请记录</Button>
+            <Flex vertical>
+              {invite_code == "" ? <a onClick={resetInviteCode}>您还没有邀请码，请先创建邀请码。</a> : <Typography.Paragraph copyable>{location.origin + "/#register/" + invite_code}</Typography.Paragraph>}
+              <Flex>
+                <Button onClick={() => myvar.nav("/afflog")}>查看邀请记录</Button>
+                <Button onClick={resetInviteCode}>重置邀请码</Button>
+              </Flex>
+            </Flex>
           </Card>
         </Flex>
       </Card>

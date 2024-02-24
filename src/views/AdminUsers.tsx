@@ -447,7 +447,7 @@ export function AdminUsersView() {
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Checkbox
-            onChange={(e) => editingObj.current.qd_update_expire = e.target.checked}>
+            onChange={(e) => editingObj.current.calc_expire = e.target.checked}>
             更新到期时间</Checkbox>
         </Flex>
       </Flex>,
@@ -470,13 +470,7 @@ export function AdminUsersView() {
           editingObj.current.speed_limit = plan.speed_limit
           editingObj.current.ip_limit = plan.ip_limit
         }
-        if (editingObj.current.qd_update_expire) {
-          if (plan.type == PlanType.Month) {
-            editingObj.current.expire = dayjs().add(1, "month").unix()
-          } else {
-            editingObj.current.expire = 253392451749 // 9999-9-9
-          }
-        }
+        // calc_expire 由后端处理
         return promiseFetchJson(api.admin.user_update(obj.id, editingObj.current), (ret) => {
           showCommonError(ret, ["", "用户更新失败"], updateData)
         })

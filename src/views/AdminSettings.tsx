@@ -1,12 +1,12 @@
-import { Button, Card, Flex, Input, InputNumber, Switch, Tabs } from 'antd';
+import { Button, Card, Flex, Input, InputNumber, Select, Switch, Tabs } from 'antd';
 import { Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
-import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo } from '../api/model_front';
-import { displayCurrency } from '../util/ui';
+import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo, RegisterPolicy } from '../api/model_front';
+import { displayCurrency, renderSelect2 } from '../util/ui';
 import { cleanupDefaultValue } from '../util/misc';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 
@@ -17,6 +17,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
 
   const [title, setTitle] = useState('');
   const [allowReg, setAllowReg] = useState(false);
+  const [registerPolicy, setRegisterPolicy] = useState(0);
   const [allowSingle, setAllowSingle] = useState(false);
   const [allowLookingGlass, setAllowLookingGlass] = useState(false);
   const [notice, setNotice] = useState('');
@@ -89,6 +90,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       setAllowReg(siteInfo.allow_register)
       setAllowSingle(siteInfo.allow_single_tunnel)
       setAllowLookingGlass(siteInfo.allow_looking_glass)
+      setRegisterPolicy(siteInfo.register_policy)
     }
   }, [siteInfo])
 
@@ -98,6 +100,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       allow_register: allowReg,
       allow_single_tunnel: allowSingle,
       allow_looking_glass: allowLookingGlass,
+      register_policy: registerPolicy,
     }
     cleanupDefaultValue(newInfo)
     asyncFetchJson(api.admin.kv_put("site_info", JSON.stringify(newInfo)), (ret) => {
@@ -162,6 +165,16 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             <Typography.Text className='dq-1'>允许注册</Typography.Text>
             <div className='dq-2' >
               <Switch checked={allowReg} onChange={(e) => setAllowReg(e)} />
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text className='dq-1'>邀请注册策略</Typography.Text>
+            <div className='dq-2'>
+              <Select
+                value={registerPolicy}
+                options={renderSelect2(RegisterPolicy)}
+                onChange={(e) => setRegisterPolicy(e)}
+              ></Select>
             </div>
           </Flex>
           <Flex className='neko-settings-flex-line'>
@@ -338,7 +351,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
           onClick={btn_save_payment_onclick}
         >保存</Button>
       </Card>
-      <Card title="邀请设置">
+      <Card title="邀请设置 (定制功能，若需使用请咨询作者)">
         <InviteSettings data={inviteConfig}></InviteSettings>
         <Button type="primary"
           loading={requesting}

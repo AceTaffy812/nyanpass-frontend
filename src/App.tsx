@@ -215,10 +215,10 @@ export function MyApp(props: { isDarkMode: boolean }) {
             <Card>
               <Routes>
                 <Route path="/" element={<MainView siteInfo={siteInfo} backendInfo={backendInfo} userInfo={userInfo} />} />
-                <Route path="/login" element={<LoginView reg={false} />} />
-                <Route path="/token_login/:token" element={<LoginView reg={false} />} />
-                <Route path="/register" element={<LoginView reg={true} />} />
-                <Route path="/register/:inviter" element={<LoginView reg={true} />} />
+                <Route path="/login" element={<LoginView reg={false} siteInfo={siteInfo} />} />
+                <Route path="/token_login/:token" element={<LoginView reg={false} siteInfo={siteInfo} />} />
+                <Route path="/register" element={<LoginView reg={true} siteInfo={siteInfo} />} />
+                <Route path="/register/:inviter" element={<LoginView reg={true} siteInfo={siteInfo} />} />
                 <Route path="/userinfo" element={<UserInfoView userInfo={userInfo} />} />
                 <Route path="/device_group" element={<DeviceGroupsView isAdmin={false} adminShowUserOutbound={false} />} />
                 <Route path="/forward_rules" element={<ForwardRulesView userInfo={userInfo} />} />

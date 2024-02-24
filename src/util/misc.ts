@@ -133,3 +133,18 @@ export function cleanupDefaultValue(obj: any) {
     })
     return obj
 }
+
+export function secureRandomUint32() {
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return array[0];
+}
+
+export function generateBigCharacter(count: number) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (let i = 0; i < count; i++) {
+        result += characters.charAt(secureRandomUint32() % characters.length);
+    }
+    return result;
+}

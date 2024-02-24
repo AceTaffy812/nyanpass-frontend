@@ -1,3 +1,4 @@
+import { isNotBlank } from "../util/misc";
 import { fetchApi } from "./fetchw";
 
 export class apiAuth {
@@ -21,13 +22,10 @@ export class apiAuth {
         return data;
     }
 
-    async register(req: any, inviter: string | undefined, captcha_key: string): Promise<any> {
+    async register(req: any, invite_code: string | undefined, captcha_key: string): Promise<any> {
         req.captcha_key = captcha_key
-        const inv = Number(inviter)
-        if (isNaN(inv)) {
-            req.inviter = 0
-        } else {
-            req.inviter = inv
+        if (isNotBlank(invite_code)) {
+            req.invite_code = invite_code
         }
         var rsp = await fetchApi("/api/v1/auth/register", {
             method: "POST",
