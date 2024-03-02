@@ -78,7 +78,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     { title: '倍率', key: 'ratio', dataIndex: 'ratio' },
     { title: '已用流量', key: 'yyll', dataIndex: 'display_traffic' },
     { title: '在线设备', key: 'zxsbsl', dataIndex: 'display_num' },
-    { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => String(n).split("\n")[0] },
+    { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => n ? String(n).split("\n")[0] : "" },
     {
       title: '操作', key: 'action', dataIndex: 'id', renderText: function (e: number) {
         return <Flex gap={8}>

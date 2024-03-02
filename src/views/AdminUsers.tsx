@@ -212,7 +212,7 @@ export function AdminUsersView() {
         </Flex>
       }
     },
-    { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => String(n).split("\n")[0] },
+    { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => n ? String(n).split("\n")[0] : "" },
   ];
 
   function editUser(obj: any) {

@@ -90,7 +90,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       setAllowReg(siteInfo.allow_register)
       setAllowSingle(siteInfo.allow_single_tunnel)
       setAllowLookingGlass(siteInfo.allow_looking_glass)
-      setRegisterPolicy(siteInfo.register_policy)
+      setRegisterPolicy(siteInfo.register_policy ?? 0)
     }
   }, [siteInfo])
 
