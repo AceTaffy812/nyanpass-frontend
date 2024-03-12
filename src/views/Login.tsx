@@ -50,7 +50,8 @@ export function LoginView(props: { reg: boolean, siteInfo: any }) {
   }
 
   function renderCaptcha() {
-    if (isRegister) {
+    // register_captcha_policy == 1 即开启默认的交互验证
+    if (isRegister && props.siteInfo.register_captcha_policy == 1) {
       return <div style={{ width: "100%" }}><CaptchaApp /></div>
     }
     return <></>

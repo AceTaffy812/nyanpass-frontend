@@ -6,6 +6,7 @@ export class FrontSiteInfo {
     allow_single_tunnel: boolean = false
     allow_looking_glass: boolean = false
     register_policy: number = 0
+    register_captcha_policy: number = 0
 }
 
 export class FrontInviteConfig {
@@ -104,6 +105,11 @@ export const RegisterPolicy = [
     [0, "无限制"],
     [1, "不允许邀请注册"],
     [2, "仅开放邀请注册"],
+]
+
+export const RegisterCaptchaPolicy = [
+    [0, "无"],
+    [1, "交互认证"],
 ]
 
 const ConstTextMap = {

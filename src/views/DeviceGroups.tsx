@@ -2,10 +2,10 @@ import { Button, Card, Dropdown, Flex, Input, InputNumber, Modal, Select, Space,
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
-import { allFalseMap, cleanupDefaultValue, findObjByIdId, tryParseJSONObject } from '../util/misc';
+import { allFalseMap, cleanupDefaultValue, findObjByIdId, myFilter, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
 import { DeviceGroupType, DeviceGroupType_AdminCanAdd, translateBackendString } from '../api/model_front';
-import { copyToClipboard, renderSelect, renderSelectBackendString } from '../util/ui';
+import { copyToClipboard, renderSelect, renderSelectBackendString, renderSelectIdName } from '../util/ui';
 import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
@@ -284,13 +284,15 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line vis-outbound' gap={"1em"}>
-          <Typography.Text strong>故障转移组 ID</Typography.Text>
-          <InputNumber
-            min="0"
-            step="1"
+          <Typography.Text strong>故障转移组</Typography.Text>
+          <Select
             defaultValue={obj.fallback_group}
+            options={renderSelectIdName(
+              ([{ id: 0, name: "无" }] as any[]).concat(
+                ...myFilter(data.filter(o => o.id != obj.id), "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])
+              ), undefined, true)}
             onChange={(e) => editingObj.current.fallback_group = e}
-          ></InputNumber>
+          ></Select>
         </Flex>
         {/* 最后 */}
         <Flex className='neko-settings-flex-line'>

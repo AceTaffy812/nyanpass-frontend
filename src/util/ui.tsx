@@ -38,11 +38,13 @@ export function renderP(str: any) {
 
 // 选择、过滤
 
-export function renderSelectIdName(arr: any[], name?: string) {
+export function renderSelectIdName(arr: any[], name?: string, showId?: boolean) {
     if (name == null) name = "name"
     const ret = new Array();
     arr.forEach((element: any) => {
-        ret.push({ value: element.id, label: element[name!] })
+        let label = element[name!]
+        if (showId) label = label + " (#" + element.id + ")"
+        ret.push({ value: element.id, label: label })
     })
     return ret
 }

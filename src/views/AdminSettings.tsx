@@ -5,7 +5,7 @@ import { asyncFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
-import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo, RegisterPolicy } from '../api/model_front';
+import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo, RegisterCaptchaPolicy, RegisterPolicy } from '../api/model_front';
 import { displayCurrency, renderSelect2 } from '../util/ui';
 import { cleanupDefaultValue } from '../util/misc';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
@@ -18,6 +18,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
   const [title, setTitle] = useState('');
   const [allowReg, setAllowReg] = useState(false);
   const [registerPolicy, setRegisterPolicy] = useState(0);
+  const [registerCaptchaPolicy, setRegisterCaptchaPolicy] = useState(0);
   const [allowSingle, setAllowSingle] = useState(false);
   const [allowLookingGlass, setAllowLookingGlass] = useState(false);
   const [notice, setNotice] = useState('');
@@ -91,6 +92,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       setAllowSingle(siteInfo.allow_single_tunnel)
       setAllowLookingGlass(siteInfo.allow_looking_glass)
       setRegisterPolicy(siteInfo.register_policy ?? 0)
+      setRegisterCaptchaPolicy(siteInfo.register_captcha_policy ?? 0)
     }
   }, [siteInfo])
 
@@ -101,6 +103,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       allow_single_tunnel: allowSingle,
       allow_looking_glass: allowLookingGlass,
       register_policy: registerPolicy,
+      register_captcha_policy: registerCaptchaPolicy,
     }
     cleanupDefaultValue(newInfo)
     asyncFetchJson(api.admin.kv_put("site_info", JSON.stringify(newInfo)), (ret) => {
@@ -174,6 +177,16 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
                 value={registerPolicy}
                 options={renderSelect2(RegisterPolicy)}
                 onChange={(e) => setRegisterPolicy(e)}
+              ></Select>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text className='dq-1'>注册验证码</Typography.Text>
+            <div className='dq-2'>
+              <Select
+                value={registerCaptchaPolicy}
+                options={renderSelect2(RegisterCaptchaPolicy)}
+                onChange={(e) => setRegisterCaptchaPolicy(e)}
               ></Select>
             </div>
           </Flex>
