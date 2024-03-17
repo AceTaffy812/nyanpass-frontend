@@ -112,6 +112,12 @@ export const RegisterCaptchaPolicy = [
     [1, "交互认证"],
 ]
 
+export const HideStatus = [
+    [0, "不隐藏"],
+    [1, "对非管理员用户隐藏"],
+    [2, "对所有用户隐藏"],
+]
+
 const ConstTextMap = {
     "DeviceGroupType_AgentOnly": "仅监控",
     "DeviceGroupType_Inbound": "入口",

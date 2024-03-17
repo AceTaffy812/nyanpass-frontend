@@ -4,8 +4,8 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { allFalseMap, cleanupDefaultValue, findObjByIdId, myFilter, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
-import { DeviceGroupType, DeviceGroupType_AdminCanAdd, translateBackendString } from '../api/model_front';
-import { copyToClipboard, renderSelect, renderSelectBackendString, renderSelectIdName } from '../util/ui';
+import { DeviceGroupType, DeviceGroupType_AdminCanAdd, HideStatus, translateBackendString } from '../api/model_front';
+import { copyToClipboard, renderSelect, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
 import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
@@ -151,8 +151,8 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
       return <></>
     }
     return <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-      <Tooltip title='通过监听每个网卡的 IP 地址实现 UDP 源进源出，若没有需求，则无需打开。'>
-        <Typography.Text style={{ flex: 1 }} strong>UDP 智能绑定 (源进源出)</Typography.Text>
+      <Tooltip title='通过监听每个网卡的 IP 地址实现 UDP 源进源出，一般双 IP 的机器建议打开。'>
+        <Typography.Text style={{ flex: 1 }} strong>UDP 智能绑定 (源进源出) (?)</Typography.Text>
       </Tooltip>
       <Switch
         defaultChecked={editingObjConfig.current.udp_smart_bind}
@@ -216,6 +216,18 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Select>
         </Flex>
         {/* 入口 */}
+        <Flex className='neko-settings-flex-line vis-inbound vis-suidao' style={{ display: "none" }}>
+          <Tooltip title={<div>
+            <p>选填，出口的设备组 ID (以英文逗号分割)</p>
+            <p>设置后，用户选择此入口时，将只能看到这里设置的出口，其他出口不可选择。</p>
+          </div>}>
+            <Typography.Text strong>限制出口 (?)</Typography.Text>
+          </Tooltip>
+          <Input
+            defaultValue={obj.allowed_out}
+            onChange={(e) => editingObj.current.allowed_out = e.target.value.trim()}
+          ></Input>
+        </Flex>
         <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
           <Tooltip title={<div>
             <p>仅前端显示，无其他作用</p>
@@ -244,18 +256,6 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           <Switch
             defaultChecked={editingObjConfig.current.direct}
             onChange={onDirectChange} />
-        </Flex>
-        <Flex className='neko-settings-flex-line vis-inbound vis-suidao' style={{ display: "none" }}>
-          <Tooltip title={<div>
-            <p>选填，出口的设备组 ID (以英文逗号分割)</p>
-            <p>设置后，用户选择此入口时，将只能看到这里设置的出口，其他出口不可选择。</p>
-          </div>}>
-            <Typography.Text strong>限制出口 (?)</Typography.Text>
-          </Tooltip>
-          <Input
-            defaultValue={obj.allowed_out}
-            onChange={(e) => editingObj.current.allowed_out = e.target.value.trim()}
-          ></Input>
         </Flex>
         {renderYJYC()}
         {/* 出口 */}
@@ -295,6 +295,16 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Select>
         </Flex>
         {/* 最后 */}
+        <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
+          <Typography.Text className='dq-1'>在探针中隐藏</Typography.Text>
+          <div className='dq-2'>
+            <Select
+              defaultValue={obj.hide_status ?? 0}
+              options={renderSelect2(HideStatus)}
+              onChange={(e) => editingObj.current.hide_status = e}
+            ></Select>
+          </div>
+        </Flex>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>{beizhu}</Typography.Text>
           <Input.TextArea
