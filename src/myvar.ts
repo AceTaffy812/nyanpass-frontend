@@ -13,7 +13,6 @@ export const myvar = new class {
     defaultDistConfig = {
         "clientScript": "https://api.nyafw.com/download/nyanpass-install.sh",
         "makeOfflineScript": "https://api.candypath.eu.org/download/nyanpass-make-offline.sh",
-        "tunnelProtocols": ["ws", "tls"],
         "enableFunctions": new Array<String>(),
     };
     distConfig = this.defaultDistConfig;

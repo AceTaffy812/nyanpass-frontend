@@ -37,7 +37,6 @@ export function checkUpdate() {
 }
 
 export function checkDistConfig() {
-    // 用服务器在这里发吧，，，
     fetch(myvar.nekoHost + "/download/nyanpass_config.json?t=" + currentTimestamp()).then((ret) => {
         ret.json().then((data) => {
             localStorage.setItem("nyanpass_config", JSON.stringify(data))

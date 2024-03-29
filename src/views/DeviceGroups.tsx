@@ -265,7 +265,11 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           </Tooltip>
           <Select
             defaultValue={editingObjConfig.current.protocol}
-            options={renderSelect(myvar.distConfig.tunnelProtocols)}
+            options={[
+              { value: "ws", label: "ws" },
+              { value: "tls", label: "tls" },
+              { value: "tls_simple", label: "tls_simple" },
+            ]}
             onChange={(e) => editingObjConfig.current.protocol = e}
           ></Select>
         </Flex>

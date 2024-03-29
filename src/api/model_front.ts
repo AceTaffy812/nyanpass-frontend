@@ -77,6 +77,7 @@ export const SelectorType = {
     round: "round",
     ip_hash: "ip_hash",
     least_load: "least_load",
+    failover: "failover",
 }
 
 export const OrderType = {
@@ -141,11 +142,12 @@ const ConstTextMap = {
     "AffiliateLogType_Withdraw": "佣金提现",
     "AffiliateLogType_Deposit": "佣金转余额",
     "AffiliateLogType_Accounting": "手动记账",
-    // 负载均衡类型
+    // 落地的负载均衡类型
     random: "随机",
     round: "轮询",
     ip_hash: "ip_hash",
     least_load: "最小连接数",
+    failover: "故障转移",
 }
 
 export function translateBackendString(str: any, def?: string): string {

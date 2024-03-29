@@ -27,6 +27,8 @@ export function UserInfoView(props: { userInfo: any }) {
           setAffConfig(ret.data)
         }
       })
+      // 打开用户页时立即刷新用户信息
+      reloadMyVar({ userInfo: true })
     }
   }, [])
 

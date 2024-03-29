@@ -582,7 +582,7 @@
                     mdui.alert("错误: 权重必须是 0~10 的整数。")
                     return
                 }
-                fetch("/api/v1/admin/kv/weight-" + server.SessionId, {
+                fetch("/api/v1/system/node/weight/" + server.gid + "/" + server.SessionId, {
                     method: "PUT",
                     headers: {
                         'Authorization': localStorage.getItem('Authorization'),
@@ -592,7 +592,7 @@
                     })
                 }).then((rsp) => {
                     rsp.json().then((data) => {
-                        mdui.alert("设置权重成功，需要等待一分钟左右才能生效。", title)
+                        mdui.alert("设置权重成功。", title)
                     }).catch(() => mdui.alert("请求失败", title))
                 }).catch(() => mdui.alert("请求失败", title))
             }, () => { }, {

@@ -19,6 +19,7 @@ import { FilterValue, SorterResult } from "antd/es/table/interface";
 import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
 import { IPPortWidget } from "../widget/IPPortWidget";
 import { render2Node } from "../util/reactw";
+import { reloadMyVar } from "../myvar";
 
 export function ForwardRulesView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -573,8 +574,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.proxy_protocol, 0)}
               options={[
                 { value: 0, label: "关闭" },
-                { value: 1, label: "v1" },
-                { value: 2, label: "v2" },
+                { value: 1, label: "v1 (TCP)" },
+                { value: 2, label: "v2 (TCP+UDP)" },
+                { value: 3, label: "v2 (TCP)" },
               ]}
               onChange={(e) => editingForwardConfig.current.proxy_protocol = e}
             ></Select>
@@ -729,7 +731,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
     return <Flex className="ant-flex2" style={{ marginBottom: "1em", marginTop: "1em" }}>
       {title2}
       {search}
-      <Button icon={<SyncOutlined />} onClick={updateData}>刷新</Button>
+      <Button icon={<SyncOutlined />} onClick={() => {
+        updateData()
+        reloadMyVar({ userInfo: true })
+      }}>刷新</Button>
       {tjsjButton}
     </Flex>
   }
