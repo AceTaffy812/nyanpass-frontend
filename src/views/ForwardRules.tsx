@@ -109,7 +109,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           let str = []
           let disable_mux = dgInConfig.disable_mux
           if (dgOut != null) {
-            if (dgOut.display_protocol == "tls") {
+            if (dgOut.display_protocol == "tls" || dgOut.display_protocol == "tls_simple") {
               str.push("协议: TLS 隧道")
             } else if (dgOut.display_protocol == "ws") {
               str.push("协议: WS 隧道")

@@ -495,9 +495,22 @@ export function AdminUsersView() {
     MyModal.confirm({
       icon: <p />,
       title: "清理无效用户",
-      content: "用户组与余额均为 0 的用户，即从未付费的用户，将被删除，且不可恢复。",
+      content: "用户组与余额均为 0 的用户，即从未付费的用户，将被删除，且不可恢复。同时这些用户的规则、单端设备等将被删除。",
       onOk: () => {
         return promiseFetchJson(api.admin.user_delete_unused(), (ret) => {
+          showCommonError(ret, ["清理成功", "清理失败"], updateData)
+        })
+      }
+    })
+  }
+
+  function btn_delete_unused_rules_onclick() {
+    MyModal.confirm({
+      icon: <p />,
+      title: "清理无效规则",
+      content: "清理用户或入口或出口已被删除的规则。",
+      onOk: () => {
+        return promiseFetchJson(api.admin.user_delete_unused_rules(), (ret) => {
           showCommonError(ret, ["清理成功", "清理失败"], updateData)
         })
       }
@@ -547,6 +560,7 @@ export function AdminUsersView() {
             <Button icon={<UserAddOutlined />} onClick={btn_create_onclick}>添加用户</Button>
             <Button icon={<SearchOutlined />} onClick={btn_search_rules_onclick}>搜索规则</Button>
             <Button icon={<DeleteOutlined />} onClick={btn_delete_unused_onclick}>清理无效用户</Button>
+            <Button icon={<DeleteOutlined />} onClick={btn_delete_unused_rules_onclick}>清理无效规则</Button>
           </Flex>
           <Table
             rowKey="id"

@@ -59,6 +59,14 @@ export class apiAdmin {
         return data;
     }
 
+    async user_delete_unused_rules(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/user/delete_unused_rules", {
+            method: "DELETE",
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
     async devicegroup_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/devicegroup?" + qs);
         var data = await rsp.json();
