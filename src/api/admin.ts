@@ -277,4 +277,30 @@ export class apiAdmin {
         var data = await rsp.json();
         return data;
     }
+
+    async shop_redeem_list(qs: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/shop/redeem?" + qs);
+        var data = await rsp.json();
+        return data;
+    }
+
+    async shop_redeem_import(obj: any): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/shop/redeem/import", {
+            method: "POST",
+            body: JSON.stringify(obj)
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async shop_redeem_delete(ids: any[]): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/shop/redeem", {
+            method: "DELETE",
+            body: JSON.stringify({
+                ids: batchIds(ids)
+            })
+        });
+        var data = await rsp.json();
+        return data;
+    }
 }

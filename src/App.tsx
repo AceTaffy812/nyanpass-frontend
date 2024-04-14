@@ -23,6 +23,7 @@ import { LookingGlassView } from './views/LookingGlass';
 import { AdminMainView } from './views/AdminMain';
 import { Colors } from './material-color';
 import { AdminUserGroupsView } from './views/AdminUserGroup';
+import { AdminRedeemCode } from './views/AdminRedeemCode';
 
 export function MyApp(props: { isDarkMode: boolean }) {
   const url = new URL(location as any)
@@ -130,6 +131,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
           getItem(nav, "side", "/admin/user_group"),
           getItem(nav, "side", "/admin/orders"),
           getItem(nav, "side", "/admin/plans"),
+          getItem(nav, "side", "/admin/redeem"),
           getItem(nav, "side", "/admin/device_group"),
           getItem(nav, "side", "/admin/afflog"),
         ]
@@ -234,6 +236,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
                 <Route path="/admin/plans" element={<AdminPlansView />} />
                 <Route path="/admin/orders" element={<OrdersView type={OrdersViewType.AdminOrder} />} />
                 <Route path="/admin/afflog" element={<OrdersView type={OrdersViewType.AdminAffLog} />} />
+                <Route path="/admin/redeem" element={<AdminRedeemCode />} />
               </Routes>
             </Card>
           </Layout.Content>

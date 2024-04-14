@@ -3,13 +3,14 @@ import { api } from '../api/api';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic } from '../util/format';
 import { ignoreError } from '../util/promise';
-import { Button, Card, Flex, InputNumber, List, Popconfirm, QRCode, Radio, Space, Typography } from 'antd';
+import { Button, Card, Flex, Form, Input, InputNumber, List, Popconfirm, QRCode, Radio, Space, Typography } from 'antd';
 import { displayCurrency } from '../util/ui';
 import { translatePlanType } from '../api/model_front';
-import { MyMessage, MyModalCannotDismiss } from '../util/MyModal';
+import { MyMessage, MyModalCannotDismiss, closeCurrentDialog } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
 import { isNotBlank } from '../util/misc';
+import { TagOutlined } from '@ant-design/icons';
 
 export function ShopView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -31,7 +32,7 @@ export function ShopView(props: { userInfo: any }) {
     }
   }, [])
 
-  function renderPlanCard(item: any) {
+  function renderPlanCard(item: any, apiFactory: any) {
     let shuoming = <></>
     if (isNotBlank(item.desc)) {
       let shuoming2 = <Typography.Text>{item.desc}</Typography.Text>
@@ -70,14 +71,19 @@ export function ShopView(props: { userInfo: any }) {
         {shuoming}
         <Popconfirm
           title="购买"
-          description={`从余额支付 ${item.price} ${displayCurrency} 购买此套餐，请确保余额充足。购买后将覆盖当前套餐。`}
+          description={`从余额支付 ${item.price} ${displayCurrency} 购买此套餐，请确保余额充足。**购买后将覆盖当前套餐**。`}
           placement='bottom'
           onConfirm={
-            () => promiseFetchJson(api.user.shop_plan_purchase(item.id), (ret) => {
-              showCommonError(ret, [`购买 ${item.name} 成功`, "购买失败"], undefined, true)
-              reloadMyVar({ userInfo: true })
-            })
-          } >
+            () => {
+              // 默认用单纯的购买 API
+              if (apiFactory == null) {
+                apiFactory = () => api.user.shop_plan_purchase(item.id)
+              }
+              promiseFetchJson(apiFactory(), (ret) => {
+                showCommonError(ret, [`购买 ${item.name} 成功`, "购买失败"], undefined, true)
+                reloadMyVar({ userInfo: true })
+              })
+            }}>
           <Button disabled={requesting}>点击购买 ({item.price} {displayCurrency})</Button>
         </Popconfirm>
       </Flex>
@@ -101,6 +107,26 @@ export function ShopView(props: { userInfo: any }) {
         }
       } else {
         showCommonError(ret, "充值请求失败")
+      }
+    })
+  }
+
+  function queryRedeemCode(values: any) {
+    if (values == null || !isNotBlank(values.code)) {
+      return
+    }
+    setRequesting(true)
+    return promiseFetchJson(api.user.shop_redeem_query(values.code), (ret) => {
+      setRequesting(false)
+      if (ret.code == 0) {
+        MyModalCannotDismiss.info({
+          title: "兑换详情",
+          content: <Flex vertical>
+            {renderPlanCard(ret.data, () => { closeCurrentDialog(); return api.user.shop_redeem_purchase(values.code) })}
+          </Flex>
+        })
+      } else {
+        showCommonError(ret, "错误")
       }
     })
   }
@@ -141,10 +167,33 @@ export function ShopView(props: { userInfo: any }) {
           dataSource={plans}
           renderItem={(item: any) => (
             <List.Item>
-              {renderPlanCard(item)}
+              {renderPlanCard(item, null)}
             </List.Item>
           )}
         />
+      </Card>
+      <Card title="兑换套餐">
+        <Flex vertical>
+          <Typography.Paragraph>
+            <blockquote>如果您有兑换码，则可以免费或低价购买对应的套餐。</blockquote>
+          </Typography.Paragraph>
+          <Form
+            disabled={requesting}
+            onFinish={queryRedeemCode}
+          >
+            <Flex className='neko-flex'>
+              <Form.Item name="code" style={{ marginBottom: "unset" }}>
+                <Input
+                  prefix={<TagOutlined />}
+                  placeholder="兑换码"
+                />
+              </Form.Item>
+              <Form.Item style={{ marginBottom: "unset" }}>
+                <Button type="primary" htmlType="submit">兑换</Button>
+              </Form.Item>
+            </Flex>
+          </Form>
+        </Flex>
       </Card>
     </Flex>
   )

@@ -187,7 +187,7 @@ export function AdminUsersView() {
     { title: '流量', key: 'traffic_used', dataIndex: 'display_traffic', sorter: true },
     {
       title: '套餐', key: 'plan_id', dataIndex: 'plan_id',
-      render: (e) => ignoreError(() => `${findObjByIdId(plans, e).name} (#${e})`, e),
+      render: (e) => ignoreError(() => findObjByIdId(plans, e).display_name, `#${e}`),
       filterDropdown: tableSearchDropdown("搜索套餐 ID"),
     },
     {
@@ -421,7 +421,7 @@ export function AdminUsersView() {
           <Typography.Text strong>套餐</Typography.Text>
           <Select
             defaultValue={editingObj.current.plan_id}
-            options={renderSelectIdName(plans)}
+            options={renderSelectIdName(plans, "display_name")}
             onChange={(e) => editingObj.current.plan_id = e}
           ></Select>
         </Flex>

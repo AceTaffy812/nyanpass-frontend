@@ -34,6 +34,7 @@ export const myNavMap: any = {
     "/admin/device_group": ["管理/设备组管理", <CloudServerOutlined />],
     "/admin/plans": ["管理/套餐管理", <TagsOutlined />],
     "/admin/afflog": ["管理/邀请记录", <RedEnvelopeOutlined />],
+    "/admin/redeem": ["管理/兑换码管理", <TagsOutlined />],
 }
 
 export function getItem(nav: (a: string) => void, prefix: string, to: string) {

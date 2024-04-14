@@ -1,3 +1,4 @@
+import QueryString from "qs";
 import { batchIds } from "../util/misc";
 import { fetchApi } from "./fetchw";
 import { ReqSearchRules } from "./model_api";
@@ -126,6 +127,21 @@ export class apiUser {
                 method: method,
                 target: target,
             })
+        });
+        var data = await rsp.json();
+        return data;
+    }
+
+    async shop_redeem_query(code: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/shop/redeem?" + QueryString.stringify({ code: code }));
+        var data = await rsp.json();
+        return data;
+    }
+
+    async shop_redeem_purchase(code: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/shop/redeem?" + QueryString.stringify({ code: code }), {
+            method: "POST",
+            // 也许没有 POST body 参数
         });
         var data = await rsp.json();
         return data;

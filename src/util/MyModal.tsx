@@ -10,6 +10,13 @@ export function setModalCtx(modal: any, message: any) {
 }
 
 let confirmDialog: any = null
+let currentDialog: any = null
+
+export function closeCurrentDialog() {
+    ignoreError(() => {
+        currentDialog.destroy()
+    })
+}
 
 class myModal {
     canNotDismiss = false
@@ -21,22 +28,22 @@ class myModal {
     info = (obj: any) => {
         obj.centered = true
         obj.maskClosable = !this.canNotDismiss
-        modalCtx.info(obj)
+        currentDialog = modalCtx.info(obj)
     }
     success = (obj: any) => {
         obj.centered = true
         obj.maskClosable = !this.canNotDismiss
-        modalCtx.success(obj)
+        currentDialog = modalCtx.success(obj)
     }
     error = (obj: any) => {
         obj.centered = true
         obj.maskClosable = !this.canNotDismiss
-        modalCtx.error(obj)
+        currentDialog = modalCtx.error(obj)
     }
     warning = (obj: any) => {
         obj.centered = true
         obj.maskClosable = !this.canNotDismiss
-        modalCtx.warning(obj)
+        currentDialog = modalCtx.warning(obj)
     }
     confirm = (obj: any) => {
         obj.centered = true
@@ -45,7 +52,9 @@ class myModal {
         ignoreError(() => {
             confirmDialog.destroy()
         })
-        confirmDialog = modalCtx.confirm(obj)
+        const dlg = modalCtx.confirm(obj)
+        confirmDialog = dlg
+        currentDialog = dlg
     }
 }
 
