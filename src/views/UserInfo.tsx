@@ -3,14 +3,19 @@ import { api } from '../api/api';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic, formatUnix } from '../util/format';
 import { ignoreError } from '../util/promise';
-import { Button, Card, Flex, Form, Input, InputNumber, Space, Switch, Tag, Typography } from 'antd';
+import { Button, Card, Flex, Form, Input, InputNumber, Select, SelectProps, Space, Switch, Tag, Typography } from 'antd';
 import { LockOutlined, PlusCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
 import { myvar, reloadMyVar } from '../myvar';
 import { FrontInviteConfig } from '../api/model_front';
-import { generateBigCharacter } from '../util/misc';
+import { generateBigCharacter, isNotBlank } from '../util/misc';
+
+const telegramReceiveOptions: SelectProps['options'] = [
+  { label: "收款信息", value: "income" },
+  { label: "设备离线与恢复", value: "updown" },
+];
 
 export function UserInfoView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -113,6 +118,31 @@ export function UserInfoView(props: { userInfo: any }) {
     })
   }
 
+  function btn_telegram_notify_onclick() {
+    MyModal.confirm({
+      icon: <p />,
+      title: "Telegram 推送设置",
+      // TODO why cannot auto height ???
+      content: <Flex vertical style={{ height: "100px" }}>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>接受的推送类型</Typography.Text>
+          <Select
+            mode="multiple"
+            allowClear
+            defaultValue={isNotBlank(userInfo.telegram_notify) ? userInfo.telegram_notify.split(",") : []}
+            onChange={e => userInfo.telegram_notify = e.join(",")}
+            options={telegramReceiveOptions}
+          />
+        </Flex>
+      </Flex>,
+      onOk: () => {
+        return promiseFetchJson(api.user.update_column("telegram_notify", userInfo.telegram_notify), (ret) => {
+          showCommonError(ret, ["设置成功", "设置失败"], () => reloadMyVar({ userInfo: true }))
+        })
+      }
+    })
+  }
+
   const editingAffDepositAmount = useRef(0);
   function btn_aff_deposit_onclick() {
     MyModal.confirm({
@@ -149,6 +179,10 @@ export function UserInfoView(props: { userInfo: any }) {
   const ip_limit = ignoreError(() => userInfo.ip_limit) > 0 ? <Flex>
     <Typography.Text strong>IP 限制</Typography.Text>
     <Typography.Text>{ignoreError(() => userInfo.ip_limit)}</Typography.Text>
+  </Flex> : <></>
+  const tgNotify = ignoreError(() => userInfo.admin) == true ? <Flex className='ant-flex3'>
+    <Typography.Text strong>Telegram 推送信息</Typography.Text>
+    <Button onClick={btn_telegram_notify_onclick}>点击设置</Button>
   </Flex> : <></>
 
   const invite_code = ignoreError(() => userInfo.invite_code, "");
@@ -207,6 +241,7 @@ export function UserInfoView(props: { userInfo: any }) {
             <Button onClick={btn_telegram_bind_onclick}>关联 Telegram</Button>
             <Button onClick={btn_telegram_unbind_onclick}>解除关联</Button>
           </Flex>
+          {tgNotify}
         </Space>
       </Card>
       <Card title="账户设置">

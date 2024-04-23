@@ -79,7 +79,7 @@ export function ShopView(props: { userInfo: any }) {
               if (apiFactory == null) {
                 apiFactory = () => api.user.shop_plan_purchase(item.id)
               }
-              promiseFetchJson(apiFactory(), (ret) => {
+              return promiseFetchJson(apiFactory(), (ret) => {
                 showCommonError(ret, [`购买 ${item.name} 成功`, "购买失败"], undefined, true)
                 reloadMyVar({ userInfo: true })
               })
