@@ -1,7 +1,7 @@
-import { Button, Card, Flex, Input, InputNumber, Select, Switch, Tabs } from 'antd';
+import { Card, Flex, Input, InputNumber, Select, Switch, Tabs } from 'antd';
 import { Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { asyncFetchJson } from '../util/fetch';
+import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
@@ -9,11 +9,11 @@ import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo, RegisterCaptchaPoli
 import { displayCurrency, renderSelect2 } from '../util/ui';
 import { cleanupDefaultValue } from '../util/misc';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
+import AsyncButton from '../widget/AsyncButton';
 
 export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInfo }) {
   const mounted = useRef(false);
   const { userInfo, siteInfo } = props;
-  const [requesting, setRequesting] = useState(false);
 
   const [title, setTitle] = useState('');
   const [allowReg, setAllowReg] = useState(false);
@@ -106,19 +106,16 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       register_captcha_policy: registerCaptchaPolicy,
     }
     cleanupDefaultValue(newInfo)
-    asyncFetchJson(api.admin.kv_put("site_info", JSON.stringify(newInfo)), (ret) => {
-      setRequesting(true)
+    return promiseFetchJson(api.admin.kv_put("site_info", JSON.stringify(newInfo)), (ret) => {
       showCommonError(ret, ["保存成功", "保存失败"], () => {
-        setRequesting(false)
         reloadMyVar({ siteInfo: true })
       })
     })
   }
 
   function btn_save_notice_onclick() {
-    asyncFetchJson(api.admin.kv_put("site_notice", notice), (ret) => {
-      setRequesting(true)
-      showCommonError(ret, ["保存成功", "保存失败"], () => setRequesting(false))
+    return promiseFetchJson(api.admin.kv_put("site_notice", notice), (ret) => {
+      showCommonError(ret, ["保存成功", "保存失败"])
     })
   }
 
@@ -143,16 +140,14 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
     payment.gateways[2].callback_host = cyber_callback_host
     payment.gateways[2].fee_ratio = cyber_fee
     //
-    asyncFetchJson(api.admin.kv_put("payment_info", JSON.stringify(payment)), (ret) => {
-      setRequesting(true)
-      showCommonError(ret, ["保存成功", "保存失败"], () => setRequesting(false))
+    return promiseFetchJson(api.admin.kv_put("payment_info", JSON.stringify(payment)), (ret) => {
+      showCommonError(ret, ["保存成功", "保存失败"])
     })
   }
 
   function btn_save_invite_onclick() {
-    asyncFetchJson(api.admin.kv_put("invite_config", JSON.stringify(editingInviteSettings)), (ret) => {
-      setRequesting(true)
-      showCommonError(ret, ["保存成功", "保存失败"], () => setRequesting(false))
+    return promiseFetchJson(api.admin.kv_put("invite_config", JSON.stringify(editingInviteSettings)), (ret) => {
+      showCommonError(ret, ["保存成功", "保存失败"])
     })
   }
 
@@ -203,23 +198,22 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             </div>
           </Flex>
         </Flex>
-        <Button type="primary"
-          loading={requesting}
+        <AsyncButton type="primary"
           style={{ margin: "1em 0 0 0", float: 'right' }}
           onClick={btn_save_siteinfo_onclick}
-        >保存</Button>
+        >保存</AsyncButton>
       </Card>
       <Card title="站点公告">
         <Input.TextArea
+          placeholder='以 < 开头则显示为 HTML'
           rows={4}
           value={notice}
           onChange={(e) => { setNotice(e.target.value.trim()) }}
         ></Input.TextArea>
-        <Button type="primary"
-          loading={requesting}
+        <AsyncButton type="primary"
           style={{ margin: "1em 0 0 0", float: 'right' }}
           onClick={btn_save_notice_onclick}
-        >保存</Button>
+        >保存</AsyncButton>
       </Card>
       <Card title="支付设置">
         <Flex vertical>
@@ -358,19 +352,17 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             />
           </Card>
         </Flex>
-        <Button type="primary"
-          loading={requesting}
+        <AsyncButton type="primary"
           style={{ margin: "1em 0 0 0", float: 'right' }}
           onClick={btn_save_payment_onclick}
-        >保存</Button>
+        >保存</AsyncButton>
       </Card>
       <Card title="邀请设置 (定制功能，若需使用请咨询作者)">
         <InviteSettings data={inviteConfig}></InviteSettings>
-        <Button type="primary"
-          loading={requesting}
+        <AsyncButton type="primary"
           style={{ margin: "1em 0 0 0", float: 'right' }}
           onClick={btn_save_invite_onclick}
-        >保存</Button>
+        >保存</AsyncButton>
       </Card>
     </Flex>
   )

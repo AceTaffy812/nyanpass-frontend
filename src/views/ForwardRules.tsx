@@ -598,6 +598,19 @@ export function ForwardRulesView(props: { userInfo: any }) {
         </Flex>
       },
     ];
+    if (isBatch) {
+      collaspedItems.push({
+        key: '2',
+        label: 'JSON 设置',
+        children: <Flex vertical>
+          <Input.TextArea
+            rows={6}
+            placeholder="优先级高于高级设置。请确保格式正确。"
+            onChange={(e) => editingObj.current.json_settings = e.target.value}
+          ></Input.TextArea>
+        </Flex>
+      })
+    }
     //
     const renderDiZhi = () => {
       if (isBatch) {
@@ -674,6 +687,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
         }
         editingObj.current.config = JSON.stringify(cleanupDefaultValue(editingForwardConfig.current));
         if (isBatch) {
+          if (isNotBlank(editingObj.current.json_settings)) {
+            editingObj.current.config = editingObj.current.json_settings
+          }
           return promiseFetchJson(forward.forward_batch_create(editingObj.current), (ret) => {
             showCommonError(ret, ["规则更新成功", "规则更新失败"], updateData)
           })
