@@ -126,6 +126,7 @@ export function AdminUserGroupsView() {
         </Flex>
         <DragSortTable
           rowKey="id"
+          pagination={false}
           search={false}
           options={false}
           loading={loading}

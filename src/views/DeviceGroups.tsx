@@ -488,6 +488,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           </Flex>
           <DragSortTable
             rowKey="id"
+            pagination={false}
             search={false}
             options={false}
             loading={loading}

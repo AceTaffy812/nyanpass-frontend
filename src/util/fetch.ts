@@ -1,4 +1,5 @@
 import { logoutLocal } from "../AppApi";
+import { MyMessage } from "./MyModal";
 import { commonEx, showCommonError, showJsError } from "./commonError";
 
 // 如果不设置 success 或 fail 则用对话框输出， ret 至少有 code
@@ -18,8 +19,11 @@ export function asyncFetchJson(promise: Promise<any>, success?: (ret?: any) => v
                 showCommonError(ret, ["请求成功", "请求失败"])
             }
         } catch (error: any) {
-            console.log("fetch error", error)
-            if (error != commonEx) myFail(error)
+            if (error != commonEx) {
+                console.log("fetch error", error)
+                MyMessage.error("fetch error: " + error)
+                myFail(error)
+            }
         }
     });
 }
@@ -41,8 +45,11 @@ export function promiseFetchJson(promise: Promise<any>, success?: (ret?: any, da
                 showCommonError(ret, ["成功", "失败"])
             }
         } catch (error: any) {
-            console.log("fetch error", error)
-            if (error != commonEx) myFail(error)
+            if (error != commonEx) {
+                console.log("fetch error", error)
+                MyMessage.error("fetch error: " + error)
+                myFail(error)
+            }
             throw error
         }
     })();

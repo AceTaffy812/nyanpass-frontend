@@ -8,6 +8,8 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { CaptchaApp } from "../widget/captcha/CaptchaApp.js"
 import { ignoreError } from '../util/promise.js';
 import { useParams } from 'react-router-dom';
+import { setDoNotLogoutLocal } from '../AppApi.js';
+import { isNotBlank } from '../util/misc.js';
 
 export function LoginView(props: { reg: boolean, siteInfo: any }) {
   const [requesting, setRequesting] = useState(false);
@@ -21,9 +23,16 @@ export function LoginView(props: { reg: boolean, siteInfo: any }) {
       mounted.current = true
       const token = params["token"]
       if (token != null) {
+        if (isNotBlank(localStorage.getItem("Authorization"))) {
+          setDoNotLogoutLocal(true)
+        }
         localStorage.setItem("Authorization", token);
         reloadMyVar()
-        myvar.nav("/")
+        // when userinfo is loaded
+        myvar.userInfo.then(() => {
+          setDoNotLogoutLocal(false)
+          myvar.nav("/")
+        })
       }
     }
   }, [])
