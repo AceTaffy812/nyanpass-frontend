@@ -3,15 +3,24 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0" />
 
   <!-- common -->
 
-  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
 
   <!-- antv -->
 
   <script src="https://cdn.jsdelivr.net/npm/@ant-design/charts@2.0.3/dist/charts.min.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- 主程序 -->
+
+  <script type="module" src="/src/main.tsx"></script>
 
   <!-- Monaco 放最后加载 -->
 
@@ -20,11 +29,6 @@
   <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } };</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.js"></script>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
 </body>
 
 </html>

@@ -34,6 +34,7 @@ export function AdminUsersView() {
 
   const [data, setData] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
+  const [userGroups, setUserGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [tableParams, setTableParams] = useState<TableParams>({
     pagination: {
@@ -83,6 +84,15 @@ export function AdminUsersView() {
           newData.push(ret.data[i])
         }
         setDeviceGroupList(newData)
+      }
+    })
+    asyncFetchJson(api.admin.usergroup_list(), (ret) => {
+      if (ret.data != null) {
+        for (let i = 0; i < ret.data.length; i++) {
+          ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
+          if (ret.data[i].id == 0) ret.data[i].display_name = "0"
+        }
+        setUserGroups(ret.data)
       }
     })
   }
@@ -192,6 +202,7 @@ export function AdminUsersView() {
     },
     {
       title: '用户组', key: 'group_id', dataIndex: 'group_id',
+      render: (e) => ignoreError(() => findObjByIdId(userGroups, e).display_name, `#${e}`),
       filterDropdown: tableSearchDropdown("搜索用户组 ID"),
     },
     { title: '最大规则数', key: 'max_rules', dataIndex: 'max_rules', sorter: true },

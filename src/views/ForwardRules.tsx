@@ -476,7 +476,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         if (fw == null) return <Typography.Text>加载失败</Typography.Text>
         let devWtf = findObjByIdId(deviceGroupList, fw.device_group_in)
         if (devWtf == null) {
-          devWtf = { name: "加载失败", connect_host: "加载失败" }
+          devWtf = { name: "加载失败 #" + fw.device_group_in, connect_host: "加载失败" }
         } else {
           devWtf = clone(devWtf) // 乱改对象之前，先复制
         }
