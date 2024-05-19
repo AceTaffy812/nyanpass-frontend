@@ -6,12 +6,15 @@ import { ignoreError } from '../util/promise';
 import { byteConverter } from '../util/format';
 import { Bar } from '@ant-design/charts';
 import { myvar } from '../myvar';
+import { clone } from 'lodash';
 
 export function AdminMainView() {
   const mounted = useRef(false);
   const [statistic, setStatistic] = useState<any>([]);
   const [user_traffic_rank_today, set_user_traffic_rank_today] = useState<any[]>([]);
   const [user_traffic_rank_yesterday, set_user_traffic_rank_yesterday] = useState<any[]>([]);
+  const [node_traffic_rank_today, set_node_traffic_rank_today] = useState<any[]>([]);
+  const [node_traffic_rank_yesterday, set_node_traffic_rank_yesterday] = useState<any[]>([]);
 
   useEffect(() => {
     if (!mounted.current) {
@@ -27,8 +30,18 @@ export function AdminMainView() {
             e.用户 = e.username + " (#" + e.uid + ")"
             e.流量 = (e.traffic / (1024 * 1024 * 1024)).toFixed(2)
           })
+          ret.data.node_traffic_rank_today.forEach((e: any) => {
+            e.节点 = e.name + " (#" + e.gid + ")"
+            e.流量 = (e.traffic / (1024 * 1024 * 1024)).toFixed(2)
+          })
+          ret.data.node_traffic_rank_yesterday.forEach((e: any) => {
+            e.节点 = e.name + " (#" + e.gid + ")"
+            e.流量 = (e.traffic / (1024 * 1024 * 1024)).toFixed(2)
+          })
           set_user_traffic_rank_today(ret.data.user_traffic_rank_today)
           set_user_traffic_rank_yesterday(ret.data.user_traffic_rank_yesterday)
+          set_node_traffic_rank_today(ret.data.node_traffic_rank_today)
+          set_node_traffic_rank_yesterday(ret.data.node_traffic_rank_yesterday)
         } catch (e: any) { }
       })
     }
@@ -62,6 +75,9 @@ export function AdminMainView() {
       },
     }
   };
+  const barConfig2 = clone(barConfig);
+  barConfig2.xField = "节点"
+  barConfig2.colorField = "节点"
 
   return (
     <Flex vertical>
@@ -140,6 +156,12 @@ export function AdminMainView() {
       </Card>
       <Card title="昨日用户流量排行" bodyStyle={{ padding: "1em" }}>
         <Bar {...barConfig} data={user_traffic_rank_yesterday}></Bar>
+      </Card>
+      <Card title="今日节点流量排行" bodyStyle={{ padding: "1em" }}>
+        <Bar {...barConfig2} data={node_traffic_rank_today}></Bar>
+      </Card>
+      <Card title="昨日节点流量排行" bodyStyle={{ padding: "1em" }}>
+        <Bar {...barConfig2} data={node_traffic_rank_yesterday}></Bar>
       </Card>
     </Flex>
   )
