@@ -47,13 +47,14 @@
 
 <body>
 
-
-
     <div class="mdui-appbar">
         <div class="mdui-tab mdui-color-theme" mdui-tab>
             <a href="./" class='mdui-ripple mdui-ripple-white mdui-hoverable mdui-tab-active'><i
                     class="mdui-icon material-icons">home</i>返回主页</a>
             <div class="mdui-toolbar-spacer"></div>
+            <a href="#" class='mdui-ripple mdui-ripple-white mdui-hoverable mdui-tab-active' id="switchView"
+                onclick="switchView()">
+                <i class="mdui-icon material-icons">swap_horiz</i>切换视角</a>
         </div>
     </div>
 
@@ -245,6 +246,7 @@
     <script>
         try {
             window.isAdmin = localStorage.getItem("isAdmin") == "true"
+            window.isAdminReal = localStorage.getItem("isAdmin") == "true"
             const nyanpass_config = JSON.parse(localStorage.getItem("nyanpass_config"))
             const nyanpass_update = JSON.parse(localStorage.getItem("nyanpass_update"))
             window.ncVersion = nyanpass_update.ncVersion
@@ -255,6 +257,10 @@
             window.clientScript = nyanpass_config.clientScript
         } catch (e) {
             console.log("初始化", e)
+        }
+        try {
+            document.getElementById("switchView").hidden = !window.isAdminReal
+        } catch (e) {
         }
         document.title = `${isAdmin ? "管理员" : "探针"}@${location.host}`
         //
@@ -599,6 +605,17 @@
                 confirmText: "确认",
                 cancelText: "取消",
             });
+        }
+        function switchView() {
+            mdui.snackbar({
+                message: `正在切换视角至 ${window.isAdmin ? "普通用户" : "管理员"}...`,
+                timeout: 2000,
+                position: 'top',
+                onClosed: function () {
+                    mdui.mutation();
+                }
+            });
+            window.isAdmin = !window.isAdmin;
         }
     </script>
 </body>

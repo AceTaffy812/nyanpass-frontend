@@ -272,12 +272,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
     let copyStr = new Array<String>()
     e.forEach(e => {
       const obj = findObjByIdId(data, Number(e))
-      const cfg = parseFrontForwardConfig(obj.config)
-      if (cfg.dest == null || cfg.dest.length != 1) return
-      const lastMaoHao = cfg.dest[0].lastIndexOf(":")
-      const lddz = cfg.dest[0].substring(0, lastMaoHao)
-      const lddk = cfg.dest[0].substring(lastMaoHao + 1)
-      copyStr.push(`${obj.name}#${obj.listen_port}#${lddz}#${lddk}`)
+      const cfg = parseFrontForwardConfig(obj.config) as any
+      cfg.name = obj.name;
+      cfg.listen_port = obj.listen_port;
+      copyStr.push(JSON.stringify(cfg));
     })
     if (copyStr.length == 0) return
     copyToClipboard(copyStr.reverse().join("\n"), `成功复制 ${copyStr.length} 条规则`)
@@ -555,7 +553,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     editingObj.current = obj
     editingForwardConfig.current = parseFrontForwardConfig(obj.config)
     //
-    const collaspedItems: CollapseProps['items'] = [
+    let collaspedItems: CollapseProps['items'] = [
       {
         key: '1',
         label: '高级选项',
@@ -599,17 +597,17 @@ export function ForwardRulesView(props: { userInfo: any }) {
       },
     ];
     if (isBatch) {
-      collaspedItems.push({
+      collaspedItems = [{
         key: '2',
         label: 'JSON 设置',
         children: <Flex vertical>
           <Input.TextArea
             rows={6}
-            placeholder="优先级高于高级设置。请确保格式正确。"
+            placeholder="覆盖除 dest 以外的配置，请确保格式正确。"
             onChange={(e) => editingObj.current.json_settings = e.target.value}
           ></Input.TextArea>
         </Flex>
-      })
+      }]
     }
     //
     const renderDiZhi = () => {
@@ -618,7 +616,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <Typography.Text strong>批量规则</Typography.Text>
           <Input.TextArea
             rows={6}
-            placeholder={"一行一个，空行会被忽略，格式如下:\n\n名称#监听端口#目标地址#目标端口"}
+            placeholder={"一行一个，空行会被忽略。"}
             onChange={(e) => editingObj.current.content = e.target.value}
           ></Input.TextArea>
         </>
@@ -689,6 +687,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
         if (isBatch) {
           if (isNotBlank(editingObj.current.json_settings)) {
             editingObj.current.config = editingObj.current.json_settings
+          } else {
+            editingObj.current.config = null
           }
           return promiseFetchJson(forward.forward_batch_create(editingObj.current), (ret) => {
             showCommonError(ret, ["规则更新成功", "规则更新失败"], updateData)
