@@ -220,6 +220,7 @@ export function AdminUsersView() {
           <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editUser(findObjByIdId(data, e))} /></Tooltip>
           <Tooltip title="编辑用户套餐"><Button icon={<ShoppingOutlined />} onClick={() => changePlan(findObjByIdId(data, e))} /></Tooltip>
           <Tooltip title="邀请注册"><Button icon={<RedEnvelopeOutlined />} onClick={() => editInviteConfig(findObjByIdId(data, e))} /></Tooltip>
+          <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deleteUser(e)} /></Tooltip>
         </Flex>
       }
     },
@@ -539,6 +540,19 @@ export function AdminUsersView() {
       onOk: () => {
         return promiseFetchJson(apiFw.forward_delete(e), (ret) => {
           showCommonError(ret, ["", "删除规则失败"], updateData)
+        })
+      }
+    })
+  }
+
+  function deleteUser(e: number) {
+    MyModal.confirm({
+      icon: <p />,
+      title: "删除用户",
+      content: <p>你确定要删除用户 {findObjByIdId(data, e).username} 吗？</p>,
+      onOk: () => {
+        return promiseFetchJson(api.admin.user_delete([e]), (ret) => {
+          showCommonError(ret, ["", "删除用户失败"], updateData)
         })
       }
     })
