@@ -20,6 +20,7 @@ import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
 import { IPPortWidget } from "../widget/IPPortWidget";
 import { render2Node } from "../util/reactw";
 import { reloadMyVar } from "../myvar";
+import _ from "lodash";
 
 export function ForwardRulesView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -268,17 +269,23 @@ export function ForwardRulesView(props: { userInfo: any }) {
 
   // 按钮
 
-  function copyRules(e: string[] | number[] | React.Key[]) {
+  function copyRules(es: string[] | number[] | React.Key[]) {
+    let ids = new Array<Number>();
     let copyStr = new Array<String>()
-    e.forEach(e => {
-      const obj = findObjByIdId(data, Number(e))
-      const cfg = parseFrontForwardConfig(obj.config) as any
+    es.forEach(e => {
+      ids.push(Number(e));
+    })
+    ids.sort((a: any, b: any) => a - b);
+    ids.forEach(e => {
+      const obj = findObjByIdId(data, e)
+      let cfg = parseFrontForwardConfig(obj.config) as any
       cfg.name = obj.name;
       cfg.listen_port = obj.listen_port;
+      cfg = _(cfg).toPairs().sortBy(0).fromPairs().value() // 排序
       copyStr.push(JSON.stringify(cfg));
     })
     if (copyStr.length == 0) return
-    copyToClipboard(copyStr.reverse().join("\n"), `成功复制 ${copyStr.length} 条规则`)
+    copyToClipboard(copyStr.join("\n"), `成功复制 ${copyStr.length} 条规则`)
   }
 
   function deleteRules(e: string[] | number[] | React.Key[]) {
