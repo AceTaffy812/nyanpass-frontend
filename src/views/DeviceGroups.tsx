@@ -73,8 +73,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         return translateBackendString(obj.type)
       }
     },
-    { title: '连接地址(仅入口，展示用)', key: 'connect_host', dataIndex: 'id', render: (n: any) => <IPPortWidget data={findObjByIdId(data, n)} /> },
-    { title: '限制出口(仅入口)', key: 'allowed_out', dataIndex: 'allowed_out', },
+    { title: '连接地址(仅入口展示用)', key: 'connect_host', dataIndex: 'id', render: (n: any) => <IPPortWidget data={findObjByIdId(data, n)} /> },
     { title: '倍率', key: 'ratio', dataIndex: 'ratio' },
     { title: '已用流量', key: 'yyll', dataIndex: 'display_traffic' },
     { title: '在线设备', key: 'zxsbsl', dataIndex: 'display_num' },
