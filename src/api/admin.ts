@@ -208,8 +208,8 @@ export class apiAdmin {
         return data;
     }
 
-    async search(req: ReqSearchRules): Promise<any> {
-        var rsp = await fetchApi("/api/v1/admin/search_rules", {
+    async search_rules(req: ReqSearchRules): Promise<any> {
+        var rsp = await fetchApi("/api/v1/admin/user/0/forward/search_rules", {
             method: "POST",
             body: JSON.stringify(req),
         });

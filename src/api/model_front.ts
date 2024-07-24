@@ -44,6 +44,7 @@ export function simpleGateways() {
 export class FrontForwardConfig {
     dest_policy: string = ""
     dest: string[] = []
+    accept_proxy_protocol: number | undefined
     proxy_protocol: number | undefined
     speed_limit: number = 0
 }

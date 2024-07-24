@@ -240,7 +240,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Input.TextArea>
         </Flex>
         <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-          <Tooltip title={<p>入口允许监听的端口范围，示例： 10000-50000</p>}>
+          <Tooltip title={<p>入口允许监听的端口范围，示例： 10000-50000 (注意：格式错误或最大值超出 65535 会导致无法创建规则)</p>}>
             <Typography.Text strong>端口范围 (?)</Typography.Text>
           </Tooltip>
           <Input

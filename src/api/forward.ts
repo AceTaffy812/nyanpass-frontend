@@ -1,11 +1,23 @@
 import { batchIds } from "../util/misc";
 import { fetchApi } from "./fetchw";
+import { ReqSearchRules } from "./model_api";
 
 export class apiForward {
     public affectId: string | null | undefined
 
     constructor(affectId?: string | null) {
         this.affectId = affectId
+    }
+
+    async search_rules(req: ReqSearchRules, qs: string): Promise<any> {
+        let url = "/api/v1/user/forward/search_rules"
+        if (this.affectId != null) url = "/api/v1/admin/user/" + this.affectId + "/forward/search_rules"
+        var rsp = await fetchApi(url + "?" + qs, {
+            method: "POST",
+            body: JSON.stringify(req),
+        });
+        var data = await rsp.json();
+        return data;
     }
 
     async batch_update(req: { ids: number[], column: string, value: any }[]): Promise<any> {

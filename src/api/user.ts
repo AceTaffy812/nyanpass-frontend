@@ -10,15 +10,6 @@ export class apiUser {
         return data;
     }
 
-    async search(req: ReqSearchRules): Promise<any> {
-        var rsp = await fetchApi("/api/v1/user/search_rules", {
-            method: "POST",
-            body: JSON.stringify(req),
-        });
-        var data = await rsp.json();
-        return data;
-    }
-
     async renew(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/renew", {
             method: "POST",

@@ -222,7 +222,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       qs = "id=" + gotoId
     }
     if (searchObj.current != null) {
-      asyncFetchJson(api.user.search(searchObj.current), (ret) => {
+      asyncFetchJson(forward.search_rules(searchObj.current, qs), (ret) => {
         setLoading(false);
         searchedRetProcess(false)(ret)
       })
@@ -454,7 +454,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       </Flex>,
       onOk: () => {
         searchObj.current = obj
-        return promiseFetchJson(api.user.search(obj), searchedRetProcess(true))
+        return promiseFetchJson(forward.search_rules(obj, ""), searchedRetProcess(true))
       }
     })
   }
@@ -566,15 +566,22 @@ export function ForwardRulesView(props: { userInfo: any }) {
         label: '高级选项',
         children: <Flex vertical>
           <Flex className='neko-settings-flex-line' gap={"1em"}>
-            <Tooltip title={<p>当目标地址大于一个时，连接使用的负载均衡策略</p>}>
-              <Typography.Text strong>负载均衡 (?)</Typography.Text>
-            </Tooltip>
+            <Typography.Text strong>负载均衡策略</Typography.Text>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.dest_policy, "random")}
               options={renderSelectBackendString(SelectorType)}
               onChange={(e) => editingForwardConfig.current.dest_policy = e}
             ></Select>
-            <Typography.Text strong>Proxy Protocol</Typography.Text>
+            <Typography.Text strong>接受 Proxy Protocol</Typography.Text>
+            <Select
+              defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.accept_proxy_protocol, 0)}
+              options={[
+                { value: 0, label: "关闭" },
+                { value: 1, label: "开启 (TCP)" },
+              ]}
+              onChange={(e) => editingForwardConfig.current.accept_proxy_protocol = e}
+            ></Select>
+            <Typography.Text strong>发送 Proxy Protocol</Typography.Text>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.proxy_protocol, 0)}
               options={[
@@ -747,7 +754,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     // 用户规则搜索按钮
     let search = <Button icon={<SearchOutlined />} onClick={btn_search_rules_onclick}>搜索规则</Button>
     if (searched) search = <Button icon={<BackwardOutlined />} onClick={() => { searchObj.current = null; setSearched(false); updateData() }}>返回所有规则</Button>
-    if (affectId != null) search = <></>
+    if (gotoId != null) search = <></>
     // 统计数据按钮
     let tjsjButton = <Button icon={<BarChartOutlined />} onClick={showUserStatistic}>统计数据</Button>
     if (affectId != null) tjsjButton = <></>

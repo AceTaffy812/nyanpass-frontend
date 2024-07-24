@@ -160,7 +160,7 @@ export function AdminUsersView() {
         </Flex>
       </Flex>,
       onOk: () => {
-        return promiseFetchJson(api.admin.search(searchObj.current), (ret) => {
+        return promiseFetchJson(api.admin.search_rules(searchObj.current), (ret) => {
           if (ret.code == 0) {
             if (ret.data.length == 0) {
               MyMessage.info("没有符合该条件的规则")
@@ -634,8 +634,12 @@ export function AdminUsersView() {
                   return <Flex gap={8}>
                     <Button onClick={() => {
                       const fw = findObjByIdId(searchedRules, e)
+                      window.open(`?affect=${fw.uid}#/forward_rules`, '_blank');
+                    }}>用户</Button>
+                    <Button onClick={() => {
+                      const fw = findObjByIdId(searchedRules, e)
                       window.open(`?affect=${fw.uid}&goto=${fw.id}#/forward_rules`, '_blank');
-                    }} >定位</Button>
+                    }}>规则</Button>
                   </Flex>
                 }
               },
