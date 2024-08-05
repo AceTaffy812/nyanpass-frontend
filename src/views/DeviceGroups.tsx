@@ -266,7 +266,6 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             defaultValue={editingObjConfig.current.protocol}
             options={[
               { value: "ws", label: "ws" },
-              { value: "tls", label: "tls" },
               { value: "tls_simple", label: "tls_simple" },
             ]}
             onChange={(e) => editingObjConfig.current.protocol = e}
@@ -386,7 +385,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
       noDistConfig()
     }
     let copyStr = `bash <(curl -fLSs ${myvar.distConfig.clientScript}) rel_nodeclient ${argsForGroup(obj)}`
-    copyToClipboard(copyStr, "命令复制成功（国内服务器如果无法运行，请挂代理，或者使用离线部署）")
+    copyToClipboard(copyStr, `对接命令复制成功: ${obj.display_name}`)
   }
 
   function offlineCommand(obj: any) {

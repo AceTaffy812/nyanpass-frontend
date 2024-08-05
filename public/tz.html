@@ -353,7 +353,7 @@
 
         function connect() {
             let wsurl = 'wss://' + window.location.host + '/api/v1/system/node/status_ws?token=' + localStorage.getItem("Authorization")
-            if (localStorage.getItem("adminShowUserOutbound") != null) {
+            if (localStorage.getItem("adminShowUserOutbound") == "1") {
                 wsurl += "&adminShowUserOutbound=1"
             }
             const ws = new WebSocket(wsurl);
@@ -522,7 +522,7 @@
                 headers: {
                     'Authorization': localStorage.getItem('Authorization'),
                 },
-                url: "/api/v1/system/node/terminal/" + server.SessionId,
+                url: "/api/v1/system/node/terminal/" + server.SessionId + "?type=grpc",
                 dataType: "json",
             }).done(function (response) {
                 if (response.code == 0) {
