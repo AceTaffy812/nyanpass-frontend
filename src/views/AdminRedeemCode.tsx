@@ -4,7 +4,7 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { allFalseMap, findObjByIdId, isNotBlank } from '../util/misc';
 import { showCommonError } from '../util/commonError';
-import { renderSelectIdName, tableShowTotal } from '../util/ui';
+import { getPageSize, renderSelectIdName, setPageSize, tableShowTotal } from '../util/ui';
 import { DeleteOutlined, FileAddOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
@@ -28,7 +28,7 @@ export function AdminRedeemCode() {
     pagination: {
       showSizeChanger: true,
       current: 1,
-      pageSize: 10,
+      pageSize: getPageSize("AdminRedeemCode"),
       pageSizeOptions: [10, 20, 50, 100, 200, 500, 1000],
       showTotal: tableShowTotal,
     },
@@ -159,6 +159,7 @@ export function AdminRedeemCode() {
 
     // `dataSource` is useless since `pageSize` changed
     if (pagination.pageSize !== tableParams.pagination?.pageSize) {
+      setPageSize("AdminRedeemCode", Number(pagination.pageSize));
       setData([]);
     }
   };

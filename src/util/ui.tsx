@@ -134,3 +134,22 @@ export function tableSearchDropdown(title: string) {
         </Flex>
     </Card>;
 }
+
+export function getPageSize(k: string): number {
+    const ps = localStorage.getItem("pageSize-" + k)
+    const psNumber = Number(ps)
+    if (ps == null || isNaN(psNumber) || psNumber <= 0) {
+        return 10
+    }
+    return psNumber
+}
+
+export function setPageSize(k: string, n: number) {
+    if (isNaN(n) || n <= 0) {
+        return
+    }
+    if (getPageSize(k) == n) {
+        return
+    }
+    localStorage.setItem("pageSize-" + k, n.toString())
+}

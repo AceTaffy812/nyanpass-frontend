@@ -5,7 +5,7 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
-import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo, RegisterCaptchaPolicy, RegisterPolicy } from '../api/model_front';
+import { FrontInviteConfig, FrontPaymentInfo, FrontSiteInfo, HideInServerStatus, RegisterCaptchaPolicy, RegisterPolicy } from '../api/model_front';
 import { displayCurrency, renderSelect2 } from '../util/ui';
 import { cleanupDefaultValue } from '../util/misc';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
@@ -21,6 +21,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
   const [registerCaptchaPolicy, setRegisterCaptchaPolicy] = useState(0);
   const [allowSingle, setAllowSingle] = useState(false);
   const [allowLookingGlass, setAllowLookingGlass] = useState(false);
+  const [diagnoseHideIP, setDiagnoseHideIP] = useState(0);
   const [notice, setNotice] = useState('');
   const [inviteConfig, setInviteConfig] = useState(new FrontInviteConfig());
 
@@ -93,6 +94,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       setAllowLookingGlass(siteInfo.allow_looking_glass)
       setRegisterPolicy(siteInfo.register_policy ?? 0)
       setRegisterCaptchaPolicy(siteInfo.register_captcha_policy ?? 0)
+      setDiagnoseHideIP(siteInfo.diagnose_hide_ip ?? 0)
     }
   }, [siteInfo])
 
@@ -104,6 +106,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       allow_looking_glass: allowLookingGlass,
       register_policy: registerPolicy,
       register_captcha_policy: registerCaptchaPolicy,
+      diagnose_hide_ip: diagnoseHideIP,
     }
     cleanupDefaultValue(newInfo)
     return promiseFetchJson(api.admin.kv_put("site_info", JSON.stringify(newInfo)), (ret) => {
@@ -195,6 +198,16 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             <Typography.Text className='dq-1'>允许 Looking Glass</Typography.Text>
             <div className='dq-2' >
               <Switch checked={allowLookingGlass} onChange={(e) => setAllowLookingGlass(e)} />
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text className='dq-1'>诊断结果隐藏 IP</Typography.Text>
+            <div className='dq-2'>
+              <Select
+                value={diagnoseHideIP}
+                options={renderSelect2(HideInServerStatus)}
+                onChange={(e) => setDiagnoseHideIP(e)}
+              ></Select>
             </div>
           </Flex>
         </Flex>

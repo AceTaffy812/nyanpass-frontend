@@ -103,21 +103,21 @@ export function MyApp(props: { isDarkMode: boolean }) {
       navMenu.push(
         getItem(nav, "side", "/shop"),
         getItem(nav, "side", "/orders"),
-        {
-          key: "fwqzt", label: "服务器状态", icon: <ApiOutlined />, onClick: () => {
-            if (myvar.nyanpass_config_ok) {
-              if ((userInfo.admin && myvar.nyanpass_update_ok) || !userInfo.admin) {
-                window.open("./tz.html", '_blank');
-                return
-              }
-            }
-            MyMessage.info("配置信息未就绪，请稍等待。")
-          }
-        },
       )
       if (ignoreError(() => siteInfo.allow_looking_glass)) {
         navMenu.push(getItem(nav, "side", "/looking_glass"))
       }
+      navMenu.push({
+        key: "fwqzt", label: "服务器状态", icon: <ApiOutlined />, onClick: () => {
+          if (myvar.nyanpass_config_ok) {
+            if ((userInfo.admin && myvar.nyanpass_update_ok) || !userInfo.admin) {
+              window.open("./tz.html", '_blank');
+              return
+            }
+          }
+          MyMessage.info("配置信息未就绪，请稍等待。")
+        }
+      })
     }
     // 只给管理员显示
     if (ignoreError(() => userInfo.admin)) {

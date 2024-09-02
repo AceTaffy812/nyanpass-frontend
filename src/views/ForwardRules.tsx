@@ -8,7 +8,7 @@ import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
 import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cleanupDefaultValue, batchIds } from "../util/misc";
 import { commonEx, showCommonError } from "../util/commonError";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
-import { copyToClipboard, renderP, renderSelectBackendString, renderSelectIdName, tableShowTotal } from "../util/ui";
+import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, renderSelectIdName, setPageSize, tableShowTotal } from "../util/ui";
 import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
 import { MyMessage, MyModal } from "../util/MyModal";
 import { clone } from "lodash-es";
@@ -179,7 +179,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     pagination: {
       showSizeChanger: true,
       current: 1,
-      pageSize: 10,
+      pageSize: getPageSize("ForwardRules"),
       pageSizeOptions: [10, 20, 50, 100, 200, 500, 1000],
       showTotal: tableShowTotal,
     },
@@ -593,7 +593,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
               onChange={(e) => editingForwardConfig.current.proxy_protocol = e}
             ></Select>
             <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限速; 所有规则的总速率不会超过用户的限速">
+              <Tooltip title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速">
                 <Typography.Text strong>规则限速 (?)</Typography.Text>
               </Tooltip>
               <div className='dq-3'>
@@ -735,6 +735,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
 
     // `dataSource` is useless since `pageSize` changed
     if (pagination.pageSize !== tableParams.pagination?.pageSize) {
+      setPageSize("ForwardRules", Number(pagination.pageSize));
       setData([]);
     }
   };

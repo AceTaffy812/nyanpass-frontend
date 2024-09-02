@@ -11,7 +11,7 @@ import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { myvar, reloadMyVar } from '../myvar';
 import { MyMessage, MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
-import { displayCurrency, filtersBoolean, renderSelectIdName, tableSearchDropdown, tableShowTotal } from '../util/ui';
+import { displayCurrency, filtersBoolean, getPageSize, renderSelectIdName, setPageSize, tableSearchDropdown, tableShowTotal } from '../util/ui';
 import { ReqSearchRules, TableParams, tableParams2Qs } from '../api/model_api';
 import dayjs, { unix } from 'dayjs';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
@@ -40,7 +40,7 @@ export function AdminUsersView() {
     pagination: {
       showSizeChanger: true,
       current: 1,
-      pageSize: 10,
+      pageSize: getPageSize("AdminUsers"),
       pageSizeOptions: [10, 20, 50, 100, 200, 500, 1000],
       showTotal: tableShowTotal,
     },
@@ -310,7 +310,7 @@ export function AdminUsersView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限速">
+          <Tooltip title="0 表示不限速，不同入口的速度可以叠加。">
             <Typography.Text strong>用户限速 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
@@ -573,6 +573,7 @@ export function AdminUsersView() {
 
     // `dataSource` is useless since `pageSize` changed
     if (pagination.pageSize !== tableParams.pagination?.pageSize) {
+      setPageSize("AdminUsers", Number(pagination.pageSize));
       setData([]);
     }
   };

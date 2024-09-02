@@ -31,6 +31,7 @@ export function AdminPlansView() {
         for (let i = 0; i < ret.data.length; i++) {
           ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
           ret.data[i].display_traffic = formatInfoTraffic(ret.data[i], true)
+          if (ret.data[i].show_order == null) ret.data[i].show_order = 0
         }
         setData(ret.data)
       }
@@ -159,7 +160,7 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限速">
+          <Tooltip title="0 表示不限速，不同入口的速度可以叠加。">
             <Typography.Text strong>用户限速 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>

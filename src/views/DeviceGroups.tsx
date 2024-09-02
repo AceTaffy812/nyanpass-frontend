@@ -4,7 +4,7 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { allFalseMap, cleanupDefaultValue, findObjByIdId, myFilter, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
-import { DeviceGroupType, DeviceGroupType_AdminCanAdd, HideStatus, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, DeviceGroupType_AdminCanAdd, HideInServerStatus, translateBackendString } from '../api/model_front';
 import { copyToClipboard, renderSelect, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
 import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
@@ -44,6 +44,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         for (let i = 0; i < ret.data.length; i++) {
           ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
           ret.data[i].display_traffic = formatInfoTraffic(ret.data[i], true)
+          if (ret.data[i].show_order == null) ret.data[i].show_order = 0
           //
           if (!props.isAdmin && ret.data[i].type != DeviceGroupType.OutboundByUser) {// 单端隧道不显示其他的
             continue
@@ -272,15 +273,15 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line vis-outbound' style={!props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title='组内的服务器多长时间没有同步视为下线，从负载中移除。'>
+          <Tooltip title='若组内的服务器未与面板通信的时间超过此数值，则视为下线，从负载中移除。'>
             <Typography.Text strong>负载下线 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
             <InputNumber
-              min="30"
+              min="20"
               step="1"
               addonAfter="秒"
-              defaultValue={(obj.down_sec >= 30) ? obj.down_sec : 60}
+              defaultValue={(obj.down_sec >= 20) ? obj.down_sec : 60}
               onChange={(e) => editingObj.current.down_sec = e}
             ></InputNumber>
           </div>
@@ -288,7 +289,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         <Flex className='neko-settings-flex-line vis-outbound' gap={"1em"}>
           <Typography.Text strong>故障转移组</Typography.Text>
           <Select
-            defaultValue={obj.fallback_group}
+            defaultValue={obj.fallback_group ?? 0}
             options={renderSelectIdName(
               ([{ id: 0, name: "无" }] as any[]).concat(
                 ...myFilter(data.filter(o => o.id != obj.id), "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])
@@ -302,7 +303,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           <div className='dq-2'>
             <Select
               defaultValue={obj.hide_status ?? 0}
-              options={renderSelect2(HideStatus)}
+              options={renderSelect2(HideInServerStatus)}
               onChange={(e) => editingObj.current.hide_status = e}
             ></Select>
           </div>
@@ -393,7 +394,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
       noDistConfig()
     }
     const copyStr1 = `bash <(curl -fLSs ${myvar.distConfig.makeOfflineScript})`
-    const copyStr2 = `unzip -d /opt/nyanpass -o offline.zip && bash /opt/nyanpass/offline.sh ${argsForGroup(obj)}`
+    const copyStr2 = `unzip -d /tmp/nyanpass -o offline.zip && bash /tmp/nyanpass/offline.sh ${argsForGroup(obj)}`
     //
     MyModal.info({
       title: "离线部署",
@@ -418,7 +419,8 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         <Card>
           <Typography.Paragraph copyable>{copyStr2}</Typography.Paragraph>
         </Card>
-        <p>请上传【生成的离线包】到【需要对接的机器】，然后在【离线包所在目录】运行以上命令。</p>
+        <p>使用方法：上传【生成的离线包】到【需要对接的机器】，然后在【离线包所在目录】运行以上命令。</p>
+        <p>提示：离线安装依赖 unzip 命令，请自行安装。</p>
       </div>
     })
   }

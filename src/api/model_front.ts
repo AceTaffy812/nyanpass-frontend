@@ -7,6 +7,7 @@ export class FrontSiteInfo {
     allow_looking_glass: boolean = false
     register_policy: number = 0
     register_captcha_policy: number = 0
+    diagnose_hide_ip: number = 0
 }
 
 export class FrontInviteConfig {
@@ -114,7 +115,7 @@ export const RegisterCaptchaPolicy = [
     [1, "交互认证"],
 ]
 
-export const HideStatus = [
+export const HideInServerStatus = [
     [0, "不隐藏"],
     [1, "对非管理员用户隐藏"],
     [2, "对所有用户隐藏"],

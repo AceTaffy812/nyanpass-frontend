@@ -5,8 +5,8 @@ import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { AffLogStatus, AffLogType, OrderStatus, OrderType, translateBackendString } from '../api/model_front';
 import { TableParams, tableParams2Qs } from '../api/model_api';
-import { DeleteOutlined, FileAddOutlined, PropertySafetyOutlined, TransactionOutlined } from '@ant-design/icons';
-import { displayCurrency, renderFilterBackendString, tableSearchDropdown, tableShowTotal } from '../util/ui';
+import { DeleteOutlined, FileAddOutlined, PropertySafetyOutlined } from '@ant-design/icons';
+import { displayCurrency, getPageSize, renderFilterBackendString, setPageSize, tableSearchDropdown, tableShowTotal } from '../util/ui';
 import { formatUnix } from '../util/format';
 import { MyMessage, MyModal, MyModalCannotDismiss } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
@@ -29,7 +29,7 @@ export function OrdersView(props: { type: number }) {
     pagination: {
       showSizeChanger: true,
       current: 1,
-      pageSize: 10,
+      pageSize: getPageSize("Orders"),
       pageSizeOptions: [10, 20, 50, 100, 200, 500, 1000],
       showTotal: tableShowTotal,
     },
@@ -318,6 +318,7 @@ export function OrdersView(props: { type: number }) {
 
     // `dataSource` is useless since `pageSize` changed
     if (pagination.pageSize !== tableParams.pagination?.pageSize) {
+      setPageSize("Orders", Number(pagination.pageSize));
       setData([]);
     }
   };

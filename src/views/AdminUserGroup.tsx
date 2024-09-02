@@ -27,6 +27,7 @@ export function AdminUserGroupsView() {
       if (ret.data != null) {
         for (let i = 0; i < ret.data.length; i++) {
           ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
+          if (ret.data[i].show_order == null) ret.data[i].show_order = 0
         }
         setData(ret.data)
       }

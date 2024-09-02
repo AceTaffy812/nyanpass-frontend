@@ -517,12 +517,16 @@
             mdui.alert(JSON.stringify(serverObj, null, 4).replaceAll("\n", "<br/>").replaceAll(" ", "&nbsp;"))
         }
         function openTerminal(server) {
+            let terminalType = localStorage.getItem("terminalType")
+            if (terminalType == null || terminalType == "") {
+                terminalType = "grpc"
+            }
             $.ajax({
                 method: "POST",
                 headers: {
                     'Authorization': localStorage.getItem('Authorization'),
                 },
-                url: "/api/v1/system/node/terminal/" + server.SessionId + "?type=grpc",
+                url: "/api/v1/system/node/terminal/" + server.SessionId + "?type=" + terminalType,
                 dataType: "json",
             }).done(function (response) {
                 if (response.code == 0) {

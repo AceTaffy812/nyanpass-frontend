@@ -152,7 +152,7 @@ export function ShopView(props: { userInfo: any }) {
               <Radio.Group onChange={(e) => setPaymentCurrency(e.target.value)} value={paymentCurrency}>
                 <Space direction="vertical">
                   <Radio value="cny">CNY</Radio>
-                  <Radio value="usdt">USDT-TRC20</Radio>
+                  <Radio value="usdt">USDT</Radio>
                 </Space>
               </Radio.Group>
               <Button onClick={btn_deposit} disabled={requesting}>充值</Button>

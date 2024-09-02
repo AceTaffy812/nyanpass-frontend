@@ -108,7 +108,7 @@ export function UserInfoView(props: { userInfo: any }) {
         <p>续费操作相当于购买当前套餐，若当前套餐被隐藏，仍可续费。</p>
         <p>若当前套餐被删除，则不可续费。</p>
         <p>若套餐限时，则续费后的有效期按当前时间开始算。</p>
-        <p>续费操作将重置流量。</p>
+        <p>若套餐流量不可叠加，则续费操作将重置流量。</p>
       </div>,
       onOk: () => {
         return promiseFetchJson(api.user.renew(), (ret) => {
