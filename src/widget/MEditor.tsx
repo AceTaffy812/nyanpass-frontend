@@ -32,7 +32,6 @@ export function MEditor(props: { value: string }) {
         try {
             const m = getEditor()
             m!.setValue(props.value)
-            // m.getAction('editor.action.formatDocument')!.run() // TODO 可能不生效
         } catch (e: any) {
             console.log(e)
         }
@@ -45,4 +44,13 @@ export function MEditor(props: { value: string }) {
             // TODO wtf
         }} />
     );
+}
+
+export function formartDocument() {
+    try {
+        const m = getEditor()
+        m!.getAction('editor.action.formatDocument')!.run()
+    } catch (e: any) {
+        console.log(e)
+    }
 }

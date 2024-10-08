@@ -1,16 +1,17 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, JSXElementConstructor, ReactElement, ReactNode } from 'react';
 import { api } from '../api/api';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic } from '../util/format';
 import { ignoreError } from '../util/promise';
-import { Button, Card, Flex, Form, Input, InputNumber, List, Popconfirm, QRCode, Radio, Space, Typography } from 'antd';
+import { Button, Card, Empty, Flex, Form, Input, InputNumber, List, Popconfirm, QRCode, Radio, Space, Typography } from 'antd';
 import { displayCurrency } from '../util/ui';
-import { translatePlanType } from '../api/model_front';
+import { FrontPaymentInfo, translatePlanType } from '../api/model_front';
 import { MyMessage, MyModalCannotDismiss, closeCurrentDialog } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
 import { isNotBlank } from '../util/misc';
 import { TagOutlined } from '@ant-design/icons';
+import { JSX } from 'react/jsx-runtime';
 
 export function ShopView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -18,8 +19,9 @@ export function ShopView(props: { userInfo: any }) {
   // const coupon = useRef("");
   const [requesting, setRequesting] = useState(false);
   const [plans, setPlans] = useState<any>([]);
+  const [paymentInfo, setPaymentInfo] = useState<FrontPaymentInfo>(new FrontPaymentInfo());
+  const [gwName, setGwName] = useState("");
   const [depositAmount, setDepositAmount] = useState(100);
-  const [paymentCurrency, setPaymentCurrency] = useState("cny");
 
   useEffect(() => {
     if (!mounted.current) {
@@ -29,8 +31,47 @@ export function ShopView(props: { userInfo: any }) {
           setPlans(ret.data)
         }
       })
+      asyncFetchJson(api.user.shop_payment_info(), (ret) => {
+        if (ret.data != null) {
+          setPaymentInfo(ret.data)
+        }
+      })
     }
   }, [])
+
+  function renderPaymentGatewas(info: FrontPaymentInfo) {
+    const gwRadios: JSX.Element[] = []
+    if (info.gateways != null) {
+      info.gateways.forEach((e) => {
+        if (e.enable && isNotBlank(e.name)) {
+          let displayName = e.name
+          if (Number(e.fee_ratio) > 0) {
+            displayName += ` (${Number(e.fee_ratio) * 100}% 手续费)`
+          }
+          gwRadios.push(<Radio value={e.name}>{displayName}</Radio>)
+        }
+      })
+    }
+    let tdCard = <Card title="请选择支付通道">
+      <Radio.Group onChange={(e) => setGwName(e.target.value)} value={gwName}>
+        <Space direction="vertical">
+          {gwRadios}
+        </Space>
+      </Radio.Group>
+    </Card>
+    let btn = <Button onClick={btn_deposit} disabled={requesting}>充值</Button>
+    if (gwRadios.length == 0) {
+      tdCard = <Empty description="站点未配置任何支付方式！" />
+      btn = <></>
+    }
+    return <>
+      <Flex vertical className='ant-flex2'>
+        <h3>最小充值金额: {info.min_deposit} {displayCurrency}</h3>
+        {tdCard}
+        {btn}
+      </Flex>
+    </>
+  }
 
   function renderPlanCard(item: any, apiFactory: any) {
     let shuoming = <></>
@@ -91,9 +132,10 @@ export function ShopView(props: { userInfo: any }) {
   }
 
   function btn_deposit() {
+    if (!isNotBlank(gwName)) return;
     setRequesting(true)
-    MyMessage.info("正在跳转......")
-    asyncFetchJson(api.user.shop_deposit(paymentCurrency, depositAmount), (ret) => {
+    MyMessage.info("正在请求支付......")
+    asyncFetchJson(api.user.shop_deposit(gwName, depositAmount), (ret) => {
       setRequesting(false)
       if (ret.code == 0) {
         let data = ret.data
@@ -136,29 +178,15 @@ export function ShopView(props: { userInfo: any }) {
       <Card title="我的钱包">
         <Flex vertical>
           <h2>钱包余额: {ignoreError(() => userInfo.balance) + " " + displayCurrency}</h2>
-        </Flex>
-      </Card>
-      <Card title="充值">
-        <Flex vertical>
           <InputNumber
+            style={{ width: "fit-content" }}
             min={0}
             step={0.01}
             addonBefore="充值金额"
             addonAfter="CNY"
             value={depositAmount}
             onChange={(e) => setDepositAmount(e!)} />
-          <Card title="充值方式">
-            <Flex vertical className='ant-flex2'>
-              <Radio.Group onChange={(e) => setPaymentCurrency(e.target.value)} value={paymentCurrency}>
-                <Space direction="vertical">
-                  <Radio value="cny">CNY</Radio>
-                  <Radio value="usdt">USDT</Radio>
-                </Space>
-              </Radio.Group>
-              <Button onClick={btn_deposit} disabled={requesting}>充值</Button>
-            </Flex>
-          </Card>
-          <Typography.Text>由于支付手续费，最终支付金额可能大于您充值的金额。</Typography.Text>
+          {renderPaymentGatewas(paymentInfo)}
         </Flex>
       </Card>
       <Card title="购买套餐">

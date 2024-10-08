@@ -123,6 +123,12 @@ export class apiUser {
         return data;
     }
 
+    async shop_payment_info(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/shop/payment_info");
+        var data = await rsp.json();
+        return data;
+    }
+
     async shop_redeem_query(code: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/redeem?" + QueryString.stringify({ code: code }));
         var data = await rsp.json();
@@ -155,12 +161,12 @@ export class apiUser {
         return data;
     }
 
-    async shop_deposit(currency: string, amount: number): Promise<any> {
+    async shop_deposit(gateway_name: string, amount: number): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/deposit", {
             method: "POST",
             body: JSON.stringify({
                 "amount": amount,
-                "currency": currency,
+                "gateway_name": gateway_name,
             })
         });
         var data = await rsp.json();

@@ -208,7 +208,7 @@ export function AdminPlansView() {
     MyModal.confirm({
       icon: <p />,
       title: "删除套餐",
-      content: <p>你确定要删除套餐{findObjByIdId(data, e).display_name} 吗？</p>,
+      content: <p>你确定要删除套餐 {findObjByIdId(data, e).display_name} 吗？</p>,
       onOk: () => {
         return promiseFetchJson(api.admin.shop_plan_delete([e]), (ret) => {
           showCommonError(ret, ["", "删除套餐失败"], updateData)

@@ -6,7 +6,7 @@ import { ignoreError } from '../util/promise';
 import { byteConverter } from '../util/format';
 import { Bar } from '@ant-design/charts';
 import { myvar } from '../myvar';
-import { clone } from 'lodash';
+import { clone } from 'lodash-es';
 
 export function AdminMainView() {
   const mounted = useRef(false);

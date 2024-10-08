@@ -23,6 +23,7 @@ export class FrontPaymentInfo {
 }
 
 export class FrontPaymentInfoGateway {
+    name: string = "" // 就是 gateway_name
     type: string = ""
     enable: boolean = false
     url: string = ""
