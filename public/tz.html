@@ -64,8 +64,22 @@
     <div id="app">
         <div id="container" class="mdui-container">
             <div class="mdui-table-fluid mdui-m-t-1" v-for="group in groups" :id="'gid-'+group.gid">
-                <div class="mdui-chip" style="margin: 1em;">
-                    <span class="mdui-chip-title">@#group.name#@</span>
+                <div style="display: flex;">
+                    <div class="mdui-chip" style="margin: 1em;">
+                        <span class="mdui-chip-title">@#group.name#@</span>
+                    </div>
+                    <div style="display: grid; margin: 1em;">
+                        <span class="mdui-chip-title" style="white-space: nowrap;">总上行速度:
+                            @#formatNetByteSize(group.Total_Out_Speed)#@</span>
+                        <!-- <span class="mdui-chip-title" style="white-space: nowrap;">总上行流量:
+                            @#readableBytes(group.Total_Out_Transfer)#@</span> -->
+                    </div>
+                    <div style="display: grid; margin: 1em;">
+                        <span class="mdui-chip-title" style="white-space: nowrap;">总下行速度:
+                            @#formatNetByteSize(group.Total_In_Speed)#@</span>
+                        <!-- <span class="mdui-chip-title" style="white-space: nowrap;">总下行流量:
+                            @#readableBytes(group.Total_In_Transfer)#@</span> -->
+                    </div>
                 </div>
                 <table class="mdui-table mdui-table-hoverable">
                     <thead>
@@ -382,6 +396,10 @@
                 //
                 data.forEach(dg => {
                     let servers = [];
+                    dg.Total_Out_Speed = 0;
+                    dg.Total_In_Speed = 0;
+                    dg.Total_Out_Transfer = 0;
+                    dg.Total_In_Transfer = 0;
                     dg.servers.forEach(srv => {
                         const obj = {
                             BackendObj: srv,
@@ -432,6 +450,13 @@
                         //
                         obj.FlagEmoji = flagemoji
                         obj.CountryCode = flagtext
+                        //
+                        if (srv.online) {
+                            if (obj.State.NetOutSpeed > 0) dg.Total_Out_Speed += obj.State.NetOutSpeed
+                            if (obj.State.NetInSpeed > 0) dg.Total_In_Speed += obj.State.NetInSpeed
+                        }
+                        if (obj.State.NetOutTransfer > 0) dg.Total_Out_Transfer += obj.State.NetOutTransfer
+                        if (obj.State.NetInTransfer > 0) dg.Total_In_Transfer += obj.State.NetInTransfer
                         //
                         servers.push(obj)
                     })
