@@ -11,6 +11,7 @@ import { clone } from 'lodash-es';
 export function AdminMainView() {
   const mounted = useRef(false);
   const [statistic, setStatistic] = useState<any>([]);
+  const [queueText, setQueueText] = useState("");
   const [user_traffic_rank_today, set_user_traffic_rank_today] = useState<any[]>([]);
   const [user_traffic_rank_yesterday, set_user_traffic_rank_yesterday] = useState<any[]>([]);
   const [node_traffic_rank_today, set_node_traffic_rank_today] = useState<any[]>([]);
@@ -45,6 +46,9 @@ export function AdminMainView() {
         } catch (e: any) { }
       })
     }
+    asyncFetchJson(api.common.queue_info(), (ret) => {
+      setQueueText(`T: ${ret.data.traffic}, S: ${ret.data.forward_status}`)
+    })
   }, [])
 
   const barConfig = {
@@ -146,6 +150,14 @@ export function AdminMainView() {
               <Statistic
                 title="总用户"
                 value={ignoreError(() => statistic.user_count)}
+              />
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card bordered={false}>
+              <Statistic
+                title="队列情况"
+                value={queueText}
               />
             </Card>
           </Col>

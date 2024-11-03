@@ -108,10 +108,21 @@ export function MyApp(props: { isDarkMode: boolean }) {
         navMenu.push(getItem(nav, "side", "/looking_glass"))
       }
       navMenu.push({
-        key: "fwqzt", label: "服务器状态", icon: <ApiOutlined />, onClick: () => {
+        key: "tz", label: "节点状态 (旧)", icon: <ApiOutlined />, onClick: () => {
           if (myvar.nyanpass_config_ok) {
             if ((userInfo.admin && myvar.nyanpass_update_ok) || !userInfo.admin) {
               window.open("./tz.html", '_blank');
+              return
+            }
+          }
+          MyMessage.info("配置信息未就绪，请稍等待。")
+        }
+      })
+      navMenu.push({
+        key: "tz2", label: "节点状态 (新)", icon: <ApiOutlined />, onClick: () => {
+          if (myvar.nyanpass_config_ok) {
+            if ((userInfo.admin && myvar.nyanpass_update_ok) || !userInfo.admin) {
+              window.open("./tz2.html", '_blank');
               return
             }
           }

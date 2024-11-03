@@ -156,6 +156,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             options={[
               { label: "epay", value: "epay" },
               { label: "epusdt", value: "epusdt" },
+              { label: "tokenpay", value: "tokenpay" },
               { label: "cyber", value: "cyber" },
             ]}
             onChange={(e) => editingObj.current.type = e}
@@ -175,14 +176,14 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             onChange={(e) => editingObj.current.url = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="epay 的商户号">
-            <Typography.Text strong>PID (?)</Typography.Text>
+          <Tooltip title="目前只有 epay cyber 类型需要填写">
+            <Typography.Text strong>PID / 商户号 (?)</Typography.Text>
           </Tooltip>
           <Input defaultValue={obj.pid}
             onChange={(e) => editingObj.current.pid = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text strong>Secret</Typography.Text>
+          <Typography.Text strong>Secret / 密钥</Typography.Text>
           <Input defaultValue={obj.secret}
             onChange={(e) => editingObj.current.secret = e.target.value.trim()} />
         </Flex>
@@ -193,7 +194,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             onChange={(e) => editingObj.current.callback_host = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text style={{ flex: 1 }} strong>费率 (1% 的手续费，就填 0.01)</Typography.Text>
+          <Tooltip title="示例： 1% 手续费，就填 0.01">
+            <Typography.Text strong>费率 (?)</Typography.Text>
+          </Tooltip>
           <InputNumber style={{ width: "100%" }}
             min={0}
             step={0.01}

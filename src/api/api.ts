@@ -29,6 +29,12 @@ class apiCommon {
         var data = await rsp.json();
         return data;
     }
+
+    async queue_info(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/system/info/queue");
+        var data = await rsp.json();
+        return data;
+    }
 }
 
 export const api = {
