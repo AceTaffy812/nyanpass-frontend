@@ -154,7 +154,7 @@ export function OrdersView(props: { type: number }) {
             <Button onClick={() => contiunePay(obj)}>继续支付</Button>
           </Flex>
         }
-        return <></>
+        return null
       }
     })
   }
@@ -263,7 +263,7 @@ export function OrdersView(props: { type: number }) {
     if (obj.type == OrderType.DepositToBalance && obj.status == OrderStatus.Open) {
       return <Tooltip title="补单，设置为已支付"><Button icon={<PropertySafetyOutlined />} onClick={() => setAsPaid(e)} /></Tooltip>
     }
-    return <></>
+    return null
   }
 
   function setAsPaid(e: number) {

@@ -21,7 +21,7 @@ export function MainView(props: { siteInfo: any, backendInfo: any, userInfo: any
         if (props.userInfo != null && props.userInfo.admin) {
             return <Typography.Title level={4}>面板授权到期时间: {ignoreError(() => formatUnix(props.backendInfo.license_expire))}</Typography.Title>
         }
-        return <></>
+        return null
     }
     return (
         <Flex vertical>

@@ -47,7 +47,12 @@ export function AdminMainView() {
       })
     }
     asyncFetchJson(api.common.queue_info(), (ret) => {
-      setQueueText(`T: ${ret.data.traffic}, S: ${ret.data.forward_status}`)
+      if (ret.data.disabled) {
+        setQueueText('已禁用')
+
+      } else {
+        setQueueText(`T: ${ret.data.traffic}, S: ${ret.data.forward_status}`)
+      }
     })
   }, [])
 

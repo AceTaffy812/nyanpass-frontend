@@ -112,7 +112,10 @@ export function ShopView(props: { userInfo: any }) {
         {shuoming}
         <Popconfirm
           title="购买"
-          description={`从余额支付 ${item.price} ${displayCurrency} 购买此套餐，请确保余额充足。**购买后将覆盖当前套餐**。`}
+          description={<div>
+            <p>{`从余额支付 ${item.price} ${displayCurrency} 购买此套餐，请确保余额充足。`}</p>
+            <strong>购买后将覆盖当前套餐</strong>
+          </div>}
           placement='bottom'
           onConfirm={
             () => {

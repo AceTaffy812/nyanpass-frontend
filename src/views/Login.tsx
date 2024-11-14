@@ -63,7 +63,7 @@ export function LoginView(props: { reg: boolean, siteInfo: any }) {
     if (isRegister && props.siteInfo.register_captcha_policy == 1) {
       return <div style={{ width: "100%" }}><CaptchaApp /></div>
     }
-    return <></>
+    return null
   }
 
   const YaoQingZhe = <Input style={{ marginBottom: "1em" }}

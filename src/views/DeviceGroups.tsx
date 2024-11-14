@@ -148,7 +148,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
 
   function renderYJYC() {
     if (!myvar.distConfig.enableFunctions.includes("udp_smart_bind")) {
-      return <></>
+      return null
     }
     return <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
       <Tooltip title='通过监听每个网卡的 IP 地址实现 UDP 源进源出，一般双 IP 的机器建议打开。'>

@@ -207,7 +207,7 @@ export function AdminUsersView() {
     },
     { title: '最大规则数', key: 'max_rules', dataIndex: 'max_rules', sorter: true },
     { title: '钱包余额', key: 'balance', dataIndex: 'balance', render: (e: any) => e + " " + displayCurrency, sorter: true },
-    { title: 'Telegram', key: 'telegram_id', dataIndex: 'telegram_id', sorter: true },
+    { title: 'Telegram', key: 'telegram_id', dataIndex: 'telegram_id', render: (e: any) => e > 0 ? e : null, sorter: true },
     { title: '管理员', key: 'admin', dataIndex: 'admin', render: formatBoolean, filters: filtersBoolean },
     { title: '封禁', key: 'banned', dataIndex: 'banned', render: formatBoolean, filters: filtersBoolean },
     {
@@ -383,12 +383,11 @@ export function AdminUsersView() {
     try {
       cfg = JSON.parse(obj.invite_config);
     } catch (e: any) { }
-    const yaoQingRen = obj.inviter > 0 ? <p>此用户的邀请人 ID: {obj.inviter}</p> : <></>
     MyModal.confirm({
       icon: <p />,
       title: "编辑邀请注册设置 " + obj.username + " (UID=" + obj.id + ")",
       content: <Flex vertical>
-        {yaoQingRen}
+        {obj.inviter > 0 ? <p>此用户的邀请人 ID: {obj.inviter}</p> : null}
         <Flex className='neko-settings-flex-line'>
           <Tooltip title="关闭此选项后，可为此用户单独调整邀请返利倍率等设置。">
             <Typography.Text style={{ flex: 1 }} strong>跟随全站设置 (?)</Typography.Text>
