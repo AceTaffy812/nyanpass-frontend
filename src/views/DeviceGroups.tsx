@@ -5,7 +5,7 @@ import { api } from '../api/api';
 import { allFalseMap, cleanupDefaultValue, findObjByIdId, myFilter, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
 import { DeviceGroupType, DeviceGroupType_AdminCanAdd, HideInServerStatus, translateBackendString } from '../api/model_front';
-import { copyToClipboard, renderSelect, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
+import { copyToClipboard, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
 import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
@@ -120,15 +120,19 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
   const onTypeChange = (e: string) => {
     editingObj.current.type = e
     // 更新可视
+    const visFw = document.querySelectorAll(".vis-fw")
     const visInbound = document.querySelectorAll(".vis-inbound")
     const visOutbound = document.querySelectorAll(".vis-outbound")
     if (e == DeviceGroupType.Inbound) {
+      visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
     } else if (e.includes("Outbound")) {
+      visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "")
     } else {
+      visFw.forEach((el) => (el as HTMLElement).style.display = "none")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
     }
@@ -194,7 +198,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             onChange={(e) => editingObj.current.enable_for_gid = e.target.value}
           ></Input>
         </Flex>
-        <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
+        <Flex className='neko-settings-flex-line vis-fw' style={props.isAdmin ? {} : { display: "none" }}>
           <Typography.Text strong>倍率</Typography.Text>
           <div className='dq-3'>
             <InputNumber
@@ -362,7 +366,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     MyModal.confirm({
       icon: <p />,
       title: "清空流量",
-      content: <p>你确定要清空 {e.length} 条规则的流量吗？</p>,
+      content: <p>你确定要清空 {e.length} 个设备组的流量吗？</p>,
       onOk: () => {
         return promiseFetchJson(api2.devicegroup_reset_traffic(e), (ret) => {
           showCommonError(ret, ["", "清空流量失败"], updateData)

@@ -176,10 +176,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             onChange={(e) => editingObj.current.url = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="目前只有 epay cyber 类型需要填写">
-            <Typography.Text strong>PID / 商户号 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>PID / 商户号</Typography.Text>
           <Input defaultValue={obj.pid}
+            placeholder='只有部分支付类型需要填写'
             onChange={(e) => editingObj.current.pid = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>

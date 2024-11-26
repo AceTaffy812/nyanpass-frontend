@@ -572,7 +572,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
               options={renderSelectBackendString(SelectorType)}
               onChange={(e) => editingForwardConfig.current.dest_policy = e}
             ></Select>
-            <Typography.Text strong>接受 Proxy Protocol</Typography.Text>
+            <Tooltip title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。">
+              <Typography.Text strong>接受 Proxy Protocol (?)</Typography.Text>
+            </Tooltip>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.accept_proxy_protocol, 0)}
               options={[
@@ -581,7 +583,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
               ]}
               onChange={(e) => editingForwardConfig.current.accept_proxy_protocol = e}
             ></Select>
-            <Typography.Text strong>发送 Proxy Protocol</Typography.Text>
+            <Tooltip title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。">
+              <Typography.Text strong>发送 Proxy Protocol (?)</Typography.Text>
+            </Tooltip>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.proxy_protocol, 0)}
               options={[
