@@ -245,11 +245,12 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Input.TextArea>
         </Flex>
         <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-          <Tooltip title={<p>入口允许监听的端口范围，示例： 10000-50000 (注意：格式错误或最大值超出 65535 会导致无法创建规则)</p>}>
+          <Tooltip title={<p>入口允许监听的端口范围，示例： 10000-50000 (注意：格式错误会导致无法创建规则)</p>}>
             <Typography.Text strong>端口范围 (?)</Typography.Text>
           </Tooltip>
           <Input
             defaultValue={obj.port_range}
+            placeholder='2000-65535'
             onChange={(e) => editingObj.current.port_range = e.target.value}
           ></Input>
         </Flex>
@@ -290,7 +291,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             ></InputNumber>
           </div>
         </Flex>
-        <Flex className='neko-settings-flex-line vis-outbound' gap={"1em"}>
+        <Flex className='neko-settings-flex-line vis-outbound'>
           <Typography.Text strong>故障转移组</Typography.Text>
           <Select
             defaultValue={obj.fallback_group ?? 0}
@@ -423,7 +424,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         <Card>
           <Typography.Paragraph copyable>{copyStr2}</Typography.Paragraph>
         </Card>
-        <p>使用方法：上传【生成的离线包】到【需要对接的机器】，然后在【离线包所在目录】运行以上命令。</p>
+        <p>使用方法：上传离线包到【无法在线对接的机器】并确保其名称为 offline.zip。然后切换到【离线包所在目录】运行以上命令。</p>
         <p>提示：离线安装依赖 unzip 命令，请自行安装。</p>
       </div>
     })
