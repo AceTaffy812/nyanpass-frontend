@@ -2,7 +2,7 @@ import { Button, Card, Dropdown, Flex, Input, InputNumber, Modal, Select, Space,
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
-import { allFalseMap, cleanupDefaultValue, findObjByIdId, myFilter, tryParseJSONObject } from '../util/misc';
+import { allFalseMap, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
 import { DeviceGroupType, DeviceGroupType_AdminCanAdd, HideInServerStatus, translateBackendString } from '../api/model_front';
 import { copyToClipboard, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
@@ -222,8 +222,9 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         {/* 入口 */}
         <Flex className='neko-settings-flex-line vis-inbound vis-suidao' style={{ display: "none" }}>
           <Tooltip title={<div>
-            <p>选填，出口的设备组 ID (以英文逗号分割)</p>
-            <p>设置后，用户选择此入口时，将只能看到这里设置的出口，其他出口不可选择。</p>
+            <p>选填，允许使用的「出口」设备组 ID (以英文逗号分割)</p>
+            <p>设置后，用户选择本入口时，未允许使用的出口将不会出现在出口选项中。</p>
+            <p>格式填错可能导致无法创建转发规则。</p>
           </div>}>
             <Typography.Text strong>限制出口 (?)</Typography.Text>
           </Tooltip>
@@ -264,6 +265,19 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         </Flex>
         {renderYJYC()}
         {/* 出口 */}
+        <Flex className='neko-settings-flex-line vis-outbound' style={props.isAdmin ? {} : { display: "none" }}>
+          <Tooltip title={<div>
+            <p>选填，允许使用的「入口」设备组 ID (以英文逗号分割)</p>
+            <p>设置后，用户选择某个入口时，若本出口不允许使用，则不会出现在出口选项中。</p>
+            <p>格式填错可能导致无法创建转发规则。</p>
+          </div>}>
+            <Typography.Text strong>限制入口 (?)</Typography.Text>
+          </Tooltip>
+          <Input
+            defaultValue={obj.allowed_in}
+            onChange={(e) => editingObj.current.allowed_in = e.target.value.trim()}
+          ></Input>
+        </Flex>
         <Flex className='neko-settings-flex-line vis-outbound' style={!props.isAdmin ? {} : { display: "none" }}>
           <Tooltip title={"如需调整协议的具体参数，请使用“高级编辑”功能。"}>
             <Typography.Text strong>协议 (?)</Typography.Text>
@@ -398,20 +412,28 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     if (!myvar.nyanpass_config_ok) {
       noDistConfig()
     }
-    const copyStr1 = `bash <(curl -fLSs ${myvar.distConfig.makeOfflineScript})`
-    const copyStr2 = `unzip -d /tmp/nyanpass -o offline.zip && bash /tmp/nyanpass/offline.sh ${argsForGroup(obj)}`
+    const copyStr_Install_Command = `unzip -d /tmp/nyanpass -o offline.zip && bash /tmp/nyanpass/offline.sh ${argsForGroup(obj)}`
+    const downloadCards: JSX.Element[] = []
+    for (const [key, value] of Object.entries(myvar.distConfig.offlinePkgs)) {
+      if (isNotBlank(key) && isNotBlank(value)) {
+        downloadCards.push(<a target="_blank" href={String(value)}>{key}</a>)
+      }
+    }
+    if (downloadCards.length == 0) {
+      for (const [key, value] of Object.entries(myvar.defaultDistConfig.offlinePkgs)) {
+        if (isNotBlank(key) && isNotBlank(value)) {
+          downloadCards.push(<a target="_blank" href={String(value)}>{key}</a>)
+        }
+      }
+    }
     //
     MyModal.info({
       title: "离线部署",
       content: <div>
-        <p>请在【墙外 Linux 机器】执行以下命令生成离线安装包。</p>
-        <Card title="打包 amd64 机器的离线包">
-          <Typography.Paragraph copyable>{copyStr1 + " linux_amd64"}</Typography.Paragraph>
-        </Card>
-        <Card title="打包 arm64 机器的离线包" style={{ marginTop: "1em" }}>
-          <Typography.Paragraph copyable>{copyStr1 + " linux_arm64"}</Typography.Paragraph>
-        </Card>
-        <p>同一个节点端版本和机器架构，安装包通用。</p>
+        <Space direction='vertical'>
+          <Typography.Text strong>请按机器的架构下载合适的包：</Typography.Text>
+          {downloadCards}
+        </Space>
         <hr />
         <Space direction='vertical'>
           <div></div>
@@ -422,9 +444,9 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           <div></div>
         </Space>
         <Card>
-          <Typography.Paragraph copyable>{copyStr2}</Typography.Paragraph>
+          <Typography.Paragraph copyable>{copyStr_Install_Command}</Typography.Paragraph>
         </Card>
-        <p>使用方法：上传离线包到【无法在线对接的机器】并确保其名称为 offline.zip。然后切换到【离线包所在目录】运行以上命令。</p>
+        <p>使用方法：上传离线包到【无法在线对接的机器】并重命名为 offline.zip。然后切换到【离线包所在目录】运行以上命令。</p>
         <p>提示：离线安装依赖 unzip 命令，请自行安装。</p>
       </div>
     })

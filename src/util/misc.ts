@@ -148,3 +148,11 @@ export function generateBigCharacter(count: number) {
     }
     return result;
 }
+
+export function string2IntArray(str: string): number[] {
+    return str.trim().split(",").map(v => {
+        const n = Number(v)
+        if (isNaN(n)) return 0
+        return n
+    })
+}

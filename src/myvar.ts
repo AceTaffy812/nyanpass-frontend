@@ -14,6 +14,10 @@ export const myvar = new class {
         "clientScript": "https://dl.nyafw.com/download/nyanpass-install.sh",
         "makeOfflineScript": "https://dl.nyafw.com/download/nyanpass-make-offline.sh",
         "enableFunctions": new Array<String>(),
+        "offlinePkgs": {
+            "离线包获取失败": "javascript:void(0);",
+            "请检查网络状态": "javascript:void(0);",
+        },
     };
     distConfig = this.defaultDistConfig;
     nyanpass_update_ok = false;

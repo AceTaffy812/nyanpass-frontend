@@ -5,7 +5,7 @@ import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
 import { api } from "../api/api";
 import { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
-import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cleanupDefaultValue, batchIds } from "../util/misc";
+import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cleanupDefaultValue, batchIds, string2IntArray } from "../util/misc";
 import { commonEx, showCommonError } from "../util/commonError";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
 import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, renderSelectIdName, setPageSize, tableShowTotal } from "../util/ui";
@@ -142,14 +142,24 @@ export function ForwardRulesView(props: { userInfo: any }) {
     // TODO 啊？
     try {
       const dgIn = findObjByIdId(deviceGroupList, currentInboundDgId);
-      let options = renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite]));
+      const dgOutList1 = myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite]);
+      const dgOutList2: any[] = [];
+      for (const o of dgOutList1) {
+        let canUseThisOutbound = true;
+        // 有设置限制入口
+        if (o != null && isNotBlank(o.allowed_in)) {
+          const allowed = string2IntArray(o.allowed_in);
+          if (!allowed.includes(dgIn.id)) canUseThisOutbound = false;
+        }
+        if (canUseThisOutbound) {
+          dgOutList2.push(o)
+        }
+      }
+      let options = renderSelectIdName(dgOutList2);
+      // 有设置限制出口
       if (dgIn != null && isNotBlank(dgIn.allowed_out)) {
-        const allowed = String(dgIn.allowed_out).trim().split(",").map(v => {
-          const n = Number(v)
-          if (isNaN(n)) return 0
-          return n
-        })
-        options = myFilter(options, "value", allowed)
+        const allowed = string2IntArray(dgIn.allowed_out);
+        options = myFilter(options, "value", allowed);
       }
       const disallowUserOutbound = dgIn != null && String(dgIn.allowed_out).includes("禁止单端")
       if (!disallowUserOutbound) {
