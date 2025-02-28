@@ -11,8 +11,8 @@ export const myvar = new class {
     backendInfo = newPromiseResolveNow(null);
     nekoHost = "https://api.candypath.eu.org";
     defaultDistConfig = {
-        "clientScript": "https://dl.nyafw.com/download/nyanpass-install.sh",
-        "makeOfflineScript": "https://dl.nyafw.com/download/nyanpass-make-offline.sh",
+        "clientScript": "https://dispatch.nyafw.com/download/nyanpass-install.sh",
+        "clientScriptOverseas": "https://dl.nyafw.com/download/nyanpass-install.sh",
         "enableFunctions": new Array<String>(),
         "offlinePkgs": {
             "离线包获取失败": "javascript:void(0);",

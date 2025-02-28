@@ -118,9 +118,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
   }
 
   const columns: ProColumns[] = [
-    { title: '启用', key: 'enable', dataIndex: 'enable', renderText: (e) => e ? "True" : "False" },
-    { title: '名称', key: 'id', dataIndex: 'name', },
     { title: '类型', key: 'type', dataIndex: 'type' },
+    { title: '名称', key: 'id', dataIndex: 'name', },
+    { title: '是否启用', key: 'enable', dataIndex: 'enable', renderText: (e) => e ? "True" : "False" },
     {
       title: '操作', key: 'action', dataIndex: 'name', renderText: function (a, b, index: number) {
         return <Flex gap={8}>
@@ -158,6 +158,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
               { label: "epusdt", value: "epusdt" },
               { label: "tokenpay", value: "tokenpay" },
               { label: "cyber", value: "cyber" },
+              { label: "cryptomus", value: "cryptomus" },
             ]}
             onChange={(e) => editingObj.current.type = e}
           ></Select>
@@ -193,14 +194,15 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             onChange={(e) => editingObj.current.callback_host = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="示例： 1% 手续费，就填 0.01">
+          <Tooltip title="在支付金额中加收手续费的百分比。会向客户展示。">
             <Typography.Text strong>费率 (?)</Typography.Text>
           </Tooltip>
           <InputNumber style={{ width: "100%" }}
             min={0}
-            step={0.01}
-            defaultValue={obj.fee_ratio}
-            onChange={(e) => editingObj.current.fee_ratio = e} />
+            step={0.1}
+            addonAfter="%"
+            defaultValue={Number(obj.fee_ratio) * 100}
+            onChange={(e) => editingObj.current.fee_ratio = Number(e) / 100} />
         </Flex>
       </Flex>,
       onOk: () => {

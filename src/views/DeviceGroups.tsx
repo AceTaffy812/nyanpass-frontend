@@ -86,10 +86,16 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             menu={{
               items: [
                 {
-                  key: "copyOnekeyCommand",
+                  key: "copyCommand1",
                   icon: <CopyOutlined />,
-                  label: "复制一键部署命令",
-                  onClick: () => copyOnekeyCommand(findObjByIdId(data, e))
+                  label: "复制在线安装命令 (自动探测线路)",
+                  onClick: () => copyOnekeyCommand(findObjByIdId(data, e), false)
+                },
+                {
+                  key: "copyCommand2",
+                  icon: <CopyOutlined />,
+                  label: "复制在线安装命令 (海外主线路)",
+                  onClick: () => copyOnekeyCommand(findObjByIdId(data, e), true)
                 },
                 {
                   key: "offlineCommand",
@@ -400,11 +406,11 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     return str
   }
 
-  function copyOnekeyCommand(obj: any) {
+  function copyOnekeyCommand(obj: any, isOverSeas: boolean) {
     if (!myvar.nyanpass_config_ok) {
       noDistConfig()
     }
-    let copyStr = `bash <(curl -fLSs ${myvar.distConfig.clientScript}) rel_nodeclient ${argsForGroup(obj)}`
+    let copyStr = `bash <(curl -fLSs ${isOverSeas ? myvar.distConfig.clientScriptOverseas : myvar.distConfig.clientScript}) rel_nodeclient ${argsForGroup(obj)}`
     copyToClipboard(copyStr, `对接命令复制成功: ${obj.display_name}`)
   }
 
