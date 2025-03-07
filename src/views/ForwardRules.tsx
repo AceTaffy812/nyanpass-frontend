@@ -607,7 +607,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
               onChange={(e) => editingForwardConfig.current.proxy_protocol = e}
             ></Select>
             <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速">
+              <Tooltip title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。">
                 <Typography.Text strong>规则限速 (?)</Typography.Text>
               </Tooltip>
               <div className='dq-3'>
@@ -617,6 +617,32 @@ export function ForwardRulesView(props: { userInfo: any }) {
                   step="1"
                   defaultValue={byteConverter(editingForwardConfig.current.speed_limit, "M_Net").toFixed(0)}
                   onChange={(e) => editingForwardConfig.current.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
+                ></InputNumber>
+              </div>
+            </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
+                <Typography.Text strong>IP 限制 (?)</Typography.Text>
+              </Tooltip>
+              <div className='dq-3'>
+                <InputNumber
+                  min="0"
+                  step="1"
+                  defaultValue={String(editingForwardConfig.current.ip_limit ?? 0)}
+                  onChange={(e) => editingForwardConfig.current.ip_limit = Number(e)}
+                ></InputNumber>
+              </div>
+            </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
+                <Typography.Text strong>连接数限制 (?)</Typography.Text>
+              </Tooltip>
+              <div className='dq-3'>
+                <InputNumber
+                  min="0"
+                  step="1"
+                  defaultValue={String(editingForwardConfig.current.connection_limit ?? 0)}
+                  onChange={(e) => editingForwardConfig.current.connection_limit = Number(e)}
                 ></InputNumber>
               </div>
             </Flex>

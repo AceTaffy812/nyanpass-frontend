@@ -93,6 +93,10 @@ export function ShopView(props: { userInfo: any }) {
       <Typography.Text strong>IP 限制</Typography.Text>
       <Typography.Text>{item.ip_limit}</Typography.Text>
     </Flex> : <></>
+    const connection_limit = item.connection_limit > 0 ? <Flex>
+      <Typography.Text strong>连接数限制</Typography.Text>
+      <Typography.Text>{item.connection_limit}</Typography.Text>
+    </Flex> : <></>
     return <Card title={item.name}>
       <Flex vertical>
         <Flex>
@@ -105,6 +109,7 @@ export function ShopView(props: { userInfo: any }) {
         </Flex>
         {speed_limit}
         {ip_limit}
+        {connection_limit}
         <Flex>
           <Typography.Text strong>流量</Typography.Text>
           <Typography.Text>{formatInfoTraffic(item, true)}</Typography.Text>

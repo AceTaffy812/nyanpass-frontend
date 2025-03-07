@@ -180,6 +180,10 @@ export function UserInfoView(props: { userInfo: any }) {
     <Typography.Text strong>IP 限制</Typography.Text>
     <Typography.Text>{ignoreError(() => userInfo.ip_limit)}</Typography.Text>
   </Flex> : <></>
+  const connection_limit = ignoreError(() => userInfo.connection_limit) > 0 ? <Flex>
+    <Typography.Text strong>连接数限制</Typography.Text>
+    <Typography.Text>{ignoreError(() => userInfo.connection_limit)}</Typography.Text>
+  </Flex> : <></>
   const tgNotify = ignoreError(() => userInfo.admin) == true ? <Flex className='ant-flex3'>
     <Typography.Text strong>Telegram 推送信息</Typography.Text>
     <Button onClick={btn_telegram_notify_onclick}>点击设置</Button>
@@ -230,6 +234,7 @@ export function UserInfoView(props: { userInfo: any }) {
           </Flex>
           {speed_limit}
           {ip_limit}
+          {connection_limit}
           <Flex className='ant-flex3'>
             <Typography.Text strong>钱包余额</Typography.Text>
             <Typography.Text>{ignoreError(() => userInfo.balance)} {displayCurrency}</Typography.Text>

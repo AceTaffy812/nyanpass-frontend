@@ -160,7 +160,7 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限速，不同入口的速度可以叠加。">
+          <Tooltip title="0 表示不限速，不同入口的限制可以叠加。">
             <Typography.Text strong>用户限速 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
@@ -174,16 +174,28 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限 IP">
+          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
             <Typography.Text strong>用户 IP 限制 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
             <InputNumber
               min="0"
-              max='65535'
               step="1"
               defaultValue={editingObj.current.ip_limit}
               onChange={(e) => editingObj.current.ip_limit = e}
+            ></InputNumber>
+          </div>
+        </Flex>
+        <Flex className='neko-settings-flex-line'>
+          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
+            <Typography.Text strong>用户连接数限制 (?)</Typography.Text>
+          </Tooltip>
+          <div className='dq-3'>
+            <InputNumber
+              min="0"
+              step="1"
+              defaultValue={editingObj.current.connection_limit}
+              onChange={(e) => editingObj.current.connection_limit = e}
             ></InputNumber>
           </div>
         </Flex>
@@ -243,7 +255,7 @@ export function AdminPlansView() {
         <Flex className='neko-settings-flex-line'>
           <Checkbox
             onChange={(e) => editingObj.current.update_limits = e.target.checked}>
-            更新限速与 IP 限制</Checkbox>
+            更新限速与连接限制</Checkbox>
         </Flex>
       </Flex>,
       onOk: () => {

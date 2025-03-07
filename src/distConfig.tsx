@@ -21,9 +21,8 @@ export function checkUpdate() {
                     MyModal.info({
                         title: "有更新可用", content: <div>
                             <p>{"当前版本: " + backendInfo.version}</p>
-                            <p>{"可用版本: " + data.version}</p>
+                            <p>{"可更新版本: " + data.version}</p>
                             <a href="https://nyanpass.pages.dev/intro/update_backend/">更新教程</a>
-                            <p>如果当前版本比可用版本新，请忽略本提示。</p>
                         </div>
                     })
                 }

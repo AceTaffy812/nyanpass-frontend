@@ -49,6 +49,8 @@ export class FrontForwardConfig {
     accept_proxy_protocol: number | undefined
     proxy_protocol: number | undefined
     speed_limit: number = 0
+    ip_limit: number = 0
+    connection_limit: number = 0
 }
 
 export function parseFrontForwardConfig(s: string): FrontForwardConfig {

@@ -310,7 +310,7 @@ export function AdminUsersView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限速，不同入口的速度可以叠加。">
+          <Tooltip title="0 表示不限速，不同入口的限制可以叠加。">
             <Typography.Text strong>用户限速 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
@@ -324,16 +324,28 @@ export function AdminUsersView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限 IP">
+          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
             <Typography.Text strong>用户 IP 限制 (?)</Typography.Text>
           </Tooltip>
           <div className='dq-3'>
             <InputNumber
               min="0"
-              max='65535'
               step="1"
               defaultValue={editingObj.current.ip_limit}
               onChange={(e) => editingObj.current.ip_limit = e}
+            ></InputNumber>
+          </div>
+        </Flex>
+        <Flex className='neko-settings-flex-line'>
+          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
+            <Typography.Text strong>用户连接数限制 (?)</Typography.Text>
+          </Tooltip>
+          <div className='dq-3'>
+            <InputNumber
+              min="0"
+              step="1"
+              defaultValue={editingObj.current.connection_limit}
+              onChange={(e) => editingObj.current.connection_limit = e}
             ></InputNumber>
           </div>
         </Flex>
@@ -454,7 +466,7 @@ export function AdminUsersView() {
         <Flex className='neko-settings-flex-line'>
           <Checkbox
             onChange={(e) => editingObj.current.qd_update_limits = e.target.checked}>
-            更新限速与 IP 限制</Checkbox>
+            更新限速与连接限制</Checkbox>
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Checkbox
@@ -480,6 +492,7 @@ export function AdminUsersView() {
         if (editingObj.current.qd_update_limits) {
           editingObj.current.speed_limit = plan.speed_limit
           editingObj.current.ip_limit = plan.ip_limit
+          editingObj.current.connection_limit = plan.connection_limit
         }
         // calc_expire 由后端处理
         return promiseFetchJson(api.admin.user_update(obj.id, editingObj.current), (ret) => {

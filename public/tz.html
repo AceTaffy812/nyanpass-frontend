@@ -84,6 +84,13 @@
                 <table class="mdui-table mdui-table-hoverable">
                     <thead>
                         <tr>
+                            <th v-if="window.isSelect" class="mdui-text-center">
+                                <label class="mdui-checkbox">
+                                    <input type="checkbox" @change="(e)=>{toggleSelectAll(e,group.gid)}" />
+                                    <i class="mdui-checkbox-icon"></i>
+                                    选择
+                                </label>
+                            </th>
                             <th class="mdui-text-center">地区</th>
                             <th v-if="window.isAdmin" class="mdui-text-center">出口IP</th>
                             <th class="mdui-text-center">状态</th>
@@ -98,6 +105,13 @@
                     </thead>
                     <tbody>
                         <tr v-for="server in group.servers" :id="server.SessionId">
+                            <td v-if="window.isSelect" class="mdui-text-center">
+                                <label v-if="window.isSelect" class="mdui-checkbox">
+                                    <input type="checkbox" @change="(e)=>{onSelectorChange(e,server)}"
+                                        :selector-gid="group.gid" />
+                                    <i class="mdui-checkbox-icon"></i>
+                                </label>
+                            </td>
                             <td class="mdui-text-center" :id="'area-'+server.SessionId">
                                 <div class="mdui-chip" style="width: 100%;">
                                     <span :class="'fi fi-'+server.CountryCode" style="vertical-align: bottom;"></span>
@@ -565,17 +579,24 @@
             });
         }
         var alertDialog = null
-        function updateAll() {
-            const title = "更新所有"
+        function updateAll(isSelected) {
             try { alertDialog.close() } catch (a) { }
-            fetch("/api/v1/system/node/update/all", {
+            let title = "更新所有节点"
+            let target = ["all"]
+            if (isSelected) {
+                title = "更新选中节点"
+                target = Object.keys(window.selectData).filter(key => window.selectData[key]);
+                stopSelect();
+            }
+            fetch("/api/v1/system/node/update", {
                 method: "POST",
                 headers: {
                     'Authorization': localStorage.getItem('Authorization'),
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: new URLSearchParams({
+                body: JSON.stringify({
                     clientScript: window.clientScript,
+                    target: target,
                 })
             }).then((rsp) => {
                 rsp.json().then((data) => {
@@ -583,18 +604,49 @@
                 }).catch(() => mdui.alert("更新请求失败", title))
             }).catch(() => mdui.alert("更新请求失败", title))
         }
+        function startSelect() {
+            try { alertDialog.close() } catch (a) { }
+            window.isSelect = true
+            window.selectData = {}
+        }
+        function stopSelect() {
+            try { alertDialog.close() } catch (a) { }
+            window.isSelect = false
+            window.selectData = null;
+        }
+        function toggleSelectAll(e, gid) {
+            var newChecked = e.target.checked;
+            var checkboxes = document.querySelectorAll(`input[selector-gid="${gid}"]`);
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = newChecked;
+                checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+        }
+        function onSelectorChange(e, server) {
+            if (e.target.checked) {
+                window.selectData[server.SessionId] = true;
+            } else {
+                window.selectData[server.SessionId] = false;
+            }
+        }
         function updateNodeClient(server) {
-            const text = `IP: ${server.BackendObj.ip4}<br>当前版本号: ${server.Host.Version}<br>可更新版本: ${window.ncVersionMessage}<br>如果当前版本号比可用新，请不要更新。<br><br><button onclick="updateAll()">为所有服务器下发更新</button>`
+            let upSelect = `<br><br><button onclick="startSelect()">多选更新节点</button>`
+            if (window.isSelect) {
+                upSelect = `<br><br><button onclick="updateAll(true)">批量更新已选中的节点</button>`
+            }
+            const text = `IP: ${server.BackendObj.ip4}<br>当前版本号: ${server.Host.Version}<br>可更新版本: ${window.ncVersionMessage}<br>如果当前版本号比可用新，请不要更新。${upSelect}<br><br><button onclick="updateAll()">为所有节点下发更新</button>`
             const title = "更新节点端: " + server.Name
             alertDialog = mdui.confirm(text, title, () => {
-                fetch("/api/v1/system/node/update/" + server.SessionId, {
+                stopSelect();
+                fetch("/api/v1/system/node/update", {
                     method: "POST",
                     headers: {
                         'Authorization': localStorage.getItem('Authorization'),
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: new URLSearchParams({
+                    body: JSON.stringify({
                         clientScript: window.clientScript,
+                        target: [server.SessionId],
                     })
                 }).then((rsp) => {
                     rsp.json().then((data) => {
