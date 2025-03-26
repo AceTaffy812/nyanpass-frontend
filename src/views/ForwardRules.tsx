@@ -10,7 +10,7 @@ import { commonEx, showCommonError } from "../util/commonError";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
 import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, renderSelectIdName, setPageSize, tableShowTotal } from "../util/ui";
 import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
-import { MyMessage, MyModal } from "../util/MyModal";
+import { closeCurrentDialog, MyMessage, MyModal } from "../util/MyModal";
 import { clone } from "lodash-es";
 import { MEditor, getEditor } from "../widget/MEditor";
 import MySyntaxHighlighter from "../widget/MySyntaxHighlither";
@@ -112,7 +112,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           if (dgOut != null) {
             if (dgOut.display_protocol == "tls" || dgOut.display_protocol == "tls_simple") {
               str.push("协议: TLS 隧道")
-            } else if (dgOut.display_protocol == "ws") {
+            } else if (dgOut.display_protocol == "ws" || dgOut.display_protocol == "ws2") {
               str.push("协议: WS 隧道")
             } else if (dgOut.display_protocol == "direct") {
               str.push("协议: 直接转发")
@@ -371,6 +371,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
             })()}
             onChange={(e) => { obj.qdDgOut = String(e) }}
           ></Select>
+        </Flex>
+        <Flex className="ant-flex2">
+          <Button icon={<PauseCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(selectedRowKeys, true) }}>批量暂停选中规则</Button>
+          <Button icon={<PlayCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(selectedRowKeys, false) }}>批量恢复选中规则</Button>
         </Flex>
       </Flex>,
       onOk: () => {
