@@ -1,4 +1,4 @@
-# nyanpass-fontend
+# nyanpass-frontend
 
 前端开源，欢迎二次开发。
 

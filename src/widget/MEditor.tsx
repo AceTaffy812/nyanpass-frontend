@@ -46,7 +46,7 @@ export function MEditor(props: { value: string }) {
     );
 }
 
-export function formartDocument() {
+export function formatDocument() {
     try {
         const m = getEditor()
         m!.getAction('editor.action.formatDocument')!.run()

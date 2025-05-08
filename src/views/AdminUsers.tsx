@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { byteConverter, formartDests as displayDests, formatBoolean, formatInfoTraffic, formatUnix } from '../util/format';
+import { byteConverter, formatDests, formatBoolean, formatInfoTraffic, formatUnix } from '../util/format';
 import { allFalseMap, findObjByIdId, isNotBlank, myFilter } from '../util/misc';
 import { BackwardOutlined, DeleteOutlined, EditOutlined, LogoutOutlined, PaperClipOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
 import { commonEx, showCommonError } from '../util/commonError';
@@ -15,7 +15,7 @@ import { displayCurrency, filtersBoolean, getPageSize, renderSelectIdName, setPa
 import { ReqSearchRules, TableParams, tableParams2Qs } from '../api/model_api';
 import dayjs, { unix } from 'dayjs';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
-import { DeviceGroupType, FrontInviteConfig, PlanType, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, FrontInviteConfig, translateBackendString } from '../api/model_front';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 import { apiForward } from '../api/forward';
 
@@ -624,7 +624,7 @@ export function AdminUsersView() {
               { title: '入口', key: 'listen_port', dataIndex: 'display_in' },
               { title: '监听端口', key: 'listen_port', dataIndex: 'listen_port' },
               { title: '出口', key: 'listen_port', dataIndex: 'display_out' },
-              { title: '目标地址', key: 'lddz', dataIndex: 'config', render: (config: string) => displayDests(config) },
+              { title: '目标地址', key: 'lddz', dataIndex: 'config', render: (config: string) => formatDests(config) },
               { title: '已用流量', key: 'traffic_used', dataIndex: 'display_traffic' },
               {
                 title: '状态', key: 'status', dataIndex: 'id', render: (e: any) => {

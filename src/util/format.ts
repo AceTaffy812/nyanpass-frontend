@@ -55,7 +55,7 @@ export function formatBoolean(b: boolean) {
     }
 }
 
-export function byteConverter(input: number | null, unit: string, invert?: boolean) {
+export function byteConverter(input: number | undefined, unit: string, invert?: boolean) {
     if (input == null) {
         return 0
     }
@@ -86,16 +86,17 @@ export function currentTimestamp() {
     return d.getTime()
 }
 
-export function formartDests(config: string) {
+export function formatDests(config: string) {
     return ignoreError(() => {
         const cfg = parseFrontForwardConfig(config)
-        switch (cfg.dest.length) {
+        const l = cfg.dest ? cfg.dest.length : 0
+        switch (l) {
             case 0:
                 return ""
             case 1:
-                return cfg.dest[0]
+                return cfg.dest![0]
             default:
-                return cfg.dest[0] + " 等 " + cfg.dest.length + " 个地址"
+                return cfg.dest![0] + " 等 " + l + " 个地址"
         }
     })
 }

@@ -1,26 +1,26 @@
-import { Card, Flex, Button, Table, Typography, Modal, Input, Select, Tooltip, Tag, message, Collapse, CollapseProps, InputNumber, FloatButton } from "antd";
-import { byteConverter, formartDests, formatInfoTraffic, formatUnix } from "../util/format";
-import React, { useEffect, useRef, useState } from "react";
-import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
-import { api } from "../api/api";
-import { ColumnsType, TablePaginationConfig } from "antd/es/table";
-import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
-import { myFilter as myFilter, findObjByIdId, isNotBlank, tryParseJSONObject, cleanupDefaultValue, batchIds, string2IntArray } from "../util/misc";
-import { commonEx, showCommonError } from "../util/commonError";
-import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
-import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, renderSelectIdName, setPageSize, tableShowTotal } from "../util/ui";
 import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
-import { closeCurrentDialog, MyMessage, MyModal } from "../util/MyModal";
+import { Button, Card, Collapse, CollapseProps, Flex, FloatButton, Input, InputNumber, Modal, Select, Table, Tag, Tooltip, Typography, message } from "antd";
+import { ColumnsType, TablePaginationConfig } from "antd/es/table";
+import { FilterValue, SorterResult } from "antd/es/table/interface";
+import _ from "lodash";
 import { clone } from "lodash-es";
+import React, { useEffect, useRef, useState } from "react";
+import { api } from "../api/api";
+import { apiForward } from "../api/forward";
+import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
+import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
+import { reloadMyVar } from "../myvar";
+import { commonEx, showCommonError } from "../util/commonError";
+import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
+import { byteConverter, formatDests, formatInfoTraffic, formatUnix } from "../util/format";
+import { batchIds, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter, string2IntArray, tryParseJSONObject } from "../util/misc";
+import { MyMessage, MyModal, closeCurrentDialog } from "../util/MyModal";
+import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
+import { render2Node } from "../util/reactw";
+import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, renderSelectIdName, setPageSize, tableShowTotal } from "../util/ui";
+import { IPPortWidget } from "../widget/IPPortWidget";
 import { MEditor, getEditor } from "../widget/MEditor";
 import MySyntaxHighlighter from "../widget/MySyntaxHighlither";
-import { apiForward } from "../api/forward";
-import { FilterValue, SorterResult } from "antd/es/table/interface";
-import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
-import { IPPortWidget } from "../widget/IPPortWidget";
-import { render2Node } from "../util/reactw";
-import { reloadMyVar } from "../myvar";
-import _ from "lodash";
 
 export function ForwardRulesView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -348,7 +348,97 @@ export function ForwardRulesView(props: { userInfo: any }) {
       qdDgIn: "",
       qdDgOut: "",
     }
+    const configObj = new FrontForwardConfig;
+
+    const selectedObjects: any[] = []
+    data.forEach(obj => {
+      if (ids.includes(obj.id)) selectedObjects.push({
+        ...obj,
+        config: JSON.parse(obj.config)
+      });
+    })
     ids = batchIds(ids)
+
+    let collaspedItems: CollapseProps['items'] = [
+      {
+        key: '1',
+        label: '高级选项 (留空不更新)',
+        children: <Flex vertical>
+          <Flex className='neko-settings-flex-line' gap={"1em"}>
+            <Typography.Text strong>负载均衡策略</Typography.Text>
+            <Select
+              defaultValue={undefined}
+              options={renderSelectBackendString(SelectorType)}
+              onChange={(e) => configObj.dest_policy = e}
+            ></Select>
+            <Tooltip title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。">
+              <Typography.Text strong>接受 Proxy Protocol (?)</Typography.Text>
+            </Tooltip>
+            <Select
+              defaultValue={undefined}
+              options={[
+                { value: 0, label: "关闭" },
+                { value: 1, label: "开启 (TCP)" },
+              ]}
+              onChange={(e) => configObj.accept_proxy_protocol = e}
+            ></Select>
+            <Tooltip title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。">
+              <Typography.Text strong>发送 Proxy Protocol (?)</Typography.Text>
+            </Tooltip>
+            <Select
+              defaultValue={undefined}
+              options={[
+                { value: 0, label: "关闭" },
+                { value: 1, label: "v1 (TCP)" },
+                { value: 2, label: "v2 (TCP+UDP)" },
+                { value: 3, label: "v2 (TCP)" },
+              ]}
+              onChange={(e) => configObj.proxy_protocol = e}
+            ></Select>
+            <Flex className='neko-settings-flex-line'>
+              <Tooltip title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。">
+                <Typography.Text strong>规则限速 (?)</Typography.Text>
+              </Tooltip>
+              <div className='dq-3'>
+                <InputNumber
+                  addonAfter="Mbps"
+                  min="0"
+                  step="1"
+                  defaultValue={undefined}
+                  onChange={(e) => configObj.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
+                ></InputNumber>
+              </div>
+            </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
+                <Typography.Text strong>IP 限制 (?)</Typography.Text>
+              </Tooltip>
+              <div className='dq-3'>
+                <InputNumber
+                  min="0"
+                  step="1"
+                  defaultValue={undefined}
+                  onChange={(e) => configObj.ip_limit = Number(e)}
+                ></InputNumber>
+              </div>
+            </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
+                <Typography.Text strong>连接数限制 (?)</Typography.Text>
+              </Tooltip>
+              <div className='dq-3'>
+                <InputNumber
+                  min="0"
+                  step="1"
+                  defaultValue={undefined}
+                  onChange={(e) => configObj.connection_limit = Number(e)}
+                ></InputNumber>
+              </div>
+            </Flex>
+          </Flex>
+        </Flex>
+      },
+    ];
     MyModal.confirm({
       icon: <p />,
       title: `批量更新 ${ids.length} 条规则`,
@@ -372,6 +462,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             onChange={(e) => { obj.qdDgOut = String(e) }}
           ></Select>
         </Flex>
+        <Collapse items={collaspedItems} style={{ width: "100%" }} />
         <Flex className="ant-flex2">
           <Button icon={<PauseCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(selectedRowKeys, true) }}>批量暂停选中规则</Button>
           <Button icon={<PlayCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(selectedRowKeys, false) }}>批量恢复选中规则</Button>
@@ -381,6 +472,35 @@ export function ForwardRulesView(props: { userInfo: any }) {
         const req: any[] = []
         if (isNotBlank(obj.qdDgIn)) req.push({ ids: ids, column: "device_group_in", value: obj.qdDgIn })
         if (isNotBlank(obj.qdDgOut)) req.push({ ids: ids, column: "device_group_out", value: obj.qdDgOut })
+
+        let needUpdateConfig = false;
+        for (const key in configObj) {
+          //@ts-ignore
+          if (configObj[key] !== undefined) {
+            needUpdateConfig = true;
+            break;
+          }
+        }
+
+        const overwriteCfg = {
+          ...(configObj.dest_policy !== undefined ? { dest_policy: configObj.dest_policy } : {}),
+          ...(configObj.accept_proxy_protocol !== undefined ? { accept_proxy_protocol: configObj.accept_proxy_protocol } : {}),
+          ...(configObj.proxy_protocol !== undefined ? { proxy_protocol: configObj.proxy_protocol } : {}),
+          ...(configObj.speed_limit !== undefined ? { speed_limit: configObj.speed_limit } : {}),
+          ...(configObj.ip_limit !== undefined ? { ip_limit: configObj.ip_limit } : {}),
+          ...(configObj.connection_limit !== undefined ? { connection_limit: configObj.connection_limit } : {})
+        }
+
+        if (needUpdateConfig) {
+          selectedObjects.forEach(obj => {
+            obj.config = {
+              ...obj.config,
+              ...overwriteCfg
+            }
+            req.push({ ids: [obj.id], column: 'config', value: JSON.stringify(cleanupDefaultValue(obj.config)) })
+          })
+        }
+
         if (req.length > 0) {
           return promiseFetchJson(forward.batch_update(req), (ret) => {
             showCommonError(ret, ["更新成功", "更新失败"], updateData)
@@ -513,7 +633,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       title: '出口', key: 'device_group_out', dataIndex: 'id', render: function (e: number) {
         let fw = findObjByIdId(data, e)
         const chukou = <Typography.Text >出口: {ignoreError(() => findObjByIdId(deviceGroupList, fw.device_group_out).name, "#" + fw.device_group_out)}</Typography.Text>
-        const luodi = <Typography.Text>{formartDests(fw.config)}</Typography.Text>
+        const luodi = <Typography.Text>{formatDests(fw.config)}</Typography.Text>
         if (fw.device_group_out == 0) {
           return luodi
         }
@@ -537,7 +657,12 @@ export function ForwardRulesView(props: { userInfo: any }) {
         }
         const tt = "最近更新: " + obj.display_updated_at
         return <Tooltip title={tt}><p style={style}>{str}</p></Tooltip>
-      }
+      },
+      filters: searched ? undefined : [
+        { text: "同步失败", value: "ForwardRuleStatus_Failed" },
+        { text: "已暂停", value: "paused" },
+        { text: "未暂停", value: "unpaused" },
+      ]
     },
     {
       title: '操作', key: 'action', dataIndex: 'id', render: function (e: number) {
@@ -684,7 +809,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         <Input.TextArea
           rows={5}
           placeholder={"一行一个，空行会被忽略，格式如下:\n\n1.2.3.4:5678\n[2001::]:80\nexample.com:443"}
-          defaultValue={ignoreError(() => editingForwardConfig.current.dest.join("\n"))}
+          defaultValue={ignoreError(() => editingForwardConfig.current.dest!.join("\n"), "")}
           onChange={(e) => editingForwardConfig.current.dest = e.target.value.split("\n").map(v => v.trim()).filter(isNotBlank)}
         ></Input.TextArea>
       </>
@@ -839,7 +964,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <Flex className="ant-flex2">
             {renderTags()}
             <Button icon={<FileAddOutlined />} onClick={() => editRule(null)} >添加规则</Button>
-            <Button icon={<FileAddOutlined />} onClick={() => editRule("batchAdd")} >批量添加</Button>
+            <Button icon={<FileAddOutlined />} onClick={() => editRule("batchAdd")} >批量导入</Button>
             <Button icon={<CopyOutlined />} onClick={() => copyRules(selectedRowKeys)}>批量导出</Button>
             <Button icon={<CheckSquareOutlined />} onClick={() => batchUpdateRules(selectedRowKeys)}>批量切换</Button>
             <Button icon={<FireOutlined />} onClick={() => resetTraffic(selectedRowKeys)}>清空流量</Button>
@@ -860,10 +985,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
         <Tooltip title="添加规则">
           <FloatButton shape="square" icon={<FileAddOutlined />} description="单条" onClick={() => editRule(null)}></FloatButton>
         </Tooltip>
-        <Tooltip title="批量添加规则">
+        <Tooltip title="批量导入规则">
           <FloatButton shape="square" icon={<FileAddOutlined />} description="批量" onClick={() => editRule("batchAdd")}></FloatButton>
         </Tooltip>
-        <Tooltip title="批量导出">
+        <Tooltip title="批量导出规则">
           <FloatButton shape="square" icon={<CopyOutlined />} description="导出" onClick={() => copyRules(selectedRowKeys)}></FloatButton>
         </Tooltip>
         <Tooltip title="批量切换">

@@ -52,25 +52,23 @@ export function ShopView(props: { userInfo: any }) {
         }
       })
     }
-    let tdCard = <Card title="请选择支付通道">
-      <Radio.Group onChange={(e) => setGwName(e.target.value)} value={gwName}>
-        <Space direction="vertical">
-          {gwRadios}
-        </Space>
-      </Radio.Group>
-    </Card>
-    let btn = <Button onClick={btn_deposit} disabled={requesting}>充值</Button>
-    if (gwRadios.length == 0) {
-      tdCard = <Empty description="站点未配置任何支付方式！" />
-      btn = <></>
-    }
-    return <>
-      <Flex vertical className='ant-flex2'>
-        <h3>最小充值金额: {info.min_deposit} {displayCurrency}</h3>
-        {tdCard}
-        {btn}
+    let czCard = <Card title="请选择支付通道" style={{ width: 'fit-content' }} >
+      <Flex vertical>
+        <Radio.Group onChange={(e) => setGwName(e.target.value)} value={gwName}>
+          <Space direction="vertical">
+            {gwRadios}
+          </Space>
+        </Radio.Group>
+        <Button
+          onClick={btn_deposit}
+          disabled={requesting}
+          style={{ width: 'fit-content' }}>充值</Button>
       </Flex>
-    </>
+    </Card>
+    if (gwRadios.length == 0) {
+      czCard = <Empty description="站点未配置任何支付方式！" />
+    }
+    return czCard
   }
 
   function renderPlanCard(item: any, apiFactory: any) {
@@ -194,6 +192,7 @@ export function ShopView(props: { userInfo: any }) {
             addonAfter="CNY"
             value={depositAmount}
             onChange={(e) => setDepositAmount(e!)} />
+          <h3>最小充值金额: {paymentInfo.min_deposit} {displayCurrency}</h3>
           {renderPaymentGatewas(paymentInfo)}
         </Flex>
       </Card>

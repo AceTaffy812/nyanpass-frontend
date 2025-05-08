@@ -44,13 +44,13 @@ export function simpleGateways() {
 }
 
 export class FrontForwardConfig {
-    dest_policy: string = ""
-    dest: string[] = []
-    accept_proxy_protocol: number | undefined
-    proxy_protocol: number | undefined
-    speed_limit: number = 0
-    ip_limit: number = 0
-    connection_limit: number = 0
+    dest?: string[]
+    dest_policy?: string
+    accept_proxy_protocol?: number
+    proxy_protocol?: number
+    speed_limit?: number
+    ip_limit?: number
+    connection_limit?: number
 }
 
 export function parseFrontForwardConfig(s: string): FrontForwardConfig {

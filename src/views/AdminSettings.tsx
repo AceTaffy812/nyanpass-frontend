@@ -15,7 +15,7 @@ import { EditOutlined, DeleteOutlined, FileAddOutlined } from '@ant-design/icons
 import { clone } from 'lodash-es';
 import { MyMessage, MyModal } from '../util/MyModal';
 import { newPromiseRejectNow } from '../util/promise';
-import { formartDocument as formatDocument, getEditor, MEditor } from '../widget/MEditor';
+import { formatDocument, getEditor, MEditor } from '../widget/MEditor';
 
 export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInfo }) {
   const editingObj = useRef<any>(null)
