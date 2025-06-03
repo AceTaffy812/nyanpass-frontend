@@ -11,7 +11,8 @@ import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { formatInfoTraffic } from '../util/format';
 import { TableParams, tableParams2Qs } from '../api/model_api';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
-import { ColumnsType } from 'antd/lib/table';
+import { ColumnsType } from 'antd/es/table';
+import { MyQuestionMark } from '../widget/MyQuestionMark';
 
 export function AdminRedeemCode() {
   const editingObj = useRef<any>(null)
@@ -37,7 +38,6 @@ export function AdminRedeemCode() {
   const updateData = () => {
     setLoading(true);
     asyncFetchJson(api.admin.shop_redeem_list(tableParams2Qs(tableParams)), (ret) => {
-      setLoading(false);
       if (ret.data != null) {
         // for (let i = 0; i < ret.data.length; i++) {
         //   ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
@@ -53,7 +53,7 @@ export function AdminRedeemCode() {
           },
         })
       }
-    })
+    }, undefined, () => setLoading(false))
     asyncFetchJson(api.admin.shop_plan_list(), (ret) => {
       if (ret.data != null) {
         for (let i = 0; i < ret.data.length; i++) {
@@ -91,9 +91,10 @@ export function AdminRedeemCode() {
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="示例: 9 折填 0.9; 免费兑换填 0">
-            <Typography.Text strong>折扣比例 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            折扣比例
+            <MyQuestionMark title="示例: 9 折填 0.9; 免费兑换填 0" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min={0}

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { myvar } from './myvar';
 import type { MenuProps } from 'antd';
-import { App, Breadcrumb, Button, Card, Drawer, Dropdown, Flex, Layout, Menu, Tooltip } from 'antd';
-import { ApiOutlined, BulbOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
+import { Drawer, Dropdown, Flex, Layout, Menu } from 'antd';
+import { ApiOutlined, BgColorsOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, MoonFilled, SunFilled, UserOutlined } from '@ant-design/icons';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { ignoreError } from './util/promise';
 import { MainView } from './views/Main';
@@ -15,15 +15,15 @@ import { AdminUsersView } from './views/AdminUsers';
 import { logout } from './AppApi';
 import { FrontSiteInfo } from './api/model_front';
 import { DeviceGroupsView } from './views/DeviceGroups';
-import { MyMessage, setModalCtx } from './util/MyModal';
+import { MyMessage } from './util/MyModal';
 import { ShopView } from './views/Shop';
 import { AdminPlansView } from './views/AdminPlans';
 import { OrdersView, OrdersViewType } from './views/Orders';
 import { LookingGlassView } from './views/LookingGlass';
 import { AdminMainView } from './views/AdminMain';
-import { Colors } from './material-color';
 import { AdminUserGroupsView } from './views/AdminUserGroup';
 import { AdminRedeemCode } from './views/AdminRedeemCode';
+import { resolveFailedToFetch } from './myvarinit';
 
 export function MyApp(props: { isDarkMode: boolean }) {
   const url = new URL(location as any)
@@ -34,32 +34,58 @@ export function MyApp(props: { isDarkMode: boolean }) {
   const [breadTitle, setBreadTitle] = useState("主页");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobileSize, setIsMobileSize] = useState(false);
+  const [hideNav, setHideNav] = useState(true);
+  const [userInfoLoaded, setUserInfoLoaded] = useState(false);
+
   const mounted = useRef(false);
-  const { modal, message } = App.useApp()
-  setModalCtx(modal, message)
   const nav = myNavFactory(useNavigate(), setBreadTitle, () => setDrawerOpen(false))
   myvar.nav = nav
 
   // 刷新用户状态
   function notifyInfoChange() {
-    try {
-      myvar.siteInfo.then((info: any) => { setSiteInfo(info) })
-    } catch (error) {
-      console.log(error)
-    }
-    try {
-      myvar.backendInfo.then((info: any) => { setBackendInfo(info) })
-    } catch (error) {
-      console.log(error)
-    }
-    try {
-      myvar.userInfo.then((info: any) => {
+    (async () => {
+      try {
+        const info = await myvar.siteInfo;
+        if (info === resolveFailedToFetch) return;
+        setSiteInfo(info as any)
+        // 获取到了来自后端的设置
+        myvar.updateThemeConfig(info)
+      } catch (error) {
+        console.log(error)
+      }
+    })();
+    (async () => {
+      try {
+        const info = await myvar.backendInfo;
+        if (info === resolveFailedToFetch) return;
+        setBackendInfo(info as any)
+      } catch (error) {
+        console.log(error)
+      }
+    })();
+    (async () => {
+      try {
+        const info = await myvar.userInfo;
+        if (info === resolveFailedToFetch) return;
+        setUserInfoLoaded(true)
         setUserInfo(info)
-        if (info == null) nav("/login") // 滚去登录
-      })
-    } catch (error) {
-      console.log(error)
-    }
+        if (info == null) {
+          // 隐藏导航，显示登录界面
+          setHideNav(true)
+          if (!location.hash.includes("register") && !location.hash.includes("login")) {
+            nav("/login")
+          }
+        } else {
+          // 登录成功
+          setHideNav(isManageUser)
+          if (location.hash.includes("register") || location.hash.includes("login")) {
+            nav("/")
+          }
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    })();
   }
 
   // 刷新时
@@ -160,38 +186,41 @@ export function MyApp(props: { isDarkMode: boolean }) {
     }]
   }
 
-  const renderBreadCrumb = () => {
-    const ts = breadTitle.split("/")
-    const ret = []
-    for (let i = 0; i < ts.length; i++) {
-      ret.push({
-        title: ts[i]
-      })
-    }
-    return ret
-  }
-
   return (
     <>
-      <Layout.Header style={{ background: Colors.Teal.Z500 }} >
-        <Flex style={{
-          alignItems: "center",
-          flexWrap: "nowrap",
-          whiteSpace: "nowrap",
-          height: "100%",
-        }}>
-          <h2 style={{ width: "100%" }}>{siteInfo?.title}</h2>
+      <Layout.Header style={{
+        backgroundColor: props.isDarkMode ? "rgba(0, 0, 0, 0.9)" : "rgba(0, 0, 0, 0.3)",
+        padding: "0 2em"
+      }} id="my-header">
+        <Flex
+          className='neko-flex'
+          style={{
+            alignItems: "center",
+            whiteSpace: "nowrap",
+            height: "100%",
+          }}>
+          <div style={isMobileSize && !hideNav ? {} : { display: "none" }}>
+            <MenuOutlined style={{ fontSize: "large", cursor: 'pointer' }} onClick={() => setDrawerOpen(true)} />
+          </div>
+          <h2 style={{ width: "100%", overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{siteInfo?.title}</h2>
           <Dropdown.Button
             style={{ width: 'unset' }}
             menu={{ items: renderUserMenu() }} placement="bottom" icon={<UserOutlined />}
           > {userInfo == null ? "未登录" : userInfo.username}
           </Dropdown.Button>
-          <Tooltip title={props.isDarkMode ? "开灯" : "关灯"}  >
-            <Button onClick={myvar.toggleDarkMode} shape='circle' ><BulbOutlined /></Button>
-          </Tooltip>
+          <div
+            style={{ fontSize: "large", cursor: 'pointer' }}
+            onClick={myvar.toggleDarkMode} >
+            {props.isDarkMode ? <SunFilled /> : <MoonFilled />}
+          </div>
+          <div
+            style={{ fontSize: "large", cursor: 'pointer', display: siteInfo.theme_policy >= 2 ? undefined : "none" }}
+            onClick={myvar.toggleTransparentMode} >
+            {<BgColorsOutlined />}
+          </div>
         </Flex>
       </Layout.Header>
-      <Layout style={{ flexDirection: "row" }} >
+      <Layout style={{ flexDirection: "row" }} id="my-content">
         <Drawer
           title="导航菜单"
           closable={false}
@@ -205,51 +234,42 @@ export function MyApp(props: { isDarkMode: boolean }) {
             items={renderNavMenu()}
           />
         </Drawer>
-        <Layout.Sider
-          style={{ height: '100%' }}
-          hidden={isMobileSize || isManageUser}
-        >
-          <Menu
-            mode="inline"
-            style={{ height: '100%', borderRight: 0 }}
-            defaultOpenKeys={["admin"]}
-            items={renderNavMenu()}
-          />
-        </Layout.Sider>
-        <Layout style={{ padding: '0 1em 1em', overflow: 'auto' }}>
-          <Flex className='neko-settings-flex-line'>
-            <Button
-              style={isMobileSize && !isManageUser ? {} : { display: "none" }}
-              onClick={() => setDrawerOpen(true)}
-            ><MenuOutlined />菜单</Button>
-            <Breadcrumb style={{ margin: '1em', flex: 'auto' }} items={renderBreadCrumb()} ></Breadcrumb>
-          </Flex>
-          <Layout.Content>
-            <Card>
-              <Routes>
-                <Route path="/" element={<MainView siteInfo={siteInfo} backendInfo={backendInfo} userInfo={userInfo} />} />
-                <Route path="/login" element={<LoginView reg={false} siteInfo={siteInfo} />} />
-                <Route path="/token_login/:token" element={<LoginView reg={false} siteInfo={siteInfo} />} />
-                <Route path="/register" element={<LoginView reg={true} siteInfo={siteInfo} />} />
-                <Route path="/register/:inviter" element={<LoginView reg={true} siteInfo={siteInfo} />} />
-                <Route path="/userinfo" element={<UserInfoView userInfo={userInfo} />} />
-                <Route path="/device_group" element={<DeviceGroupsView isAdmin={false} adminShowUserOutbound={false} />} />
-                <Route path="/forward_rules" element={<ForwardRulesView userInfo={userInfo} />} />
-                <Route path="/shop" element={<ShopView userInfo={userInfo} />} />
-                <Route path="/orders" element={<OrdersView type={OrdersViewType.UserOrder} />} />
-                <Route path="/afflog" element={<OrdersView type={OrdersViewType.UserAffLog} />} />
-                <Route path="/looking_glass" element={<LookingGlassView />} />
-                <Route path="/admin/main" element={<AdminMainView />} />
-                <Route path="/admin/settings" element={<AdminSettingsView userInfo={userInfo} siteInfo={siteInfo} />} />
-                <Route path="/admin/users" element={<AdminUsersView />} />
-                <Route path="/admin/user_group" element={<AdminUserGroupsView />} />
-                <Route path="/admin/device_group" element={<DeviceGroupsView isAdmin={true} adminShowUserOutbound={false} />} />
-                <Route path="/admin/plans" element={<AdminPlansView />} />
-                <Route path="/admin/orders" element={<OrdersView type={OrdersViewType.AdminOrder} />} />
-                <Route path="/admin/afflog" element={<OrdersView type={OrdersViewType.AdminAffLog} />} />
-                <Route path="/admin/redeem" element={<AdminRedeemCode />} />
-              </Routes>
-            </Card>
+        <Layout style={{ padding: '1em', overflow: 'auto' }}>
+          <Layout.Sider
+            style={{ margin: '0 1em 0 0' }}
+            hidden={isMobileSize || hideNav}
+          >
+            <Menu
+              mode="inline"
+              style={{ height: '100%', borderRight: 0 }}
+              defaultOpenKeys={["admin"]}
+              items={renderNavMenu()}
+            />
+          </Layout.Sider>
+          <Layout.Content style={{ display: userInfoLoaded ? undefined : 'none' }}>
+            <Routes>
+              <Route path="/" element={<MainView siteInfo={siteInfo} backendInfo={backendInfo} userInfo={userInfo} />} />
+              <Route path="/login" element={<LoginView reg={false} siteInfo={siteInfo} />} />
+              <Route path="/token_login/:token" element={<LoginView reg={false} siteInfo={siteInfo} />} />
+              <Route path="/register" element={<LoginView reg={true} siteInfo={siteInfo} />} />
+              <Route path="/register/:inviter" element={<LoginView reg={true} siteInfo={siteInfo} />} />
+              <Route path="/userinfo" element={<UserInfoView userInfo={userInfo} />} />
+              <Route path="/device_group" element={<DeviceGroupsView isAdmin={false} adminShowUserOutbound={false} />} />
+              <Route path="/forward_rules" element={<ForwardRulesView userInfo={userInfo} />} />
+              <Route path="/shop" element={<ShopView userInfo={userInfo} />} />
+              <Route path="/orders" element={<OrdersView type={OrdersViewType.UserOrder} />} />
+              <Route path="/afflog" element={<OrdersView type={OrdersViewType.UserAffLog} />} />
+              <Route path="/looking_glass" element={<LookingGlassView />} />
+              <Route path="/admin/main" element={<AdminMainView />} />
+              <Route path="/admin/settings" element={<AdminSettingsView userInfo={userInfo} siteInfo={siteInfo} />} />
+              <Route path="/admin/users" element={<AdminUsersView userInfo={userInfo} />} />
+              <Route path="/admin/user_group" element={<AdminUserGroupsView />} />
+              <Route path="/admin/device_group" element={<DeviceGroupsView isAdmin={true} adminShowUserOutbound={false} />} />
+              <Route path="/admin/plans" element={<AdminPlansView />} />
+              <Route path="/admin/orders" element={<OrdersView type={OrdersViewType.AdminOrder} />} />
+              <Route path="/admin/afflog" element={<OrdersView type={OrdersViewType.AdminAffLog} />} />
+              <Route path="/admin/redeem" element={<AdminRedeemCode />} />
+            </Routes>
           </Layout.Content>
         </Layout>
       </Layout>

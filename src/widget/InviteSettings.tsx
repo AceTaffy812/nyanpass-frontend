@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FrontInviteConfig } from "../api/model_front"
 import { Flex, InputNumber, Switch, Tooltip, Typography } from "antd"
+import { MyQuestionMark } from "./MyQuestionMark";
 
 export var editingInviteSettings = new FrontInviteConfig();
 
@@ -22,19 +23,21 @@ export function InviteSettings(props: { data: FrontInviteConfig }) {
     return (
         <Flex vertical>
             <Flex className='neko-settings-flex-line'>
-                <Typography.Text style={{ flex: 1 }} strong>启用邀请注册</Typography.Text>
+                <Typography.Text className='dq-1'>启用邀请注册</Typography.Text>
                 <Switch checked={enable} onChange={(e) => set_enable(e)} />
             </Flex>
             <Flex className='neko-settings-flex-line'>
-                <Tooltip title="开启后，被邀请者每次购买套餐都会产生佣金。否则只有新购才返佣。">
-                    <Typography.Text style={{ flex: 1 }} strong >循环返佣 (?)</Typography.Text>
-                </Tooltip>
+                <Typography.Text className='dq-1'>
+                    循环返佣
+                    <MyQuestionMark title="开启后，被邀请者每次购买套餐都会产生佣金。否则只有新购才返佣。" />
+                </Typography.Text>
                 <Switch checked={cycle} onChange={(e) => set_cycle(e)} />
             </Flex>
             <Flex className='neko-settings-flex-line'>
-                <Tooltip title="开启后，被邀请者第一次购买套餐需要绑定 Telegram。购买时绑定的Telegram ID 可以在邀请记录中查看。">
-                    <Typography.Text style={{ flex: 1 }} strong >强制绑定 Telegram (?)</Typography.Text>
-                </Tooltip>
+                <Typography.Text className='dq-1'>
+                    强制绑定 Telegram
+                    <MyQuestionMark title="开启后，被邀请者第一次购买套餐需要绑定 Telegram。购买时绑定的Telegram ID 可以在邀请记录中查看。" />
+                </Typography.Text>
                 <Switch checked={force_bind_tg} onChange={(e) => set_force_bind_tg(e)} />
             </Flex>
             <Flex className='neko-settings-flex-line'>

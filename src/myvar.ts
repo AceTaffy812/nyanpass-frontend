@@ -1,14 +1,16 @@
 import { checkDistConfig } from "./distConfig";
-import { doInitBackendInfo, doInitSiteInfo, doInitUserInfo } from "./myvarinit";
+import { doInitBackendInfo, doInitSiteInfo, doInitUserInfo, resolveFailedToFetch } from "./myvarinit";
+import { MyMessage } from "./util/MyModal";
 import { newPromiseResolveNow } from "./util/promise";
 
 export const myvar = new class {
+    window: any = window;
     isMobileSize = false;
     captchaKey = "";
     captchaReset = () => { };
-    siteInfo = newPromiseResolveNow(null);
-    userInfo = newPromiseResolveNow(null);
-    backendInfo = newPromiseResolveNow(null);
+    siteInfo = newPromiseResolveNow(resolveFailedToFetch);
+    userInfo = newPromiseResolveNow(resolveFailedToFetch);
+    backendInfo = newPromiseResolveNow(resolveFailedToFetch);
     nekoHost = "https://api.candypath.eu.org";
     defaultDistConfig = {
         "clientScript": "https://dispatch.nyafw.com/download/nyanpass-install.sh",
@@ -25,7 +27,10 @@ export const myvar = new class {
     notifyInfoChange = () => { };
     isDarkMode = false;
     toggleDarkMode = () => { };
+    isTransparentMode = false;
+    toggleTransparentMode = () => { };
     nav: any = () => { };
+    updateThemeConfig = (siteInfo: any) => { };
 }
 
 export function initMyVar() {
@@ -48,6 +53,7 @@ export function reloadMyVar(props?: { siteInfo?: boolean, userInfo?: boolean, ba
     }
     if (props == null || props.userInfo) {
         myvar.userInfo = new Promise(doInitUserInfo)
+        if (props != null) myvar.userInfo.then((info) => info != null && info != resolveFailedToFetch && MyMessage.success("刷新用户信息成功"))
     }
     if (props == null || props.backendInfo) {
         myvar.backendInfo = new Promise(doInitBackendInfo)

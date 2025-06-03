@@ -65,7 +65,7 @@ export default defineConfig(({ command }) => {
           { name: 'dayjs', relativeModule: './dayjs.min.js' }, // antd 依赖，要放前面
           { name: 'react', relativeModule: './umd/react.production.min.js', },
           { name: 'react-dom', relativeModule: './umd/react-dom.production.min.js', aliases: ['client'] },
-          { name: 'antd', relativeModule: './dist/antd.min.js', global: "antd", aliases: ['es', 'lib'] },
+          // { name: 'antd', relativeModule: './dist/antd.min.js', global: "antd", aliases: ['es'] },
         ],
         apply: command,
         resolve: myCdnjs(),

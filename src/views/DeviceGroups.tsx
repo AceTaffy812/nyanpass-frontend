@@ -16,6 +16,7 @@ import { myvar } from '../myvar';
 import { DragSortTable, ProColumns } from '@ant-design/pro-components';
 import { noDistConfig } from '../distConfig';
 import { IPPortWidget } from '../widget/IPPortWidget';
+import { MyQuestionMark } from '../widget/MyQuestionMark';
 
 export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutbound: boolean }) {
   const api2 = props.isAdmin ? api.admin : api.user
@@ -38,7 +39,6 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     setLoading(true);
     const wtf = props.adminShowUserOutbound ? "adminShowUserOutbound=1" : ""
     asyncFetchJson(api2.devicegroup_list(wtf), (ret) => {
-      setLoading(false);
       if (ret.data != null) {
         const newData: any[] = []
         for (let i = 0; i < ret.data.length; i++) {
@@ -54,7 +54,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         }
         setData(newData)
       }
-    })
+    }, undefined, () => setLoading(false))
   }
   useEffect(updateData, [JSON.stringify(props)])
 
@@ -85,6 +85,14 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           <Dropdown
             menu={{
               items: [
+                {
+                  key: '1',
+                  label: findObjByIdId(data, e).display_name,
+                  disabled: true,
+                },
+                {
+                  type: 'divider',
+                },
                 {
                   key: "copyCommand1",
                   icon: <CopyOutlined />,
@@ -158,9 +166,10 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
 
   function renderYJYC() {
     return <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-      <Tooltip title='通过监听每个网卡的 IP 地址实现 UDP 源进源出，优先级高于 BIND_INBOUND。双 IP 的机器且对 UDP 有需求的，建议打开。'>
-        <Typography.Text style={{ flex: 1 }} strong>UDP 智能绑定 (源进源出) (?)</Typography.Text>
-      </Tooltip>
+      <Typography.Text className='dq-1' strong>
+        UDP 智能绑定 (源进源出)
+        <MyQuestionMark title="通过监听每个网卡的 IP 地址实现 UDP 源进源出，优先级高于 BIND_INBOUND。双 IP 的机器且对 UDP 有需求的，建议打开。" />
+      </Typography.Text>
       <Switch
         defaultChecked={editingObjConfig.current.udp_smart_bind}
         onChange={(e) => editingObjConfig.current.udp_smart_bind = e} />
@@ -193,9 +202,10 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Input>
         </Flex>
         <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title={<p>有权使用此组转发的用户组 ID (使用英文逗号分割， 0 表示无套餐用户可以查看探针。)</p>}>
-            <Typography.Text strong>用户组 ID (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户组 ID
+            <MyQuestionMark title={"有权使用此组转发的用户组 ID (使用英文逗号分割， 0 表示无套餐用户可以查看探针。)"} />
+          </Typography.Text>
           <Input
             defaultValue={obj.enable_for_gid}
             onChange={(e) => editingObj.current.enable_for_gid = e.target.value}
@@ -224,34 +234,37 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         </Flex>
         {/* 入口 */}
         <Flex className='neko-settings-flex-line vis-inbound vis-suidao' style={{ display: "none" }}>
-          <Tooltip title={<div>
-            <p>选填，允许使用的「出口」设备组 ID (以英文逗号分割)</p>
-            <p>设置后，用户选择本入口时，未允许使用的出口将不会出现在出口选项中。</p>
-            <p>格式填错可能导致无法创建转发规则。</p>
-          </div>}>
-            <Typography.Text strong>限制出口 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            限制出口
+            <MyQuestionMark title={<div>
+              <p>选填，允许使用的「出口」设备组 ID (以英文逗号分割)</p>
+              <p>设置后，用户选择本入口时，未允许使用的出口将不会出现在出口选项中。</p>
+              <p>格式填错可能导致无法创建转发规则。</p>
+            </div>} />
+          </Typography.Text>
           <Input
             defaultValue={obj.allowed_out}
             onChange={(e) => editingObj.current.allowed_out = e.target.value.trim()}
           ></Input>
         </Flex>
         <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-          <Tooltip title={<div>
-            <p>仅前端显示，无其他作用</p>
-            <p>格式任意，一行一个</p>
-          </div>}>
-            <Typography.Text strong>连接地址 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            连接地址
+            <MyQuestionMark title={<div>
+              <p>仅前端显示，无其他作用</p>
+              <p>格式任意，一行一个</p>
+            </div>} />
+          </Typography.Text>
           <Input.TextArea
             defaultValue={obj.connect_host}
             onChange={(e) => editingObj.current.connect_host = e.target.value.trim()}
           ></Input.TextArea>
         </Flex>
         <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-          <Tooltip title={<p>入口允许监听的端口范围，示例： 10000-50000 (注意：格式错误会导致无法创建规则)</p>}>
-            <Typography.Text strong>端口范围 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            端口范围
+            <MyQuestionMark title={"入口允许监听的端口范围，示例： 10000-50000 (注意：格式错误会导致无法创建规则"} />
+          </Typography.Text>
           <Input
             defaultValue={obj.port_range}
             placeholder='2000-65535'
@@ -259,9 +272,10 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Input>
         </Flex>
         <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-          <Tooltip title='无需对端出口节点，由入口直接转发。适用于入口机器可以直接访问国际互联网的情景。'>
-            <Typography.Text style={{ flex: 1 }} strong>入口直出 (专线) (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text className='dq-1'>
+            直接转发 / 入口直出 (专线)
+            <MyQuestionMark title='无需出口节点，不使用隧道，而是由入口直接转发。适用于入口机器可以直接访问国际互联网的情景。' />
+          </Typography.Text>
           <Switch
             defaultChecked={editingObjConfig.current.direct}
             onChange={onDirectChange} />
@@ -269,22 +283,24 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         {renderYJYC()}
         {/* 出口 */}
         <Flex className='neko-settings-flex-line vis-outbound' style={props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title={<div>
-            <p>选填，允许使用的「入口」设备组 ID (以英文逗号分割)</p>
-            <p>设置后，用户选择某个入口时，若本出口不允许使用，则不会出现在出口选项中。</p>
-            <p>格式填错可能导致无法创建转发规则。</p>
-          </div>}>
-            <Typography.Text strong>限制入口 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            限制入口
+            <MyQuestionMark title={<div>
+              <p>选填，允许使用的「入口」设备组 ID (以英文逗号分割)</p>
+              <p>设置后，用户选择某个入口时，若本出口不允许使用，则不会出现在出口选项中。</p>
+              <p>格式填错可能导致无法创建转发规则。</p>
+            </div>} />
+          </Typography.Text>
           <Input
             defaultValue={obj.allowed_in}
             onChange={(e) => editingObj.current.allowed_in = e.target.value.trim()}
           ></Input>
         </Flex>
         <Flex className='neko-settings-flex-line vis-outbound' style={!props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title={"如需调整协议的具体参数，请使用“高级编辑”功能。"}>
-            <Typography.Text strong>协议 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            协议
+            <MyQuestionMark title={"如需调整协议的具体参数，请使用“高级编辑”功能。"} />
+          </Typography.Text>
           <Select
             defaultValue={editingObjConfig.current.protocol}
             options={[
@@ -296,9 +312,10 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line vis-outbound' style={!props.isAdmin ? {} : { display: "none" }}>
-          <Tooltip title='若组内的服务器未与面板通信的时间超过此数值，则视为下线，从负载中移除。'>
-            <Typography.Text strong>负载下线 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            负载下线
+            <MyQuestionMark title='若组内的服务器未与面板通信的时间超过此数值，则视为下线，从负载中移除。' />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="20"
@@ -322,8 +339,8 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         </Flex>
         {/* 最后 */}
         <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
-          <Typography.Text className='dq-1'>在探针中隐藏</Typography.Text>
-          <div className='dq-2'>
+          <Typography.Text strong style={{ paddingRight: "1em" }}>在探针中隐藏</Typography.Text>
+          <div style={{ flex: 1 }}>
             <Select
               defaultValue={obj.hide_status ?? 0}
               options={renderSelect2(HideInServerStatus)}
@@ -434,13 +451,13 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     MyModal.info({
       title: "离线部署",
       content: <div>
+        <hr />
         <Space direction='vertical'>
           <Typography.Text strong>请按机器的架构下载合适的包：</Typography.Text>
           {downloadCards}
         </Space>
         <hr />
         <Space direction='vertical'>
-          <div></div>
           <Space>
             <Typography.Text strong>{obj.display_name}</Typography.Text>
             <Typography.Text>的离线对接命令：</Typography.Text>
@@ -448,9 +465,9 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           <div></div>
         </Space>
         <Card>
-          <Typography.Paragraph copyable>{copyStr_Install_Command}</Typography.Paragraph>
+          <Typography.Paragraph copyable style={{ marginBottom: 0 }}>{copyStr_Install_Command}</Typography.Paragraph>
         </Card>
-        <p>使用方法：上传离线包到【无法在线对接的机器】并重命名为 offline.zip。然后切换到【离线包所在目录】运行以上命令。</p>
+        <p>使用方法：上传离线包到【无法在线对接的机器】并重命名为 offline.zip。然后 cd 切换到【离线包所在目录】运行以上命令。</p>
         <p>提示：离线安装依赖 unzip 命令，请自行安装。</p>
       </div>
     })
@@ -491,9 +508,8 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     setData(newData)
     setLoading(true)
     asyncFetchJson(api.common.reorder(props.isAdmin ? "/api/v1/admin/devicegroup/reorder" : "/api/v1/user/devicegroup/reorder", newData), (ret) => {
-      setLoading(false)
       showCommonError(ret, true)
-    })
+    }, undefined, () => setLoading(false))
   };
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -518,6 +534,9 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             <Button icon={<FireOutlined />} onClick={() => resetTraffic(selectedRowKeys)}>清空流量</Button>
           </Flex>
           <DragSortTable
+            cardProps={{
+              bodyStyle: { padding: 0, backgroundColor: "unset" },
+            }}
             rowKey="id"
             pagination={false}
             search={false}

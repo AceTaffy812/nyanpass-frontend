@@ -19,32 +19,40 @@ export function MainView(props: { siteInfo: any, backendInfo: any, userInfo: any
 
     function renderExpireTime() {
         if (props.userInfo != null && props.userInfo.admin) {
-            return <Typography.Title level={4}>面板授权到期时间: {ignoreError(() => formatUnix(props.backendInfo.license_expire))}</Typography.Title>
+            return <>
+                <Typography.Title level={4}>面板授权到期时间: {ignoreError(() => formatUnix(props.backendInfo.license_expire))}</Typography.Title>
+                <a href='https://nyanpass.pages.dev'>官方文档（请挂代理访问），花点时间看看，你想问的问题 90% 答案都在里面。</a>
+            </>
         }
         return null
     }
-    return (
+    return <Card>
         <Flex vertical>
             <Typography.Paragraph>
                 <Typography.Title level={4}>欢迎使用</Typography.Title>
                 <Typography.Title level={4}>nyanpass 面板版本: {ignoreError(() => props.backendInfo.version)}</Typography.Title>
-                <a href='https://nyanpass.pages.dev'>官方文档（请挂代理访问），花点时间看看，你想问的问题 90% 答案都在里面。</a>
                 {renderExpireTime()}
             </Typography.Paragraph>
             <Card title="站点公告">
-                <MySyntaxHighlighter>{notice}</MySyntaxHighlighter>
+                {notice != null && notice.startsWith("<") ? (
+                    <div dangerouslySetInnerHTML={{ __html: notice }}></div>
+                ) : (
+                    <Typography.Paragraph style={{ marginBottom: 0, fontSize: "large", whiteSpace: 'pre-wrap' }}>
+                        {notice}
+                    </Typography.Paragraph>
+                )}
             </Card>
             <Collapse items={[
                 {
                     key: '1',
                     label: '站点信息',
-                    children: <MySyntaxHighlighter language='json'>{JSON.stringify(props.siteInfo, null, 2)}</MySyntaxHighlighter>
+                    children: <MySyntaxHighlighter>{JSON.stringify(props.siteInfo, null, 2)}</MySyntaxHighlighter>
                 }, {
                     key: '2',
                     label: '后端信息',
-                    children: <MySyntaxHighlighter language='json'>{JSON.stringify(props.backendInfo, null, 2)}</MySyntaxHighlighter>
+                    children: <MySyntaxHighlighter>{JSON.stringify(props.backendInfo, null, 2)}</MySyntaxHighlighter>
                 }
             ]} style={{ width: "100%" }} />
         </Flex>
-    )
+    </Card>
 }

@@ -1,30 +1,23 @@
-import { clone } from 'lodash-es';
-import { PrismLight as SyntaxHighlighter, SyntaxHighlighterProps } from 'react-syntax-highlighter';
-import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
-import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { myvar } from '../myvar';
+import { Typography, theme } from 'antd';
+import React from 'react';
 
-SyntaxHighlighter.registerLanguage('json', json);
 
-export default function MySyntaxHighlighter(props: SyntaxHighlighterProps): JSX.Element {
-    const innerStr = String(props.children)
-    if (innerStr.startsWith("<")) {
-        // < 开头的当作 HTML 格式直接输出
-        return <div dangerouslySetInnerHTML={{ __html: innerStr }}></div>
-    }
-    const p = clone(props)
-    if (myvar.isDarkMode) {
-        p.style = vscDarkPlus
-    } else {
-        p.style = vs
-    }
-    p.codeTagProps = {
-        style: {
-            fontSize: "large",
-            lineHeight: "normal",
-        }
-    }
-    const s = new SyntaxHighlighter(p)
-    return s as any
+export default function MySyntaxHighlighter(props: { children: React.ReactNode }): JSX.Element {
+    // const { token } = theme.useToken();
+    return (
+        <Typography.Paragraph style={{ margin: 0 }}>
+            <pre style={{
+                // backgroundColor: token.colorBgContainer,
+                // color: token.colorText,
+                // padding: 16,
+                // borderRadius: 4,
+                fontFamily: 'monospace',
+                // fontSize: 14,
+                whiteSpace: 'pre',
+                overflow: 'auto',
+            }}>
+                <code>{props.children}</code>
+            </pre>
+        </Typography.Paragraph>
+    );
 }

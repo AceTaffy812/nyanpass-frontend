@@ -34,10 +34,18 @@ export function showCommonError(ret: any, title: string | Array<string> | boolea
     }
 }
 
-export function showJsError(title: string, data: Error | string) {
+export function showJsError(title: string, data: Error | string, useMessage?: boolean) {
     if (data instanceof Error) {
-        MyModal.error({ title: title + "(" + data.name + ")", content: renderP(data.message) })
+        if (useMessage) {
+            MyMessage.error(title + "(" + data.name + "): " + data.message)
+        } else {
+            MyModal.error({ title: title + "(" + data.name + ")", content: renderP(data.message) })
+        }
     } else {
-        MyModal.error({ title: title, content: renderP(data) })
+        if (useMessage) {
+            MyMessage.error(title + ": " + String(data))
+        } else {
+            MyModal.error({ title: title, content: renderP(data) })
+        }
     }
 }

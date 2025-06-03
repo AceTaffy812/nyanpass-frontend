@@ -10,6 +10,14 @@ html {
     min-height: 100dvh;
 }
 
+.ant-form>.ant-flex-vertical {
+    gap: 0;
+}
+
+.ant-form-item:last-of-type {
+    margin-bottom: 0;
+}
+
 .ant-select {
     width: 100%;
 }
@@ -31,6 +39,14 @@ html {
     align-items: center;
 }
 
+.ant-drawer-content-wrapper {
+    width: 300px !important;
+}
+
+.ant-drawer-content {
+    width: 300px !important;
+}
+
 // 表格里面的 flex 打横，不要 wrap
 td>.ant-flex {
     flex-wrap: nowrap;
@@ -38,7 +54,8 @@ td>.ant-flex {
 
 // 和 .ant-flex 对着干
 .neko-flex {
-    align-items: unset;
+    flex-wrap: nowrap;
+    align-items: baseline;
 }
 
 .neko-settings-flex-line {
@@ -65,6 +82,11 @@ td>.ant-flex {
     width: 100%;
 }
 
+.ant-pro-table .ant-pro-card {
+    padding: 0;
+    background-color: unset;
+}
+
 .ant-table {
     overflow-x: auto;
 }
@@ -84,12 +106,9 @@ td>.ant-flex {
 }
 
 .ant-modal-confirm-paragraph {
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     max-width: 100% !important;
-}
-
-.ant-modal-confirm-title {
-    margin-bottom: 1em;
 }
 
 // card
@@ -100,15 +119,10 @@ td>.ant-flex {
 
 // 对齐(全屏用)
 
-@media (min-width: 800px) {
-    .dq-1 {
-        flex: 1;
-        // max-width: 50%;
-    }
-}
 
 .dq-1 {
     font-weight: bold;
+    flex: 1;
 }
 
 @media (min-width: 800px) {
@@ -142,4 +156,59 @@ td>.ant-flex {
 .dq-4 {
     flex: 1;
     text-align: right;
+}
+
+// 透明主题
+
+.my-theme-trans.fullscreen-app {
+    background-image: var(--bg-image-desktop);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+
+    @media (max-width: 800px) {
+        background-image: var(--bg-image-mobile);
+    }
+}
+
+.my-theme-trans .ant-card {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.my-theme-trans.my-theme-dark .ant-card {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.my-theme-trans .ant-table {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.my-theme-trans.my-theme-dark .ant-table {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.my-theme-trans .ant-menu-item-selected {
+    background-color: rgba(230, 244, 255, 0.5);
+}
+
+.my-theme-trans.my-theme-dark .ant-menu-item-selected {
+    background-color: rgba(17, 26, 44, 0.5);
+}
+
+.my-theme-trans .ant-btn-default {
+    // border-width: 2px;
+    box-shadow: none;
+}
+
+.my-theme-trans.my-theme-dark a {
+    color: hsl(212 100% 70% / 1);
+}
+
+.my-theme-trans .ant-btn-primary {
+    box-shadow: none;
+}
+
+.my-theme-trans .ant-tag {
+    background: unset;
 }

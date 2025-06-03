@@ -1,19 +1,39 @@
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, theme, ThemeConfig } from "antd";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import zhCN from 'antd/locale/zh_CN';
 import { myvar } from "../myvar";
 
-export function MyConfigProvider(props: { children: React.ReactNode, isDarkMode: boolean }) {
+export function MyConfigProvider(props: { children: React.ReactNode, isDarkMode: boolean, isTransparentMode: boolean }) {
     const { defaultAlgorithm, darkAlgorithm } = theme;
-    return <ConfigProvider
-        theme={{
-            algorithm: props.isDarkMode ? darkAlgorithm : defaultAlgorithm,
-            token: {
-                // Seed Token，影响范围大
-                // colorPrimary: Colors.Teal.Z500,
+    let t: ThemeConfig = {
+        algorithm: props.isDarkMode ? darkAlgorithm : defaultAlgorithm,
+        inherit: false,
+    }
+    if (props.isTransparentMode) {
+        // const defaultTokens = getDesignToken({ algorithm: defaultAlgorithm });
+        t.token = {
+            // colorBgContainer: props.isDarkMode ? "rgba(255,255,255,0.1)" : 'transparent',
+            colorBorder: props.isDarkMode ? "rgba(255, 255, 255, 0.2)" : 'rgba(0, 0, 0, 0.2)',
+            colorBgContainer: "transparent",
+            colorBgLayout: props.isDarkMode ? "rgba(0,0,0,0.5)" : 'rgba(255,255,255,0.2)',
+            // colorBgElevated: 'transparent',
+            // colorBgTextActive: 'transparent',
+            // colorBgContainerDisabled: 'transparent',
+            // colorBgMask: 'transparent',
+            // colorBgTextHover: 'transparent',
+            // colorBgBlur: 'transparent',
+            // colorBgSpotlight: 'transparent',
+        }
+        t.components = {
+            Layout: {
+                siderBg: props.isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
+                // colorBgLayout: 'transparent',
             },
-        }}
+        }
+    }
+    return <ConfigProvider
+        theme={t}
         locale={zhCN}>
         {props.children}
     </ConfigProvider>
@@ -25,7 +45,8 @@ export function render2Node(children: React.ReactNode, root: Element) {
         nya = ReactDOM.createRoot(root);
         (root as any).react_root_nya = nya
     }
-    nya.render(<MyConfigProvider isDarkMode={myvar.isDarkMode}>
+    // 对话框不采用透明
+    nya.render(<MyConfigProvider isDarkMode={myvar.isDarkMode} isTransparentMode={false}>
         {children}
     </MyConfigProvider>);
 }

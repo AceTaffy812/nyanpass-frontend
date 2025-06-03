@@ -12,6 +12,7 @@ import { newPromiseRejectNow } from '../util/promise';
 import { byteConverter, formatBoolean, formatInfoTraffic } from '../util/format';
 import { PlanType, translatePlanType } from '../api/model_front';
 import { DragSortTable, ProColumns } from '@ant-design/pro-components';
+import { MyQuestionMark } from '../widget/MyQuestionMark';
 
 export function AdminPlansView() {
   const editingObj = useRef<any>(null)
@@ -26,7 +27,6 @@ export function AdminPlansView() {
   const updateData = () => {
     setLoading(true);
     asyncFetchJson(api.admin.shop_plan_list(), (ret) => {
-      setLoading(false);
       if (ret.data != null) {
         for (let i = 0; i < ret.data.length; i++) {
           ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
@@ -35,7 +35,7 @@ export function AdminPlansView() {
         }
         setData(ret.data)
       }
-    })
+    }, undefined, () => setLoading(false))
   }
   useEffect(() => {
     if (!mounted.current) {
@@ -85,7 +85,7 @@ export function AdminPlansView() {
           ></Input>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text style={{ flex: 1 }} strong>隐藏</Typography.Text>
+          <Typography.Text className='dq-1'>隐藏</Typography.Text>
           <Switch
             defaultChecked={editingObj.current.hide}
             onChange={(e) => editingObj.current.hide = e} />
@@ -110,9 +110,10 @@ export function AdminPlansView() {
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="仅用于月付或日付类型。最小倍数是 1 倍，必需为整数。">
-            <Typography.Text strong>时长倍数 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            时长倍数
+            <MyQuestionMark title="仅用于月付或日付类型。最小倍数是 1 倍，必需为整数。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="1"
@@ -123,9 +124,10 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="新购或者套餐变更时，为购买的用户分配的用户组。">
-            <Typography.Text strong>分配用户组 ID (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            分配用户组 ID
+            <MyQuestionMark title="新购或者套餐变更时，为购买的用户分配的用户组。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="1"
@@ -160,9 +162,10 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限速，不同入口的限制可以叠加。">
-            <Typography.Text strong>用户限速 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户限速
+            <MyQuestionMark title="0 表示不限速，不同入口的限制可以叠加。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               addonAfter="Mbps"
@@ -174,9 +177,10 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
-            <Typography.Text strong>用户 IP 限制 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户 IP 限制
+            <MyQuestionMark title="0 表示不限，不同入口的限制可以叠加。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="0"
@@ -187,9 +191,10 @@ export function AdminPlansView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
-            <Typography.Text strong>用户连接数限制 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户连接数限制
+            <MyQuestionMark title="0 表示不限，不同入口的限制可以叠加。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="0"
@@ -274,9 +279,8 @@ export function AdminPlansView() {
     setData(newData)
     setLoading(true)
     asyncFetchJson(api.common.reorder("/api/v1/admin/shop/plan/reorder", newData), (ret) => {
-      setLoading(false)
       showCommonError(ret, true)
-    })
+    }, undefined, () => setLoading(false))
   };
 
   return (

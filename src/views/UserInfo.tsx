@@ -2,9 +2,9 @@ import { useRef, useEffect, useState } from 'react';
 import { api } from '../api/api';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic, formatUnix } from '../util/format';
-import { ignoreError } from '../util/promise';
-import { Button, Card, Flex, Form, Input, InputNumber, Select, SelectProps, Space, Switch, Tag, Typography } from 'antd';
-import { LockOutlined, PlusCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { ignoreError, ignoreErrorAndBlank } from '../util/promise';
+import { Button, Card, Flex, Form, Input, InputNumber, Popconfirm, Select, SelectProps, Space, Switch, Tag, Typography } from 'antd';
+import { DisconnectOutlined, LinkOutlined, LockOutlined, PlusCircleOutlined, SettingOutlined, SyncOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
@@ -23,6 +23,7 @@ export function UserInfoView(props: { userInfo: any }) {
   const [affConfig, setAffConfig] = useState(new FrontInviteConfig());
   const [requesting, setRequesting] = useState(false);
   const [autoRenew, setAutoRenew] = useState(false);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     if (!mounted.current) {
@@ -44,51 +45,50 @@ export function UserInfoView(props: { userInfo: any }) {
   }, [userInfo])
 
   function resetPassword(values: any) {
-    MyModal.confirm({
-      icon: <p />,
-      title: "重置密码",
-      content: <p>你确定要重置密码吗？</p>,
-      onOk: () => {
-        setRequesting(true)
-        return promiseFetchJson(api.user.resetpassword(values), (ret) => {
-          setRequesting(false)
-          showCommonError(ret, ["重置成功", "重置失败"])
-        })
-      }
+    window._.unset(values, "confirm")
+    setRequesting(true)
+    return promiseFetchJson(api.user.resetpassword(values), (ret) => {
+      showCommonError(ret, ["重置成功", "重置失败"])
+    }, undefined, () => {
+      try {
+        myvar.window.TODO_PROMISE_RESLOVE()
+      } catch (error) { }
+      setRequesting(false)
     })
   }
 
   function switchAutoRenew(checked: boolean) {
     setAutoRenew(checked)
     setRequesting(true)
-    asyncFetchJson(api.user.update_column("auto_renew", checked), (ret) => {
-      setRequesting(false)
-      showCommonError(ret, true)
+    return promiseFetchJson(api.user.update_column("auto_renew", checked), (ret) => {
       reloadMyVar({ userInfo: true })
+    }, undefined, () => {
+      try {
+        myvar.window.TODO_PROMISE_RESLOVE()
+      } catch (error) { }
+      setRequesting(false)
     })
   }
 
   function btn_telegram_bind_onclick() {
-    asyncFetchJson(api.user.telegram_bind(), (ret) => {
+    return promiseFetchJson(api.user.telegram_bind(), (ret) => {
       showCommonError(ret, ["绑定 Telegram", "绑定 Telegram"])
     })
   }
 
   function btn_telegram_unbind_onclick() {
-    asyncFetchJson(api.user.telegram_bind(true), (ret) => {
+    return promiseFetchJson(api.user.telegram_bind(true), (ret) => {
       showCommonError(ret, ["取消绑定 Telegram", "取消绑定 Telegram"], () => reloadMyVar({ userInfo: true }))
     })
   }
 
-  function resetInviteCode() {
+  function resetInviteCode(create: boolean) {
     MyModal.confirm({
       icon: <p />,
-      title: "重置邀请代码",
-      content: <p>旧的邀请代码将被无法继续使用。</p>,
+      title: create ? "创建邀请代码" : "重置邀请代码",
+      content: create ? null : <p>旧的邀请代码将被无法继续使用。</p>,
       onOk: () => {
-        setRequesting(true)
         return promiseFetchJson(api.user.update_column("invite_code", generateBigCharacter(10)), (ret) => {
-          setRequesting(false)
           reloadMyVar({ userInfo: true })
         })
       }
@@ -103,12 +103,12 @@ export function UserInfoView(props: { userInfo: any }) {
       content: <div>
         <p>当前套餐: {ignoreError(() => userInfo.plan_name)}</p>
         <p>当前失效时间: {ignoreError(() => formatUnix(userInfo.expire, { color: true }))}</p>
-        <p>余额支付: {ignoreError(() => userInfo.renew_price)} {displayCurrency}</p>
+        <p>余额支付: {ignoreErrorAndBlank(() => userInfo.renew_price, 0)} {displayCurrency}</p>
         <h3>Tips:</h3>
-        <p>续费操作相当于购买当前套餐，若当前套餐被隐藏，仍可续费。</p>
+        <p>续费操作相当于重新购买当前套餐，重置到期时间和流量。</p>
+        <p>若当前套餐被隐藏，仍可续费。</p>
         <p>若当前套餐被删除，则不可续费。</p>
         <p>若套餐限时，则续费后的有效期按当前时间开始算。</p>
-        <p>若套餐流量不可叠加，则续费操作将重置流量。</p>
       </div>,
       onOk: () => {
         return promiseFetchJson(api.user.renew(), (ret) => {
@@ -122,8 +122,7 @@ export function UserInfoView(props: { userInfo: any }) {
     MyModal.confirm({
       icon: <p />,
       title: "Telegram 推送设置",
-      // TODO why cannot auto height ???
-      content: <Flex vertical style={{ height: "100px" }}>
+      content: <Flex vertical>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>接受的推送类型</Typography.Text>
           <Select
@@ -186,7 +185,7 @@ export function UserInfoView(props: { userInfo: any }) {
   </Flex> : <></>
   const tgNotify = ignoreError(() => userInfo.admin) == true ? <Flex className='ant-flex3'>
     <Typography.Text strong>Telegram 推送信息</Typography.Text>
-    <Button onClick={btn_telegram_notify_onclick}>点击设置</Button>
+    <Button icon={<SettingOutlined />} onClick={btn_telegram_notify_onclick}>设置</Button>
   </Flex> : <></>
 
   const invite_code = ignoreError(() => userInfo.invite_code, "");
@@ -221,7 +220,7 @@ export function UserInfoView(props: { userInfo: any }) {
           </Flex>
           <Flex className='ant-flex3'>
             <Typography.Text strong>续费价格</Typography.Text>
-            <Typography.Text>{ignoreError(() => userInfo.renew_price)} {displayCurrency}</Typography.Text>
+            <Typography.Text>{ignoreErrorAndBlank(() => userInfo.renew_price, 0)} {displayCurrency}</Typography.Text>
             <Button icon={<SyncOutlined />} onClick={btn_renew_onclick}>立即续费</Button>
           </Flex>
           <Flex>
@@ -243,8 +242,12 @@ export function UserInfoView(props: { userInfo: any }) {
           <Flex className='ant-flex3'>
             <Typography.Text strong>Telegram 关联</Typography.Text>
             <Typography.Text>{ignoreError(() => userInfo.telegram_id)}</Typography.Text>
-            <Button onClick={btn_telegram_bind_onclick}>关联 Telegram</Button>
-            <Button onClick={btn_telegram_unbind_onclick}>解除关联</Button>
+            <Popconfirm title="关联 Telegram 帐号" onConfirm={btn_telegram_bind_onclick}>
+              <Button icon={<LinkOutlined />}>关联</Button>
+            </Popconfirm>
+            <Popconfirm title="取消关联 Telegram 帐号" onConfirm={btn_telegram_unbind_onclick}>
+              <Button danger icon={<DisconnectOutlined />}>取消关联</Button>
+            </Popconfirm>
           </Flex>
           {tgNotify}
         </Space>
@@ -252,8 +255,8 @@ export function UserInfoView(props: { userInfo: any }) {
       <Card title="账户设置">
         <Flex vertical className='ant-flex2'>
           <Flex>
-            <Typography.Paragraph>
-              <Typography.Title level={4}>自动续费</Typography.Title>
+            <Typography.Paragraph style={{ marginBottom: 0 }}>
+              <Typography.Title level={4} style={{ marginTop: 0 }}>自动续费</Typography.Title>
               <blockquote>如果您的套餐临近到期，或者流量用完，系统将自动续费。请保证余额充足，否则会续费失败。</blockquote>
             </Typography.Paragraph>
             <Switch style={{ alignSelf: "center" }}
@@ -263,51 +266,106 @@ export function UserInfoView(props: { userInfo: any }) {
               title='开启' />
           </Flex>
           <Flex vertical>
-            <Typography.Paragraph>
+            <Typography.Paragraph style={{ marginBottom: 0 }}>
               <Typography.Title level={4}>重置密码</Typography.Title>
               <blockquote>如果您的密码已泄漏，可以在这里重置。重置操作会强制下线您在其他地方的登录。</blockquote>
             </Typography.Paragraph>
+            <Form
+              form={form}
+              disabled={requesting}
+              onFinish={resetPassword}
+            >
+              <Flex vertical>
+                <Form.Item
+                  name="current_password"
+                  rules={[{ required: true, message: "请输入当前密码" }]}
+                >
+                  <Input
+                    prefix={<LockOutlined />}
+                    placeholder="当前密码"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="new_password"
+                  rules={[{ required: false }]} // 可以为空，表示生成随机密码
+                >
+                  <Input
+                    prefix={<LockOutlined />}
+                    placeholder="新密码，留空随机生成。"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="confirm"
+                  dependencies={['new_password']}
+                  rules={[
+                    {
+                      validator: (_, value, callback) => {
+                        const newPassword = form.getFieldValue('new_password');
+                        if (!newPassword) {
+                          return Promise.resolve(); // 如果新密码为空，不做校验
+                        }
+                        if (!value) {
+                          return Promise.reject(new Error('请确认密码'));
+                        }
+                        if (value !== newPassword) {
+                          return Promise.reject(new Error('两次密码输入不一致'));
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input
+                    prefix={<LockOutlined />}
+                    placeholder="确认新密码"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Popconfirm
+                    title="确认要重置密码吗？"
+                    onConfirm={async () => {
+                      try {
+                        await form.validateFields();
+                      } catch (e) {
+                        return
+                      }
+                      myvar.window.TODO_PROMISE = new Promise((resolve) => myvar.window.TODO_PROMISE_RESLOVE = resolve)
+                      form.submit()
+                      return myvar.window.TODO_PROMISE
+                    }}
+                    okText="确认"
+                    cancelText="取消"
+                  >
+                    <Button type="primary" danger htmlType="button">重置密码</Button>
+                  </Popconfirm>
+                </Form.Item>
+
+              </Flex>
+            </Form>
           </Flex>
-          <Form
-            disabled={requesting}
-            onFinish={resetPassword}
-          >
-            <Flex className='neko-flex'>
-              <Form.Item name="current_password" style={{ marginBottom: "unset" }}>
-                <Input
-                  prefix={<LockOutlined />}
-                  placeholder="当前密码"
-                />
-              </Form.Item>
-              <Form.Item name="new_password" style={{ marginBottom: "unset" }}>
-                <Input
-                  prefix={<LockOutlined />}
-                  placeholder="新密码，留空随机生成。"
-                />
-              </Form.Item>
-              <Form.Item style={{ marginBottom: "unset" }}>
-                <Button type="primary" htmlType="submit">重置密码</Button>
-              </Form.Item>
-            </Flex>
-          </Form>
         </Flex>
       </Card>
       <Card title="邀请注册" hidden={!affConfig.enable}>
         <Flex vertical>
-          <h2>佣金比例: {(Number(affConfig.commission_rate) * 100).toFixed(2)}% ({affConfig.cycle ? "循环返利" : "首次消费返利"})</h2>
-          <Flex className='ant-flex2'>
-            <h2>佣金余额: {ignoreError(() => userInfo.aff_balance)} {displayCurrency}</h2>
-            <Button onClick={btn_aff_deposit_onclick}>划转余额</Button>
-          </Flex>
           <Card title="邀请注册链接">
             <Flex vertical>
-              {invite_code == "" ? <a onClick={resetInviteCode}>您还没有邀请码，请先创建邀请码。</a> : <Typography.Paragraph copyable>{location.origin + "/#register/" + invite_code}</Typography.Paragraph>}
+              {invite_code == "" ? <a onClick={() => resetInviteCode(true)}>您还没有邀请码，请先创建邀请码。</a> : <Typography.Paragraph copyable style={{ marginBottom: 0 }}>{location.origin + "/#register/" + invite_code}</Typography.Paragraph>}
               <Flex>
                 <Button onClick={() => myvar.nav("/afflog")}>查看邀请记录</Button>
-                <Button onClick={resetInviteCode}>重置邀请码</Button>
+                <Button danger onClick={() => resetInviteCode(false)}>重置邀请码</Button>
               </Flex>
             </Flex>
           </Card>
+          <Typography.Paragraph style={{ marginBottom: 0 }}>
+            <Typography.Title level={5}>佣金比例: {(Number(affConfig.commission_rate) * 100).toFixed(2)}% ({affConfig.cycle ? "循环返利" : "首次消费返利"})</Typography.Title>
+            <Flex className='ant-flex2'>
+              <Typography.Title level={5}>佣金余额: {ignoreError(() => userInfo.aff_balance)} {displayCurrency}</Typography.Title>
+              <Button onClick={btn_aff_deposit_onclick}>划转余额</Button>
+            </Flex>
+          </Typography.Paragraph>
         </Flex>
       </Card>
     </Flex>

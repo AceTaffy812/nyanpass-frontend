@@ -1,5 +1,5 @@
 import { batchIds } from "../util/misc";
-import { fetchApi } from "./fetchw";
+import { fetchApi, processJson } from "./fetchw";
 import { ReqSearchRules } from "./model_api";
 
 export class apiAdmin {
@@ -10,14 +10,12 @@ export class apiAdmin {
                 value: value
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async user_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/user?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async user_create(username: string): Promise<any> {
@@ -27,8 +25,7 @@ export class apiAdmin {
                 username: username.trim(),
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async user_update(id: number, obj: any): Promise<any> {
@@ -36,8 +33,7 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async user_delete(ids: any[]): Promise<any> {
@@ -47,30 +43,26 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async user_delete_unused(): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/user/delete_unused", {
             method: "DELETE",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async user_delete_unused_rules(): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/user/delete_unused_rules", {
             method: "DELETE",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/devicegroup?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_create(obj: any): Promise<any> {
@@ -78,8 +70,7 @@ export class apiAdmin {
             method: "PUT",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
 
@@ -88,8 +79,7 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_delete(ids: any[]): Promise<any> {
@@ -99,16 +89,14 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_reset_token(id: number): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/devicegroup/" + id + "/reset_token", {
             method: "POST"
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_reset_traffic(ids: any[]): Promise<any> {
@@ -118,14 +106,12 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_list(): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/shop/plan");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_create(obj: any): Promise<any> {
@@ -133,8 +119,7 @@ export class apiAdmin {
             method: "PUT",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_update(id: number, obj: any): Promise<any> {
@@ -142,8 +127,7 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_push(id: number, obj: any): Promise<any> {
@@ -151,8 +135,7 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_delete(ids: any[]): Promise<any> {
@@ -162,8 +145,7 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_order_accounting(obj: any): Promise<any> {
@@ -171,14 +153,12 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_order_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/shop/order?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_order_delete(ids: any[]): Promise<any> {
@@ -188,24 +168,21 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_order_manual_callback(id: number): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/shop/order/" + id + "/manual_callback", {
             method: "POST",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async statistic(top_users: number): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/statistic?top_users=" + top_users, {
             method: "GET",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async search_rules(req: ReqSearchRules): Promise<any> {
@@ -213,14 +190,12 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(req),
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async aff_log(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/aff/log?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async aff_log_delete(ids: any[]): Promise<any> {
@@ -230,8 +205,7 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async aff_log_accounting(obj: any): Promise<any> {
@@ -239,14 +213,12 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async usergroup_list(): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/usergroup");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async usergroup_create(obj: any): Promise<any> {
@@ -254,8 +226,7 @@ export class apiAdmin {
             method: "PUT",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async usergroup_update(id: number, obj: any): Promise<any> {
@@ -263,8 +234,7 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async usergroup_delete(ids: any[]): Promise<any> {
@@ -274,14 +244,12 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_redeem_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/shop/redeem?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_redeem_import(obj: any): Promise<any> {
@@ -289,8 +257,7 @@ export class apiAdmin {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_redeem_delete(ids: any[]): Promise<any> {
@@ -300,7 +267,6 @@ export class apiAdmin {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 }

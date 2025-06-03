@@ -9,10 +9,10 @@ import { api } from "../api/api";
 import { apiForward } from "../api/forward";
 import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
-import { reloadMyVar } from "../myvar";
+import { myvar, reloadMyVar } from "../myvar";
 import { commonEx, showCommonError } from "../util/commonError";
 import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
-import { byteConverter, formatDests, formatInfoTraffic, formatUnix } from "../util/format";
+import { byteConverter, formatDests, formatInfoTraffic, formatUnix, strongColor } from "../util/format";
 import { batchIds, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter, string2IntArray, tryParseJSONObject } from "../util/misc";
 import { MyMessage, MyModal, closeCurrentDialog } from "../util/MyModal";
 import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
@@ -21,6 +21,7 @@ import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, rende
 import { IPPortWidget } from "../widget/IPPortWidget";
 import { MEditor, getEditor } from "../widget/MEditor";
 import MySyntaxHighlighter from "../widget/MySyntaxHighlither";
+import { MyQuestionMark } from "../widget/MyQuestionMark";
 
 export function ForwardRulesView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -200,9 +201,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
     return (ret: any) => {
       if (ret.code == 0) {
         if (ret.data.length == 0) {
+          searchObj.current = null;
           MyMessage.info("没有符合该条件的规则")
           if (!newSearch) {
-            searchObj.current = null; setSearched(false); updateData(); //退回全部规则
+            setSearched(false); updateData(); //退回全部规则
           } else {
             throw commonEx
           }
@@ -215,9 +217,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
         setSearched(true)
         if (newSearch) MyMessage.info(`找到 ${ret.data.length} 条规则`)
       } else {
+        searchObj.current = null;
         MyMessage.error(`搜索出错: ${ret.code} ${ret.msg}`)
         if (!newSearch) {
-          searchObj.current = null; setSearched(false); updateData(); //退回全部规则
+          setSearched(false); updateData(); //退回全部规则
         } else {
           throw commonEx
         }
@@ -233,12 +236,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
     }
     if (searchObj.current != null) {
       asyncFetchJson(forward.search_rules(searchObj.current, qs), (ret) => {
-        setLoading(false);
         searchedRetProcess(false)(ret)
-      })
+      }, undefined, () => setLoading(false))
     } else {
       asyncFetchJson(forward.forward_list(qs), (ret) => {
-        setLoading(false);
         if (ret.data != null) {
           for (let i = 0; i < ret.data.length; i++) {
             ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
@@ -255,7 +256,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             },
           })
         }
-      })
+      }, undefined, () => setLoading(false))
     }
     // 还有其他要东西加载。。。
     asyncFetchJson(forward.affectId ? api.admin.devicegroup_list("uid=" + forward.affectId) : api.user.devicegroup_list(), (ret) => {
@@ -337,6 +338,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
   }
 
   function pauseRules(ids: any[], pause: boolean) {
+    if (ids.length == 0) return;
     return promiseFetchJson(forward.batch_update([{ ids: ids, column: "paused", value: pause }]), (ret) => {
       showCommonError(ret, ["", "规则更新失败"], updateData)
     })
@@ -364,16 +366,19 @@ export function ForwardRulesView(props: { userInfo: any }) {
         key: '1',
         label: '高级选项 (留空不更新)',
         children: <Flex vertical>
-          <Flex className='neko-settings-flex-line' gap={"1em"}>
+          <Flex className='neko-settings-flex-line'>
             <Typography.Text strong>负载均衡策略</Typography.Text>
             <Select
               defaultValue={undefined}
               options={renderSelectBackendString(SelectorType)}
               onChange={(e) => configObj.dest_policy = e}
             ></Select>
-            <Tooltip title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。">
-              <Typography.Text strong>接受 Proxy Protocol (?)</Typography.Text>
-            </Tooltip>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              接受 Proxy Protocol
+              <MyQuestionMark title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。" />
+            </Typography.Text>
             <Select
               defaultValue={undefined}
               options={[
@@ -382,9 +387,12 @@ export function ForwardRulesView(props: { userInfo: any }) {
               ]}
               onChange={(e) => configObj.accept_proxy_protocol = e}
             ></Select>
-            <Tooltip title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。">
-              <Typography.Text strong>发送 Proxy Protocol (?)</Typography.Text>
-            </Tooltip>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              发送 Proxy Protocol
+              <MyQuestionMark title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。" />
+            </Typography.Text>
             <Select
               defaultValue={undefined}
               options={[
@@ -395,46 +403,49 @@ export function ForwardRulesView(props: { userInfo: any }) {
               ]}
               onChange={(e) => configObj.proxy_protocol = e}
             ></Select>
-            <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。">
-                <Typography.Text strong>规则限速 (?)</Typography.Text>
-              </Tooltip>
-              <div className='dq-3'>
-                <InputNumber
-                  addonAfter="Mbps"
-                  min="0"
-                  step="1"
-                  defaultValue={undefined}
-                  onChange={(e) => configObj.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
-                ></InputNumber>
-              </div>
-            </Flex>
-            <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
-                <Typography.Text strong>IP 限制 (?)</Typography.Text>
-              </Tooltip>
-              <div className='dq-3'>
-                <InputNumber
-                  min="0"
-                  step="1"
-                  defaultValue={undefined}
-                  onChange={(e) => configObj.ip_limit = Number(e)}
-                ></InputNumber>
-              </div>
-            </Flex>
-            <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
-                <Typography.Text strong>连接数限制 (?)</Typography.Text>
-              </Tooltip>
-              <div className='dq-3'>
-                <InputNumber
-                  min="0"
-                  step="1"
-                  defaultValue={undefined}
-                  onChange={(e) => configObj.connection_limit = Number(e)}
-                ></InputNumber>
-              </div>
-            </Flex>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              规则限速
+              <MyQuestionMark title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                addonAfter="Mbps"
+                min="0"
+                step="1"
+                defaultValue={undefined}
+                onChange={(e) => configObj.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
+              ></InputNumber>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              IP 限制
+              <MyQuestionMark title="0 表示不限，单一入口下，同时受用户的限制。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                min="0"
+                step="1"
+                defaultValue={undefined}
+                onChange={(e) => configObj.ip_limit = Number(e)}
+              ></InputNumber>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              连接数限制
+              <MyQuestionMark title="0 表示不限，单一入口下，同时受用户的限制。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                min="0"
+                step="1"
+                defaultValue={undefined}
+                onChange={(e) => configObj.connection_limit = Number(e)}
+              ></InputNumber>
+            </div>
           </Flex>
         </Flex>
       },
@@ -628,7 +639,6 @@ export function ForwardRulesView(props: { userInfo: any }) {
 
       }, sorter: true
     },
-    { title: '已用流量', key: 'traffic_used', dataIndex: 'display_traffic', sorter: true },
     {
       title: '出口', key: 'device_group_out', dataIndex: 'id', render: function (e: number) {
         let fw = findObjByIdId(data, e)
@@ -643,6 +653,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         </Flex>
       }, sorter: true
     },
+    { title: '已用流量', key: 'traffic_used', dataIndex: 'display_traffic', sorter: true },
     {
       title: '状态', key: 'status', dataIndex: 'id', render: (e: any) => {
         const obj = findObjByIdId(data, e);
@@ -653,7 +664,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         }
         if (obj.paused) {
           str = "已暂停"
-          style.color = "blueviolet"
+          style.color = strongColor()
         }
         const tt = "最近更新: " + obj.display_updated_at
         return <Tooltip title={tt}><p style={style}>{str}</p></Tooltip>
@@ -704,16 +715,19 @@ export function ForwardRulesView(props: { userInfo: any }) {
         key: '1',
         label: '高级选项',
         children: <Flex vertical>
-          <Flex className='neko-settings-flex-line' gap={"1em"}>
+          <Flex className='neko-settings-flex-line'>
             <Typography.Text strong>负载均衡策略</Typography.Text>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.dest_policy, "random")}
               options={renderSelectBackendString(SelectorType)}
               onChange={(e) => editingForwardConfig.current.dest_policy = e}
             ></Select>
-            <Tooltip title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。">
-              <Typography.Text strong>接受 Proxy Protocol (?)</Typography.Text>
-            </Tooltip>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              接受 Proxy Protocol
+              <MyQuestionMark title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。" />
+            </Typography.Text>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.accept_proxy_protocol, 0)}
               options={[
@@ -722,9 +736,12 @@ export function ForwardRulesView(props: { userInfo: any }) {
               ]}
               onChange={(e) => editingForwardConfig.current.accept_proxy_protocol = e}
             ></Select>
-            <Tooltip title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。">
-              <Typography.Text strong>发送 Proxy Protocol (?)</Typography.Text>
-            </Tooltip>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              发送 Proxy Protocol
+              <MyQuestionMark title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。" />
+            </Typography.Text>
             <Select
               defaultValue={ignoreErrorAndBlank(() => editingForwardConfig.current.proxy_protocol, 0)}
               options={[
@@ -735,48 +752,51 @@ export function ForwardRulesView(props: { userInfo: any }) {
               ]}
               onChange={(e) => editingForwardConfig.current.proxy_protocol = e}
             ></Select>
-            <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。">
-                <Typography.Text strong>规则限速 (?)</Typography.Text>
-              </Tooltip>
-              <div className='dq-3'>
-                <InputNumber
-                  addonAfter="Mbps"
-                  min="0"
-                  step="1"
-                  defaultValue={byteConverter(editingForwardConfig.current.speed_limit, "M_Net").toFixed(0)}
-                  onChange={(e) => editingForwardConfig.current.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
-                ></InputNumber>
-              </div>
-            </Flex>
-            <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
-                <Typography.Text strong>IP 限制 (?)</Typography.Text>
-              </Tooltip>
-              <div className='dq-3'>
-                <InputNumber
-                  min="0"
-                  step="1"
-                  defaultValue={String(editingForwardConfig.current.ip_limit ?? 0)}
-                  onChange={(e) => editingForwardConfig.current.ip_limit = Number(e)}
-                ></InputNumber>
-              </div>
-            </Flex>
-            <Flex className='neko-settings-flex-line'>
-              <Tooltip title="0 表示不限，单一入口下，同时受用户的限制。">
-                <Typography.Text strong>连接数限制 (?)</Typography.Text>
-              </Tooltip>
-              <div className='dq-3'>
-                <InputNumber
-                  min="0"
-                  step="1"
-                  defaultValue={String(editingForwardConfig.current.connection_limit ?? 0)}
-                  onChange={(e) => editingForwardConfig.current.connection_limit = Number(e)}
-                ></InputNumber>
-              </div>
-            </Flex>
           </Flex>
-        </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              规则限速
+              <MyQuestionMark title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                addonAfter="Mbps"
+                min="0"
+                step="1"
+                defaultValue={byteConverter(editingForwardConfig.current.speed_limit, "M_Net").toFixed(0)}
+                onChange={(e) => editingForwardConfig.current.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
+              ></InputNumber>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              IP 限制
+              <MyQuestionMark title="0 表示不限，单一入口下，同时受用户的限制。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                min="0"
+                step="1"
+                defaultValue={String(editingForwardConfig.current.ip_limit ?? 0)}
+                onChange={(e) => editingForwardConfig.current.ip_limit = Number(e)}
+              ></InputNumber>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              连接数限制
+              <MyQuestionMark title="0 表示不限，单一入口下，同时受用户的限制。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                min="0"
+                step="1"
+                defaultValue={String(editingForwardConfig.current.connection_limit ?? 0)}
+                onChange={(e) => editingForwardConfig.current.connection_limit = Number(e)}
+              ></InputNumber>
+            </div>
+          </Flex>
+        </Flex >
       },
     ];
     if (isBatch) {
@@ -941,11 +961,11 @@ export function ForwardRulesView(props: { userInfo: any }) {
 
   function renderTags() {
     if (affectId != null) return <></>
-    return <>
+    return <Flex className="ant-flex2">
       <Tag>流量: {formatInfoTraffic(userInfo, true)}</Tag>
       <Tag>到期: {ignoreError(() => formatUnix(userInfo.expire, { color: true }))}</Tag>
       <Tag>规则数: {ruleCount} / {ignoreError(() => userInfo.max_rules)}</Tag>
-    </>
+    </Flex>
   }
 
   return (
@@ -961,8 +981,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
       </Modal>
       <Card title={renderTitle()}>
         <Flex vertical className="ant-flex2">
-          <Flex className="ant-flex2">
-            {renderTags()}
+          {renderTags()}
+          <Flex className="ant-flex2" style={myvar.isMobileSize ? { display: "none" } : {}} >
             <Button icon={<FileAddOutlined />} onClick={() => editRule(null)} >添加规则</Button>
             <Button icon={<FileAddOutlined />} onClick={() => editRule("batchAdd")} >批量导入</Button>
             <Button icon={<CopyOutlined />} onClick={() => copyRules(selectedRowKeys)}>批量导出</Button>

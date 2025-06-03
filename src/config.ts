@@ -1,3 +1,5 @@
+import { isNotBlank } from "./util/misc"
+
 export var config = {
     apiPrefix: "",
 }
@@ -14,6 +16,12 @@ export function initConfig() {
             if (uApi != null) config.apiPrefix = uApi
             w.config = config
             console.log("config to window", uApi)
+        }
+        // token_login
+        const match = location.hash.match(/^#\/token_login\/(.+)$/);
+        const param = match ? match[1] : null;
+        if (isNotBlank(param)) {
+            localStorage.setItem("Authorization", String(param));
         }
     } catch (e) {
         console.log(e)

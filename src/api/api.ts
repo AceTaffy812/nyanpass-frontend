@@ -1,6 +1,6 @@
 import { apiAdmin } from "./admin";
 import { apiAuth } from "./auth";
-import { fetchApi } from "./fetchw";
+import { fetchApi, processJson } from "./fetchw";
 import { apiGuest } from "./guest";
 import { apiUser } from "./user";
 
@@ -20,20 +20,23 @@ class apiCommon {
             method: "POST",
             body: JSON.stringify(req)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async backend_info(): Promise<any> {
         var rsp = await fetchApi("/api/v1/system/info");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async queue_info(): Promise<any> {
         var rsp = await fetchApi("/api/v1/system/info/queue");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
+    }
+
+    // 不用ws，只获取一次数据
+    async status_ws(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/system/node/status_ws");
+        return processJson(rsp);
     }
 }
 

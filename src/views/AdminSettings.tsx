@@ -5,7 +5,7 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
 import { reloadMyVar } from '../myvar';
-import { FrontInviteConfig, FrontPaymentInfo, FrontPaymentInfoGateway, FrontSiteInfo, HideInServerStatus, RegisterCaptchaPolicy, RegisterPolicy } from '../api/model_front';
+import { FrontInviteConfig, FrontPaymentInfo, FrontPaymentInfoGateway, FrontSiteInfo, HideInServerStatus, RegisterCaptchaPolicy, RegisterPolicy, ThemePolicy } from '../api/model_front';
 import { displayCurrency, renderSelect2 } from '../util/ui';
 import { cleanupDefaultValue, isNotBlank, tryParseJSONObject } from '../util/misc';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
@@ -16,6 +16,7 @@ import { clone } from 'lodash-es';
 import { MyMessage, MyModal } from '../util/MyModal';
 import { newPromiseRejectNow } from '../util/promise';
 import { formatDocument, getEditor, MEditor } from '../widget/MEditor';
+import { MyQuestionMark } from '../widget/MyQuestionMark';
 
 export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInfo }) {
   const editingObj = useRef<any>(null)
@@ -32,6 +33,11 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
   const [allowSingle, setAllowSingle] = useState(false);
   const [allowLookingGlass, setAllowLookingGlass] = useState(false);
   const [diagnoseHideIP, setDiagnoseHideIP] = useState(0);
+
+  const [themePolicy, setThemePolicy] = useState(0);
+  const [transparentThemeBgDesktop, setTransparentThemeBgDesktop] = useState('');
+  const [transparentThemeBgMobile, setTransparentThemeBgMobile] = useState('');
+
   const [notice, setNotice] = useState('');
   const [inviteConfig, setInviteConfig] = useState(new FrontInviteConfig());
 
@@ -75,6 +81,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       setRegisterPolicy(siteInfo.register_policy ?? 0)
       setRegisterCaptchaPolicy(siteInfo.register_captcha_policy ?? 0)
       setDiagnoseHideIP(siteInfo.diagnose_hide_ip ?? 0)
+      setThemePolicy(siteInfo.theme_policy ?? 0)
+      setTransparentThemeBgDesktop(siteInfo.transparent_theme_bg_desktop ?? "")
+      setTransparentThemeBgMobile(siteInfo.transparent_theme_bg_mobile ?? "")
     }
   }, [siteInfo])
 
@@ -87,6 +96,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
       register_policy: registerPolicy,
       register_captcha_policy: registerCaptchaPolicy,
       diagnose_hide_ip: diagnoseHideIP,
+      theme_policy: themePolicy,
+      transparent_theme_bg_desktop: transparentThemeBgDesktop,
+      transparent_theme_bg_mobile: transparentThemeBgMobile,
     }
     cleanupDefaultValue(newInfo)
     return promiseFetchJson(api.admin.kv_put("site_info", JSON.stringify(newInfo)), (ret) => {
@@ -164,15 +176,16 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text style={{ flex: 1 }} strong>启用</Typography.Text>
+          <Typography.Text className='dq-1'>启用</Typography.Text>
           <Switch
             defaultChecked={editingObj.current.enable}
             onChange={(e) => editingObj.current.enable = e} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="请填写完整 URL 而非只填域名。部分参数可以通过 query string 指定，详情请看文档。">
-            <Typography.Text strong>URL (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            URL
+            <MyQuestionMark title="请填写完整 URL 而非只填域名。部分参数可以通过 query string 指定，详情请看文档。" />
+          </Typography.Text>
           <Input defaultValue={obj.url}
             onChange={(e) => editingObj.current.url = e.target.value.trim()} />
         </Flex>
@@ -194,9 +207,10 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             onChange={(e) => editingObj.current.callback_host = e.target.value.trim()} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="在支付金额中加收手续费的百分比。会向客户展示。">
-            <Typography.Text strong>费率 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            费率
+            <MyQuestionMark title="在支付金额中加收手续费的百分比。会向客户展示。" />
+          </Typography.Text>
           <InputNumber style={{ width: "100%" }}
             min={0}
             step={0.1}
@@ -327,7 +341,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
               </div>
             </Flex>
             <Flex className='neko-settings-flex-line'>
-              <Typography.Text className='dq-1'>允许创建单端隧道</Typography.Text>
+              <Typography.Text className='dq-1'>允许用户自带出口（单端隧道）</Typography.Text>
               <div className='dq-2' >
                 <Switch checked={allowSingle} onChange={(e) => setAllowSingle(e)} />
               </div>
@@ -348,6 +362,27 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
                 ></Select>
               </div>
             </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Typography.Text className='dq-1'>
+                主题策略
+                <MyQuestionMark title="若开放使用透明主题，请设置有效的背景图片 URL。" />
+              </Typography.Text>
+              <div className='dq-2'>
+                <Select
+                  value={themePolicy}
+                  options={renderSelect2(ThemePolicy)}
+                  onChange={(e) => setThemePolicy(e)}
+                ></Select>
+              </div>
+            </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Typography.Text className='dq-1'>透明主题背景图 URL （横屏视角）</Typography.Text>
+              <Input className='dq-2' value={transparentThemeBgDesktop} onChange={(e) => setTransparentThemeBgDesktop(e.target.value.trim())}></Input>
+            </Flex>
+            <Flex className='neko-settings-flex-line'>
+              <Typography.Text className='dq-1'>透明主题背景图 URL （竖屏视角）</Typography.Text>
+              <Input className='dq-2' value={transparentThemeBgMobile} onChange={(e) => setTransparentThemeBgMobile(e.target.value.trim())}></Input>
+            </Flex>
           </Flex>
           <AsyncButton type="primary"
             style={{ margin: "1em 0 0 0", float: 'right' }}
@@ -359,7 +394,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
             placeholder='以 < 开头则显示为 HTML'
             rows={4}
             value={notice}
-            onChange={(e) => { setNotice(e.target.value.trim()) }}
+            onChange={(e) => { setNotice(e.target.value) }}
           ></Input.TextArea>
           <AsyncButton type="primary"
             style={{ margin: "1em 0 0 0", float: 'right' }}

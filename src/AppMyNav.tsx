@@ -32,7 +32,7 @@ export const myNavMap: any = {
     "/admin/user_group": ["管理/用户组管理", <TeamOutlined />],
     "/admin/orders": ["管理/订单管理", <OrderedListOutlined />],
     "/admin/device_group": ["管理/设备组管理", <CloudServerOutlined />],
-    "/admin/plans": ["管理/套餐管理", <TagsOutlined />],
+    "/admin/plans": ["管理/套餐管理", <ShoppingOutlined />],
     "/admin/afflog": ["管理/邀请记录", <RedEnvelopeOutlined />],
     "/admin/redeem": ["管理/兑换码管理", <TagsOutlined />],
 }

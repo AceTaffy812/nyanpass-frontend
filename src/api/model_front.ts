@@ -8,6 +8,9 @@ export class FrontSiteInfo {
     register_policy: number = 0
     register_captcha_policy: number = 0
     diagnose_hide_ip: number = 0
+    theme_policy: number = 0
+    transparent_theme_bg_desktop: string = ""
+    transparent_theme_bg_mobile: string = ""
 }
 
 export class FrontInviteConfig {
@@ -122,6 +125,13 @@ export const HideInServerStatus = [
     [0, "不隐藏"],
     [1, "对非管理员用户隐藏"],
     [2, "对所有用户隐藏"],
+]
+
+export const ThemePolicy = [
+    [0, "仅允许经典主题"],
+    [1, "仅允许透明主题"],
+    [2, "优先显示经典主题"],
+    [3, "优先显示透明主题"],
 ]
 
 const ConstTextMap = {

@@ -4,9 +4,9 @@ import { ignoreError } from "./promise";
 let modalCtx = Modal;
 let messageCtx = message;
 
-export function setModalCtx(modal: any, message: any) {
-    modalCtx = modal
-    messageCtx = message
+export function setModalCtx(_modal: any, _message: any) {
+    modalCtx = _modal ?? Modal
+    messageCtx = _message ?? message
 }
 
 let confirmDialog: any = null

@@ -1,5 +1,5 @@
 import { isNotBlank } from "../util/misc";
-import { fetchApi } from "./fetchw";
+import { fetchApi, processJson } from "./fetchw";
 
 export class apiAuth {
     async login(username: string, password: string): Promise<any> {
@@ -10,16 +10,14 @@ export class apiAuth {
                 password: password.trim(),
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async logout(): Promise<any> {
         var rsp = await fetchApi("/api/v1/auth/logout", {
             method: "POST",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async register(req: any, invite_code: string | undefined, captcha_key: string): Promise<any> {
@@ -31,7 +29,6 @@ export class apiAuth {
             method: "POST",
             body: JSON.stringify(req)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 }

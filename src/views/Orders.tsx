@@ -92,7 +92,6 @@ export function OrdersView(props: { type: number }) {
   const updateData = () => {
     setLoading(true);
     asyncFetchJson(apiList(tableParams2Qs(tableParams)), (ret) => {
-      setLoading(false);
       if (ret.data == null) {
         ret.data = []
       }
@@ -108,7 +107,7 @@ export function OrdersView(props: { type: number }) {
           total: ret.count,
         },
       })
-    })
+    }, undefined, () => setLoading(false))
   }
   useEffect(updateData, [tableParams2Qs(tableParams), JSON.stringify(props)]);
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Button, Card, Flex, Form, Input, Tag, Typography } from "antd";
 import { asyncFetchJson } from '../util/fetch';
 import { myvar, reloadMyVar } from '../myvar';
@@ -6,48 +6,31 @@ import { showCommonError } from '../util/commonError';
 import { api } from '../api/api';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { CaptchaApp } from "../widget/captcha/CaptchaApp.js"
-import { ignoreError } from '../util/promise.js';
+import { ignoreError, ignoreErrorAndBlank } from '../util/promise.js';
 import { useParams } from 'react-router-dom';
-import { setDoNotLogoutLocal } from '../AppApi.js';
-import { isNotBlank } from '../util/misc.js';
 
 export function LoginView(props: { reg: boolean, siteInfo: any }) {
   const [requesting, setRequesting] = useState(false);
   const [isRegister, setIsRegister] = useState(props.reg);
   const params = useParams();
   const [inviter, setInviter] = useState(params["inviter"]);
-  const mounted = useRef(false);
 
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true
-      const token = params["token"]
-      if (token != null) {
-        if (isNotBlank(localStorage.getItem("Authorization"))) {
-          setDoNotLogoutLocal(true)
-        }
-        localStorage.setItem("Authorization", token);
-        reloadMyVar()
-        // when userinfo is loaded
-        myvar.userInfo.then(() => {
-          setDoNotLogoutLocal(false)
-          myvar.nav("/")
-        })
-      }
-    }
-  }, [])
+  const [form] = Form.useForm();
 
   function onFinish(values: any) {
+    window._.unset(values, "confirm")
+
     setRequesting(true)
     myvar.captchaReset()
+
     var req: any = null
     if (isRegister) {
       req = api.auth.register(values, inviter, myvar.captchaKey)
     } else {
       req = api.auth.login(values.username, values.password)
     }
+
     asyncFetchJson(req, (ret) => {
-      setRequesting(false)
       showCommonError(ret, true, () => {
         ignoreError(() => localStorage.setItem("Authorization", ret.data))
         if (ret.code == 0) {
@@ -55,19 +38,19 @@ export function LoginView(props: { reg: boolean, siteInfo: any }) {
           myvar.nav("/")
         }
       })
-    }, () => setRequesting(false))
+    }, undefined, () => setRequesting(false))
   }
 
   function renderCaptcha() {
     // register_captcha_policy == 1 即开启默认的交互验证
     if (isRegister && props.siteInfo.register_captcha_policy == 1) {
-      return <div style={{ width: "100%" }}><CaptchaApp /></div>
+      return <Form.Item><CaptchaApp /></Form.Item>
     }
     return null
   }
 
-  const YaoQingZhe = <Input style={{ marginBottom: "1em" }}
-    prefix={<Tag>邀请代码</Tag>}
+  const YaoQingZhe = <Input
+    addonBefore={"邀请代码"}
     defaultValue={inviter}
     value={inviter}
     onChange={e => setInviter(e.target.value)}
@@ -75,50 +58,96 @@ export function LoginView(props: { reg: boolean, siteInfo: any }) {
   />
   const qdAllowRegister = props.siteInfo.allow_register && props.siteInfo.register_policy != 2
 
-  return (
-    <Card title={isRegister ? "注册" : "登录"}>
-      <Flex vertical className='neko-flex'>
-        <Form
-          disabled={requesting}
-          onFinish={onFinish}
-        >
+  return <div
+    style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'flex-start', // 顶部对齐
+      paddingTop: '15vh', // 推下来，约占屏幕高度的1/3
+    }}>
+    <Card
+      style={{
+        width: '100%',
+        maxWidth: 400,
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+        borderRadius: 12,
+      }}
+      bordered={false}
+      title={isRegister ? "注册" : "登录"}
+    >
+      <Form
+        form={form}
+        disabled={requesting}
+        onFinish={onFinish}
+        style={{ width: "100%" }}
+      >
+        <Flex vertical>
+
           <Form.Item
             name="username"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: '请输入用户名' }]}
           >
             <Input prefix={<UserOutlined />} placeholder="用户名" />
           </Form.Item>
 
           <Form.Item
             name="password"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: '请输入密码' }]}
           >
-
-            <Input
+            <Input.Password
               prefix={<LockOutlined />}
-              type="password"
               placeholder="密码"
             />
-
-            {/* <Form.Item>
-              <a href="">忘记密码</a>
-            </Form.Item> */}
-
           </Form.Item>
 
-          {isRegister && props.siteInfo.register_policy == 0 ? YaoQingZhe : <></>}
+          {isRegister && (
+            <Form.Item
+              name="confirm"
+              dependencies={['password']}
+              hasFeedback
+              rules={[
+                { required: true, message: '请确认密码' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('两次密码输入不一致'));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="确认密码"
+                autoComplete="new-password"
+              />
+            </Form.Item>
+          )}
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit">{isRegister ? "注册" : "登录"}</Button>
-          </Form.Item>
+          {isRegister && ignoreErrorAndBlank(() => props.siteInfo.register_policy, 0) === 0 ? <Form.Item>{YaoQingZhe}</Form.Item> : null}
 
-          <Flex className='neko-settings-flex-line' >
-            {renderCaptcha()}
-            {qdAllowRegister ? <Typography.Link onClick={() => setIsRegister(!isRegister)}>{!isRegister ? "前往注册" : "前往登录"}</Typography.Link> : <></>}
+          {renderCaptcha()}
+
+          <Flex className='neko-flex'>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                {isRegister ? '注册' : '登录'}
+              </Button>
+            </Form.Item>
+            {qdAllowRegister && (
+              <Typography.Link onClick={() => {
+                setIsRegister(!isRegister);
+                // 切换模式时清空 confirm 字段
+                form.resetFields(['confirm']);
+              }}>
+                {!isRegister ? '前往注册' : '前往登录'}
+              </Typography.Link>
+            )}
           </Flex>
 
-        </Form>
-      </Flex>
+        </Flex>
+      </Form>
     </Card>
-  )
+  </div>
 }

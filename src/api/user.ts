@@ -1,21 +1,18 @@
 import QueryString from "qs";
 import { batchIds } from "../util/misc";
-import { fetchApi } from "./fetchw";
-import { ReqSearchRules } from "./model_api";
+import { fetchApi, processJson } from "./fetchw";
 
 export class apiUser {
     async info(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/info");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async renew(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/renew", {
             method: "POST",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async telegram_bind(unbind?: boolean): Promise<any> {
@@ -24,8 +21,7 @@ export class apiUser {
         var rsp = await fetchApi(url, {
             method: "POST",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async resetpassword(obj: any, affectId?: string | number): Promise<any> {
@@ -35,8 +31,7 @@ export class apiUser {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async update_column(column: string, value: any): Promise<any> {
@@ -47,20 +42,17 @@ export class apiUser {
                 value: value,
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async get_statistic(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/statistic");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_list(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/devicegroup");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_create(obj: any): Promise<any> {
@@ -68,8 +60,7 @@ export class apiUser {
             method: "PUT",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_update(id: number, obj: any): Promise<any> {
@@ -77,8 +68,7 @@ export class apiUser {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_delete(ids: any[]): Promise<any> {
@@ -88,16 +78,14 @@ export class apiUser {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_reset_token(id: number): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/devicegroup/" + id + "/reset_token", {
             method: "POST"
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async devicegroup_reset_traffic(ids: any[]): Promise<any> {
@@ -107,32 +95,29 @@ export class apiUser {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
-    async devicegroup_looking_glass(id: number, method: string, target: string): Promise<any> {
-        var rsp = await fetchApi("/api/v1/user/devicegroup/" + id + "/looking_glass", {
+    async devicegroup_looking_glass(handle: string, method: string, target: string): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/devicegroup/looking_glass", {
             method: "POST",
             body: JSON.stringify({
+                handle: handle,
                 method: method,
                 target: target,
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_payment_info(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/payment_info");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_redeem_query(code: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/redeem?" + QueryString.stringify({ code: code }));
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_redeem_purchase(code: string): Promise<any> {
@@ -140,14 +125,12 @@ export class apiUser {
             method: "POST",
             // 也许没有 POST body 参数
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_list(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/plan");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_plan_purchase(planId: number): Promise<any> {
@@ -157,8 +140,7 @@ export class apiUser {
                 "plan_id": planId,
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_deposit(gateway_name: string, amount: number): Promise<any> {
@@ -169,34 +151,29 @@ export class apiUser {
                 "gateway_name": gateway_name,
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_get_deposit(orderNo: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/get_deposit/" + orderNo, {
             method: "GET",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async shop_order_list(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/shop/order?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async aff_log(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/aff/log?" + qs);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async aff_config(): Promise<any> {
         var rsp = await fetchApi("/api/v1/user/aff/config");
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async aff_deposit(amount: number): Promise<any> {
@@ -206,7 +183,6 @@ export class apiUser {
                 "amount": amount,
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 }

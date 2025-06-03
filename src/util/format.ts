@@ -1,6 +1,11 @@
 import { parseFrontForwardConfig } from "../api/model_front"
+import { myvar } from "../myvar"
 import { ignoreError } from "./promise"
 import { txtWithColor } from "./ui"
+
+export function strongColor() {
+    return myvar.isDarkMode ? "coral" : "blueviolet"
+}
 
 export function formatInfoTraffic(info: any, withUnit?: boolean) {
     if (info == null) {
@@ -22,7 +27,7 @@ export function formatInfoTraffic(info: any, withUnit?: boolean) {
         byteConverter(ignoreError(() => info.traffic_enable, 0), unit).toFixed(2) + displayUnit
     )
     if (info.traffic_used >= info.traffic_enable) {
-        return txtWithColor(txt, "blueviolet")
+        return txtWithColor(txt, strongColor())
     }
     return txt
 }
@@ -42,14 +47,14 @@ export function formatUnix(ts: number, props?: {
         txt = new Date(ts * 1000).toLocaleString()
     }
     if (props?.color && expired) {
-        return txtWithColor(txt, "blueviolet")
+        return txtWithColor(txt, strongColor())
     }
     return txt
 }
 
 export function formatBoolean(b: boolean) {
     if (b) {
-        return txtWithColor("是", "coral")
+        return txtWithColor("是", strongColor())
     } else {
         return "否"
     }

@@ -1,5 +1,5 @@
 import { batchIds } from "../util/misc";
-import { fetchApi } from "./fetchw";
+import { fetchApi, processJson } from "./fetchw";
 import { ReqSearchRules } from "./model_api";
 
 export class apiForward {
@@ -16,8 +16,7 @@ export class apiForward {
             method: "POST",
             body: JSON.stringify(req),
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async batch_update(req: { ids: number[], column: string, value: any }[]): Promise<any> {
@@ -27,16 +26,14 @@ export class apiForward {
             method: "POST",
             body: JSON.stringify(req)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_list(qs: string): Promise<any> {
         let url = "/api/v1/user/forward?" + qs
         if (this.affectId != null) url = "/api/v1/admin/user/" + this.affectId + "/forward?" + qs
         var rsp = await fetchApi(url);
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_create(obj: any,): Promise<any> {
@@ -46,8 +43,7 @@ export class apiForward {
             method: "PUT",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_batch_create(obj: any): Promise<any> {
@@ -57,8 +53,7 @@ export class apiForward {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_update(id: number, obj: any): Promise<any> {
@@ -68,8 +63,7 @@ export class apiForward {
             method: "POST",
             body: JSON.stringify(obj)
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_delete(ids: any[]): Promise<any> {
@@ -81,8 +75,7 @@ export class apiForward {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_reset_traffic(ids: any[]): Promise<any> {
@@ -94,8 +87,7 @@ export class apiForward {
                 ids: batchIds(ids)
             })
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 
     async forward_diagnose(id: number): Promise<any> {
@@ -104,7 +96,6 @@ export class apiForward {
         var rsp = await fetchApi(url, {
             method: "POST",
         });
-        var data = await rsp.json();
-        return data;
+        return processJson(rsp);
     }
 }

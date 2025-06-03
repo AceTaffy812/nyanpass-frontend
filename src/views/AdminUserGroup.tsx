@@ -23,7 +23,6 @@ export function AdminUserGroupsView() {
   const updateData = () => {
     setLoading(true);
     asyncFetchJson(api.admin.usergroup_list(), (ret) => {
-      setLoading(false);
       if (ret.data != null) {
         for (let i = 0; i < ret.data.length; i++) {
           ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
@@ -31,7 +30,7 @@ export function AdminUserGroupsView() {
         }
         setData(ret.data)
       }
-    })
+    }, undefined, () => setLoading(false))
   }
   useEffect(() => {
     if (!mounted.current) {
@@ -103,9 +102,8 @@ export function AdminUserGroupsView() {
     setData(newData)
     setLoading(true)
     asyncFetchJson(api.common.reorder("/api/v1/admin/usergroup/reorder", newData), (ret) => {
-      setLoading(false)
       showCommonError(ret, true)
-    })
+    }, undefined, () => setLoading(false))
   };
 
   return (

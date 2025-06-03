@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { byteConverter, formatDests, formatBoolean, formatInfoTraffic, formatUnix } from '../util/format';
+import { byteConverter, formatDests, formatBoolean, formatInfoTraffic, formatUnix, strongColor } from '../util/format';
 import { allFalseMap, findObjByIdId, isNotBlank, myFilter } from '../util/misc';
-import { BackwardOutlined, DeleteOutlined, EditOutlined, LogoutOutlined, PaperClipOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
+import { BackwardOutlined, DeleteOutlined, DisconnectOutlined, EditOutlined, PaperClipOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
 import { commonEx, showCommonError } from '../util/commonError';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { myvar, reloadMyVar } from '../myvar';
@@ -18,8 +18,9 @@ import { FilterValue, SorterResult } from 'antd/es/table/interface';
 import { DeviceGroupType, FrontInviteConfig, translateBackendString } from '../api/model_front';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 import { apiForward } from '../api/forward';
+import { MyQuestionMark } from '../widget/MyQuestionMark';
 
-export function AdminUsersView() {
+export function AdminUsersView(props: { userInfo: any }) {
   const newUsername = useRef("")
   const searchObj = useRef(new ReqSearchRules())
   const [searched, setSearched] = useState(false);
@@ -50,11 +51,7 @@ export function AdminUsersView() {
     setSearched(false);
     setLoading(true);
     asyncFetchJson(api.admin.user_list(tableParams2Qs(tableParams)), (ret) => {
-      setLoading(false);
       if (ret.data != null) {
-        for (let i = 0; i < ret.data.length; i++) {
-          ret.data[i].display_traffic = formatInfoTraffic(ret.data[i], true)
-        }
         setData(ret.data)
         setTableParams({
           ...tableParams,
@@ -65,7 +62,7 @@ export function AdminUsersView() {
           },
         })
       }
-    })
+    }, undefined, () => setLoading(false))
     asyncFetchJson(api.admin.shop_plan_list(), (ret) => {
       if (ret.data != null) {
         for (let i = 0; i < ret.data.length; i++) {
@@ -76,7 +73,6 @@ export function AdminUsersView() {
       }
     })
     asyncFetchJson(api.admin.devicegroup_list(""), (ret) => {
-      setLoading(false);
       if (ret.data != null) {
         const newData: any[] = []
         for (let i = 0; i < ret.data.length; i++) {
@@ -194,7 +190,7 @@ export function AdminUsersView() {
       filterDropdown: tableSearchDropdown("搜索用户名"),
     },
     { title: '过期时间', key: 'expire', dataIndex: 'expire', render: (e) => formatUnix(e, { color: true }), sorter: true },
-    { title: '流量', key: 'traffic_used', dataIndex: 'display_traffic', sorter: true },
+    { title: '流量', key: 'traffic_used', dataIndex: 'id', render: (e) => formatInfoTraffic(findObjByIdId(data, e), true), sorter: true },
     {
       title: '套餐', key: 'plan_id', dataIndex: 'plan_id',
       render: (e) => ignoreError(() => findObjByIdId(plans, e).display_name, `#${e}`),
@@ -216,7 +212,7 @@ export function AdminUsersView() {
           <Tooltip title="管理规则"><Button icon={<PaperClipOutlined />} onClick={() => {
             window.open(`?affect=${e}#/forward_rules`, '_blank');
           }} /></Tooltip>
-          <Tooltip title="重置密码"><Button icon={<LogoutOutlined />} onClick={() => resetUserPassword(e)} /></Tooltip>
+          <Tooltip title="重置密码"><Button icon={<DisconnectOutlined />} onClick={() => resetUserPassword(e)} /></Tooltip>
           <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editUser(findObjByIdId(data, e))} /></Tooltip>
           <Tooltip title="编辑用户套餐"><Button icon={<ShoppingOutlined />} onClick={() => changePlan(findObjByIdId(data, e))} /></Tooltip>
           <Tooltip title="邀请注册"><Button icon={<RedEnvelopeOutlined />} onClick={() => editInviteConfig(findObjByIdId(data, e))} /></Tooltip>
@@ -235,23 +231,26 @@ export function AdminUsersView() {
       title: "编辑用户 " + obj.username + " (UID=" + obj.id + ")",
       content: <Flex vertical>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="禁止此用户登录或使用规则，请勿与“管理员”选项一同设置。">
-            <Typography.Text style={{ flex: 1 }} strong>封禁</Typography.Text>
-          </Tooltip>
+          <Typography.Text className="dq-1">
+            封禁
+            <MyQuestionMark title="禁止此用户登录或使用规则，请勿与“管理员”选项一同设置。" />
+          </Typography.Text>
+
           <Switch
             defaultChecked={editingObj.current.banned}
             onChange={(e) => editingObj.current.banned = e} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Typography.Text style={{ flex: 1 }} strong>管理员</Typography.Text>
+          <Typography.Text className="dq-1">管理员</Typography.Text>
           <Switch
             defaultChecked={editingObj.current.admin}
             onChange={(e) => editingObj.current.admin = e} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="组 ID 必须 >= 0, 分组为 0 的用户无法使用转发。">
-            <Typography.Text strong>用户组 ID (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户组 ID
+            <MyQuestionMark title="组 ID 必须 >= 0, 分组为 0 的用户无法使用转发。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="0"
@@ -310,9 +309,10 @@ export function AdminUsersView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限速，不同入口的限制可以叠加。">
-            <Typography.Text strong>用户限速 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户限速
+            <MyQuestionMark title="0 表示不限速，不同入口的限制可以叠加。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               addonAfter="Mbps"
@@ -324,9 +324,10 @@ export function AdminUsersView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
-            <Typography.Text strong>用户 IP 限制 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户 IP 限制
+            <MyQuestionMark title="0 表示不限，不同入口的限制可以叠加。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="0"
@@ -337,9 +338,10 @@ export function AdminUsersView() {
           </div>
         </Flex>
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="0 表示不限，不同入口的限制可以叠加。">
-            <Typography.Text strong>用户连接数限制 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text strong>
+            用户连接数限制
+            <MyQuestionMark title="0 表示不限，不同入口的限制可以叠加。" />
+          </Typography.Text>
           <div className='dq-3'>
             <InputNumber
               min="0"
@@ -377,7 +379,7 @@ export function AdminUsersView() {
           showCommonError(ret, ["", "用户更新失败"], () => {
             updateData()
             // 如果更新的是当前用户
-            myvar.userInfo.then((i: any) => { if (i.id == obj.id) reloadMyVar({ userInfo: true }) })
+            if (props.userInfo != null && props.userInfo.id == obj.id) reloadMyVar({ userInfo: true })
           })
         })
       }
@@ -401,9 +403,10 @@ export function AdminUsersView() {
       content: <Flex vertical>
         {obj.inviter > 0 ? <p>此用户的邀请人 ID: {obj.inviter}</p> : null}
         <Flex className='neko-settings-flex-line'>
-          <Tooltip title="关闭此选项后，可为此用户单独调整邀请返利倍率等设置。">
-            <Typography.Text style={{ flex: 1 }} strong>跟随全站设置 (?)</Typography.Text>
-          </Tooltip>
+          <Typography.Text className="dq-1">
+            跟随全站设置
+            <MyQuestionMark title="关闭此选项后，可为此用户单独调整邀请返利倍率等设置。" />
+          </Typography.Text>
           <Switch
             defaultChecked={editingObj.current.qd_follow_site_invite_config}
             onChange={(e) => on_qd_follow_site_invite_config_Change(e)} />
@@ -636,7 +639,7 @@ export function AdminUsersView() {
                   }
                   if (obj.paused) {
                     str = "已暂停"
-                    style.color = "blueviolet"
+                    style.color = strongColor()
                   }
                   const tt = "最近更新: " + obj.display_updated_at
                   return <Tooltip title={tt}><p style={style}>{str}</p></Tooltip>

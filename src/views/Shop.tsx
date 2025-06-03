@@ -12,6 +12,7 @@ import { reloadMyVar } from '../myvar';
 import { isNotBlank } from '../util/misc';
 import { TagOutlined } from '@ant-design/icons';
 import { JSX } from 'react/jsx-runtime';
+import AsyncButton from '../widget/AsyncButton';
 
 export function ShopView(props: { userInfo: any }) {
   const { userInfo } = props;
@@ -59,10 +60,11 @@ export function ShopView(props: { userInfo: any }) {
             {gwRadios}
           </Space>
         </Radio.Group>
-        <Button
+        <AsyncButton
+          type='primary'
           onClick={btn_deposit}
           disabled={requesting}
-          style={{ width: 'fit-content' }}>充值</Button>
+          style={{ width: 'fit-content' }}>充值</AsyncButton>
       </Flex>
     </Card>
     if (gwRadios.length == 0) {
@@ -140,9 +142,7 @@ export function ShopView(props: { userInfo: any }) {
   function btn_deposit() {
     if (!isNotBlank(gwName)) return;
     setRequesting(true)
-    MyMessage.info("正在请求支付......")
-    asyncFetchJson(api.user.shop_deposit(gwName, depositAmount), (ret) => {
-      setRequesting(false)
+    return promiseFetchJson(api.user.shop_deposit(gwName, depositAmount), (ret) => {
       if (ret.code == 0) {
         let data = ret.data
         if (data.qr) {
@@ -156,7 +156,7 @@ export function ShopView(props: { userInfo: any }) {
       } else {
         showCommonError(ret, "充值请求失败")
       }
-    })
+    }, undefined, () => setRequesting(false))
   }
 
   function queryRedeemCode(values: any) {
@@ -165,7 +165,6 @@ export function ShopView(props: { userInfo: any }) {
     }
     setRequesting(true)
     return promiseFetchJson(api.user.shop_redeem_query(values.code), (ret) => {
-      setRequesting(false)
       if (ret.code == 0) {
         MyModalCannotDismiss.info({
           title: "兑换详情",
@@ -176,7 +175,7 @@ export function ShopView(props: { userInfo: any }) {
       } else {
         showCommonError(ret, "错误")
       }
-    })
+    }, undefined, () => setRequesting(false))
   }
 
   return (
@@ -184,16 +183,18 @@ export function ShopView(props: { userInfo: any }) {
       <Card title="我的钱包">
         <Flex vertical>
           <h2>钱包余额: {ignoreError(() => userInfo.balance) + " " + displayCurrency}</h2>
-          <InputNumber
-            style={{ width: "fit-content" }}
-            min={0}
-            step={0.01}
-            addonBefore="充值金额"
-            addonAfter="CNY"
-            value={depositAmount}
-            onChange={(e) => setDepositAmount(e!)} />
-          <h3>最小充值金额: {paymentInfo.min_deposit} {displayCurrency}</h3>
-          {renderPaymentGatewas(paymentInfo)}
+          <Card title="钱包充值">
+            <InputNumber
+              style={{ width: "fit-content" }}
+              min={0}
+              step={0.01}
+              addonBefore="充值金额"
+              addonAfter="CNY"
+              value={depositAmount}
+              onChange={(e) => setDepositAmount(e!)} />
+            <h3>最小充值金额: {paymentInfo.min_deposit} {displayCurrency}</h3>
+            {renderPaymentGatewas(paymentInfo)}
+          </Card>
         </Flex>
       </Card>
       <Card title="购买套餐">
@@ -209,21 +210,22 @@ export function ShopView(props: { userInfo: any }) {
       </Card>
       <Card title="兑换套餐">
         <Flex vertical>
-          <Typography.Paragraph>
+          <Typography.Paragraph style={{ marginBottom: 0 }}>
             <blockquote>如果您有兑换码，则可以免费或低价购买对应的套餐。</blockquote>
           </Typography.Paragraph>
           <Form
             disabled={requesting}
             onFinish={queryRedeemCode}
           >
-            <Flex className='neko-flex'>
-              <Form.Item name="code" style={{ marginBottom: "unset" }}>
+            <Flex>
+              <Form.Item name="code" style={{ marginBottom: 0 }}>
                 <Input
                   prefix={<TagOutlined />}
                   placeholder="兑换码"
                 />
               </Form.Item>
-              <Form.Item style={{ marginBottom: "unset" }}>
+              <Form.Item style={{ marginBottom: 0 }}>
+                {/* TODO 表单里好像不能用 AsyncButton */}
                 <Button type="primary" htmlType="submit">兑换</Button>
               </Form.Item>
             </Flex>

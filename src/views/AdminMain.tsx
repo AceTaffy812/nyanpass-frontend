@@ -4,9 +4,9 @@ import { asyncFetchJson } from '../util/fetch';
 import { Card, Col, Flex, Row, Statistic } from 'antd';
 import { ignoreError } from '../util/promise';
 import { byteConverter } from '../util/format';
-import { Bar } from '@ant-design/charts';
 import { myvar } from '../myvar';
 import { clone } from 'lodash-es';
+import MyBarChart from '../widget/MyBarChart';
 
 export function AdminMainView() {
   const mounted = useRef(false);
@@ -65,6 +65,7 @@ export function AdminMainView() {
     legend: false,
     axis: {
       y: {
+        labelAutoRotate: false,
         line: false,
         tick: false,
         labelFormatter: '0',
@@ -169,16 +170,16 @@ export function AdminMainView() {
         </Row>
       </Card>
       <Card title="今日用户流量排行" bodyStyle={{ padding: "1em" }}>
-        <Bar {...barConfig} data={user_traffic_rank_today}></Bar>
+        <MyBarChart barConfig={barConfig} data={user_traffic_rank_today}></MyBarChart>
       </Card>
       <Card title="昨日用户流量排行" bodyStyle={{ padding: "1em" }}>
-        <Bar {...barConfig} data={user_traffic_rank_yesterday}></Bar>
+        <MyBarChart barConfig={barConfig} data={user_traffic_rank_yesterday}></MyBarChart>
       </Card>
       <Card title="今日节点流量排行" bodyStyle={{ padding: "1em" }}>
-        <Bar {...barConfig2} data={node_traffic_rank_today}></Bar>
+        <MyBarChart barConfig={barConfig2} data={node_traffic_rank_today}></MyBarChart>
       </Card>
       <Card title="昨日节点流量排行" bodyStyle={{ padding: "1em" }}>
-        <Bar {...barConfig2} data={node_traffic_rank_yesterday}></Bar>
+        <MyBarChart barConfig={barConfig2} data={node_traffic_rank_yesterday}></MyBarChart>
       </Card>
     </Flex>
   )
