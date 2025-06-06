@@ -15,7 +15,7 @@ export function LookingGlassView() {
 
     const updateData = () => {
         setLoading(true);
-        asyncFetchJson(api.common.status_ws(), ret => {
+        asyncFetchJson(api.common.node_status(), ret => {
             if (ret.data != null) {
                 const treeData: any[] = ret.data.map((grp: any) => {
                     grp.display_name = `${grp.name} (#${grp.gid})`;

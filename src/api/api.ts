@@ -34,8 +34,8 @@ class apiCommon {
     }
 
     // 不用ws，只获取一次数据
-    async status_ws(): Promise<any> {
-        var rsp = await fetchApi("/api/v1/system/node/status_ws");
+    async node_status(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/system/node/status");
         return processJson(rsp);
     }
 }

@@ -56,6 +56,21 @@ export function AdminMainView() {
     })
   }, [])
 
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   const barConfig = {
     theme: myvar.isDarkMode ? "classicDark" : "classic",
     autoFit: true,
@@ -169,18 +184,28 @@ export function AdminMainView() {
           </Col>
         </Row>
       </Card>
-      <Card title="今日用户流量排行" bodyStyle={{ padding: "1em" }}>
-        <MyBarChart barConfig={barConfig} data={user_traffic_rank_today}></MyBarChart>
-      </Card>
-      <Card title="昨日用户流量排行" bodyStyle={{ padding: "1em" }}>
-        <MyBarChart barConfig={barConfig} data={user_traffic_rank_yesterday}></MyBarChart>
-      </Card>
-      <Card title="今日节点流量排行" bodyStyle={{ padding: "1em" }}>
-        <MyBarChart barConfig={barConfig2} data={node_traffic_rank_today}></MyBarChart>
-      </Card>
-      <Card title="昨日节点流量排行" bodyStyle={{ padding: "1em" }}>
-        <MyBarChart barConfig={barConfig2} data={node_traffic_rank_yesterday}></MyBarChart>
-      </Card>
+      <Row gutter={[16, 16]} ref={containerRef}>
+        <Col xs={24} sm={24} md={12}>
+          <Card title="今日用户流量排行" bodyStyle={{ padding: "1em" }}>
+            <MyBarChart key={`bar-1-${containerWidth}`} barConfig={barConfig} data={user_traffic_rank_today}></MyBarChart>
+          </Card>
+        </Col>
+        <Col xs={24} sm={24} md={12}>
+          <Card title="昨日用户流量排行" bodyStyle={{ padding: "1em" }}>
+            <MyBarChart key={`bar-2-${containerWidth}`} barConfig={barConfig} data={user_traffic_rank_yesterday}></MyBarChart>
+          </Card>
+        </Col>
+        <Col xs={24} sm={24} md={12}>
+          <Card title="今日节点流量排行" bodyStyle={{ padding: "1em" }}>
+            <MyBarChart key={`bar-3-${containerWidth}`} barConfig={barConfig2} data={node_traffic_rank_today}></MyBarChart>
+          </Card>
+        </Col>
+        <Col xs={24} sm={24} md={12}>
+          <Card title="昨日节点流量排行" bodyStyle={{ padding: "1em" }}>
+            <MyBarChart key={`bar-4-${containerWidth}`} barConfig={barConfig2} data={node_traffic_rank_yesterday}></MyBarChart>
+          </Card>
+        </Col>
+      </Row>
     </Flex>
   )
 }
