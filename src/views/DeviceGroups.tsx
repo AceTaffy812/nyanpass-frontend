@@ -305,7 +305,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             defaultValue={editingObjConfig.current.protocol}
             options={[
               { value: "ws", label: "ws" },
-              { value: "ws2", label: "ws2" },
+              { value: "http", label: "http" },
               { value: "tls_simple", label: "tls_simple" },
             ]}
             onChange={(e) => editingObjConfig.current.protocol = e}

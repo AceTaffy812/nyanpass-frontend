@@ -115,6 +115,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
               str.push("协议: TLS 隧道")
             } else if (dgOut.display_protocol == "ws" || dgOut.display_protocol == "ws2") {
               str.push("协议: WS 隧道")
+            } else if (dgOut.display_protocol == "http") {
+              str.push("协议: HTTP 隧道")
             } else if (dgOut.display_protocol == "direct") {
               str.push("协议: 直接转发")
               disable_mux = true
