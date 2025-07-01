@@ -15,7 +15,7 @@ import { AdminUsersView } from './views/AdminUsers';
 import { logout } from './AppApi';
 import { FrontSiteInfo } from './api/model_front';
 import { DeviceGroupsView } from './views/DeviceGroups';
-import { MyMessage } from './util/MyModal';
+import { MyMessage, MyModal } from './util/MyModal';
 import { ShopView } from './views/Shop';
 import { AdminPlansView } from './views/AdminPlans';
 import { OrdersView, OrdersViewType } from './views/Orders';
@@ -111,6 +111,43 @@ export function MyApp(props: { isDarkMode: boolean }) {
     }
   }, [])
 
+  const openTz = function (targetUrl: string) {
+    const canOpenTz = function () {
+      if (myvar.nyanpass_config_ok) {
+        if (!userInfo.admin) {
+          return true
+        }
+        if (myvar.nyanpass_update_ok) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return () => {
+      if (canOpenTz()) {
+        window.open(targetUrl, '_blank');
+        return
+      }
+      if (myvar.nyanpass_config_failed) {
+        MyModal.confirm({
+          icon: <p />,
+          title: "配置信息未就绪",
+          content: <p>配置信息未就绪，请稍等待。如果刷新多次也无法获取配置，可以直接打开探针，但是可能有部分项目无法使用或者显示错误。</p>,
+          onOk: () => {
+            window.open(targetUrl, '_blank');
+          }
+        })
+      } else {
+        MyMessage.info("配置信息未就绪，请稍等待。")
+        setTimeout(() => {
+          if (!canOpenTz()) {
+            myvar.nyanpass_config_failed = true
+          }
+        }, 3000);
+      }
+    }
+  }
+
   const renderNavMenu = () => {
     const navMenu: MenuProps['items'] = [
       getItem(nav, "side", "/"),
@@ -134,26 +171,10 @@ export function MyApp(props: { isDarkMode: boolean }) {
         navMenu.push(getItem(nav, "side", "/looking_glass"))
       }
       navMenu.push({
-        key: "tz", label: "节点状态 (旧)", icon: <ApiOutlined />, onClick: () => {
-          if (myvar.nyanpass_config_ok) {
-            if ((userInfo.admin && myvar.nyanpass_update_ok) || !userInfo.admin) {
-              window.open("./tz.html", '_blank');
-              return
-            }
-          }
-          MyMessage.info("配置信息未就绪，请稍等待。")
-        }
+        key: "tz", label: "节点状态 (旧)", icon: <ApiOutlined />, onClick: openTz("./tz.html")
       })
       navMenu.push({
-        key: "tz2", label: "节点状态 (新)", icon: <ApiOutlined />, onClick: () => {
-          if (myvar.nyanpass_config_ok) {
-            if ((userInfo.admin && myvar.nyanpass_update_ok) || !userInfo.admin) {
-              window.open("./tz2.html", '_blank');
-              return
-            }
-          }
-          MyMessage.info("配置信息未就绪，请稍等待。")
-        }
+        key: "tz2", label: "节点状态 (新)", icon: <ApiOutlined />, onClick: openTz("./tz2.html")
       })
     }
     // 只给管理员显示

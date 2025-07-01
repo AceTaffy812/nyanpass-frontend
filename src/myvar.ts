@@ -24,6 +24,7 @@ export const myvar = new class {
     distConfig = this.defaultDistConfig;
     nyanpass_update_ok = false;
     nyanpass_config_ok = false;
+    nyanpass_config_failed = false;
     notifyInfoChange = () => { };
     isDarkMode = false;
     toggleDarkMode = () => { };
