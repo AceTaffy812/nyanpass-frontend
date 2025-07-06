@@ -1,4 +1,4 @@
-import { Button, Card, Dropdown, Flex, Input, InputNumber, Modal, Select, Space, Switch, Tooltip, Typography, message } from 'antd';
+import { Button, Card, Dropdown, Flex, Input, InputNumber, Modal, Select, Space, Switch, TableColumnType, Tooltip, Typography, message } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
@@ -13,10 +13,10 @@ import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { formatInfoTraffic } from '../util/format';
 import { MEditor, getEditor } from '../widget/MEditor';
 import { myvar } from '../myvar';
-import { DragSortTable, ProColumns } from '@ant-design/pro-components';
 import { noDistConfig } from '../distConfig';
 import { IPPortWidget } from '../widget/IPPortWidget';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
+import { AntDragSortTable, DragHandle } from '../widget/AntDragSortTable';
 
 export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutbound: boolean }) {
   const api2 = props.isAdmin ? api.admin : api.user
@@ -60,12 +60,12 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
 
   // 表格
 
-  const columns: ProColumns[] = [
-    { title: '排序', dataIndex: 'show_order', className: 'drag-visible', },
+  const columns: TableColumnType<string>[] = [
+    { title: '排序', key: "show_order", dataIndex: 'show_order', render: () => <DragHandle /> },
     { title: '名称', key: 'id', dataIndex: 'display_name', },
     { title: '用户组 ID', key: 'enable_for_gid', dataIndex: 'enable_for_gid' },
     {
-      title: '类型', key: 'type', dataIndex: 'id', renderText: (e: number) => {
+      title: '类型', key: 'type', dataIndex: 'id', render: (e: number) => {
         const obj = findObjByIdId(data, e)
         const config = tryParseJSONObject(obj.config)
         if (obj.type == DeviceGroupType.Inbound && config.direct) {
@@ -80,7 +80,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     { title: '在线设备', key: 'zxsbsl', dataIndex: 'display_num' },
     { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => n ? String(n).split("\n")[0] : "" },
     {
-      title: '操作', key: 'action', dataIndex: 'id', renderText: function (e: number) {
+      title: '操作', key: 'action', dataIndex: 'id', render: function (e: number) {
         return <Flex gap={8}>
           <Dropdown
             menu={{
@@ -533,14 +533,9 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             <Button icon={<FileAddOutlined />} onClick={() => editDeviceGroup(null, true)}>添加设备组</Button>
             <Button icon={<FireOutlined />} onClick={() => resetTraffic(selectedRowKeys)}>清空流量</Button>
           </Flex>
-          <DragSortTable
-            cardProps={{
-              bodyStyle: { padding: 0, backgroundColor: "unset" },
-            }}
+          <AntDragSortTable
             rowKey="id"
             pagination={false}
-            search={false}
-            options={false}
             loading={loading}
             columns={columns}
             dataSource={data}

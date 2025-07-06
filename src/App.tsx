@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { myvar } from './myvar';
 import type { MenuProps } from 'antd';
-import { Drawer, Dropdown, Flex, Layout, Menu } from 'antd';
+import { App, Drawer, Dropdown, Flex, Layout, Menu } from 'antd';
 import { ApiOutlined, BgColorsOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, MoonFilled, SunFilled, UserOutlined } from '@ant-design/icons';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { ignoreError } from './util/promise';
@@ -15,7 +15,7 @@ import { AdminUsersView } from './views/AdminUsers';
 import { logout } from './AppApi';
 import { FrontSiteInfo } from './api/model_front';
 import { DeviceGroupsView } from './views/DeviceGroups';
-import { MyMessage, MyModal } from './util/MyModal';
+import { MyMessage, MyModal, setModalCtx } from './util/MyModal';
 import { ShopView } from './views/Shop';
 import { AdminPlansView } from './views/AdminPlans';
 import { OrdersView, OrdersViewType } from './views/Orders';
@@ -40,6 +40,9 @@ export function MyApp(props: { isDarkMode: boolean }) {
   const mounted = useRef(false);
   const nav = myNavFactory(useNavigate(), setBreadTitle, () => setDrawerOpen(false))
   myvar.nav = nav
+
+  const { modal, message } = App.useApp()
+  setModalCtx(modal, message)
 
   // 刷新用户状态
   function notifyInfoChange() {

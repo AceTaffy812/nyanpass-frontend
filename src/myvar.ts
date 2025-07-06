@@ -1,7 +1,10 @@
+import _ from "lodash";
 import { checkDistConfig } from "./distConfig";
 import { doInitBackendInfo, doInitSiteInfo, doInitUserInfo, resolveFailedToFetch } from "./myvarinit";
 import { MyMessage } from "./util/MyModal";
 import { newPromiseResolveNow } from "./util/promise";
+
+export const myLodash: typeof _ = window._;
 
 export const myvar = new class {
     window: any = window;

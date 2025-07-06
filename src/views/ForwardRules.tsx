@@ -2,14 +2,13 @@ import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, 
 import { Button, Card, Collapse, CollapseProps, Flex, FloatButton, Input, InputNumber, Modal, Select, Table, Tag, Tooltip, Typography, message } from "antd";
 import { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { FilterValue, SorterResult } from "antd/es/table/interface";
-import _ from "lodash";
 import { clone } from "lodash-es";
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "../api/api";
 import { apiForward } from "../api/forward";
 import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
 import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
-import { myvar, reloadMyVar } from "../myvar";
+import { myLodash, myvar, reloadMyVar } from "../myvar";
 import { commonEx, showCommonError } from "../util/commonError";
 import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
 import { byteConverter, formatDests, formatInfoTraffic, formatUnix, strongColor } from "../util/format";
@@ -294,7 +293,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       let cfg = parseFrontForwardConfig(obj.config) as any
       cfg.name = obj.name;
       cfg.listen_port = obj.listen_port;
-      cfg = _(cfg).toPairs().sortBy(0).fromPairs().value() // 排序
+      cfg = myLodash(cfg).toPairs().sortBy(0).fromPairs().value() // 排序
       copyStr.push(JSON.stringify(cfg));
     })
     if (copyStr.length == 0) return

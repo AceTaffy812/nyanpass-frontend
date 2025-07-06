@@ -4,19 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { showCommonError } from '../util/commonError';
-import { reloadMyVar } from '../myvar';
+import { myLodash, reloadMyVar } from '../myvar';
 import { FrontInviteConfig, FrontPaymentInfo, FrontPaymentInfoGateway, FrontSiteInfo, HideInServerStatus, RegisterCaptchaPolicy, RegisterPolicy, ThemePolicy } from '../api/model_front';
 import { displayCurrency, renderSelect2 } from '../util/ui';
 import { cleanupDefaultValue, isNotBlank, tryParseJSONObject } from '../util/misc';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 import AsyncButton from '../widget/AsyncButton';
-import { DragSortTable, ProColumns } from '@ant-design/pro-components';
 import { EditOutlined, DeleteOutlined, FileAddOutlined } from '@ant-design/icons';
-import { clone } from 'lodash-es';
 import { MyMessage, MyModal } from '../util/MyModal';
 import { newPromiseRejectNow } from '../util/promise';
 import { formatDocument, getEditor, MEditor } from '../widget/MEditor';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
+import { addRowKeyToList, AntDragSortTable, DragHandle } from '../widget/AntDragSortTable';
 
 export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInfo }) {
   const editingObj = useRef<any>(null)
@@ -61,7 +60,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
           let info = JSON.parse(ret.data)
           set_min_deposit(info.min_deposit)
           if (info.gateways != null) {
-            setGws(info.gateways)
+            setGws(addRowKeyToList(info.gateways, "__od_key"))
           } else {
             setGws([])
           }
@@ -117,7 +116,7 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
   function btn_save_payment_onclick() {
     let payment = new FrontPaymentInfo()
     payment.min_deposit = min_deposit
-    payment.gateways = gws
+    payment.gateways = myLodash.map(gws, (obj: any) => myLodash.omit(obj, '__od_key')) as any
     return promiseFetchJson(api.admin.kv_put("payment_info", JSON.stringify(payment)), (ret) => {
       showCommonError(ret, ["保存成功", "保存失败"])
     })
@@ -129,22 +128,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
     })
   }
 
-  const columns: ProColumns[] = [
-    { title: '类型', key: 'type', dataIndex: 'type' },
-    { title: '名称', key: 'id', dataIndex: 'name', },
-    { title: '是否启用', key: 'enable', dataIndex: 'enable', renderText: (e) => e ? "True" : "False" },
-    {
-      title: '操作', key: 'action', dataIndex: 'name', renderText: function (a, b, index: number) {
-        return <Flex gap={8}>
-          <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editPaymentMethod(gws[index], index)} /></Tooltip>
-          <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deletePaymentMethod(index)} /></Tooltip>
-        </Flex>
-      }
-    },
-  ];
 
   function editPaymentMethod(obj: any, index: number) {
-    obj = clone(obj)
+    obj = myLodash.clone(obj)
     if (index < 0) {
       obj.type = "epay"
     }
@@ -240,17 +226,17 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
         }
         // edit or add ?
         if (index >= 0) {
-          setGws(gws.map((e, i) => {
+          setGws(addRowKeyToList(gws.map((e, i) => {
             if (i == index) {
               e = editingObj.current
             }
             // console.log(e, index, i, editingObj.current)
             return e
-          }))
+          }), '__od_key'))
         } else {
-          const newGws = clone(gws)
+          const newGws = myLodash.clone(gws)
           newGws.push(editingObj.current)
-          setGws(newGws)
+          setGws(addRowKeyToList(newGws, '__od_key'))
         }
         return
       }
@@ -269,8 +255,9 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
     })
   }
 
-  function expertEdit(obj: any) {
-    setMncEditingJson(JSON.stringify(obj))
+  function expertEdit(gwlist: any[]) {
+    gwlist = myLodash.map(gwlist, (obj: any) => myLodash.omit(obj, '__od_key'))
+    setMncEditingJson(JSON.stringify(gwlist))
     setMncOpen(true)
     setTimeout(formatDocument, 300);
   }
@@ -416,16 +403,28 @@ export function AdminSettingsView(props: { userInfo: any, siteInfo: FrontSiteInf
               <Button icon={<FileAddOutlined />} onClick={() => editPaymentMethod(new FrontPaymentInfoGateway, -1)}>添加支付通道</Button>
               <Button icon={<EditOutlined />} onClick={() => expertEdit(gws)}>编辑支付设置 json</Button>
             </Flex>
-            <DragSortTable
-              rowKey="id"
+            <AntDragSortTable
               pagination={false}
-              search={false}
-              options={false}
-              columns={columns}
-              dataSource={gws}
-            // TODO cannot drag
-            // dragSortKey="show_order"
-            // onDragSortEnd={handleDragSortEnd}
+              rowKey="__od_key"
+              columns={[
+                { title: '排序', key: "__od_key", dataIndex: '__od_key', render: () => <DragHandle /> },
+                { title: '类型', key: 'type', dataIndex: 'type' },
+                { title: '名称', key: 'id', dataIndex: 'name', },
+                { title: '是否启用', key: 'enable', dataIndex: 'enable', render: (e) => e ? "True" : "False" },
+                {
+                  title: '操作', key: 'action', dataIndex: 'name', render: function (a, b, index: number) {
+                    return <Flex gap={8}>
+                      <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editPaymentMethod(gws[index], index)} /></Tooltip>
+                      <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deletePaymentMethod(index)} /></Tooltip>
+                    </Flex>
+                  }
+                },
+              ]}
+              dragSortKey={false}
+              onDragSortEnd={(a, b, newData) => {
+                setGws(newData as any)
+              }}
+              dataSource={gws as any}
             />
           </Flex>
           <AsyncButton type="primary"

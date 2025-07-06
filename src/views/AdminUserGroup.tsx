@@ -8,7 +8,7 @@ import { DeleteOutlined, EditOutlined, FileAddOutlined, QuestionCircleOutlined }
 import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
 import { newPromiseRejectNow } from '../util/promise';
-import { DragSortTable, ProColumns } from '@ant-design/pro-components';
+import { AntDragSortTable, DragHandle } from '../widget/AntDragSortTable';
 
 export function AdminUserGroupsView() {
   const editingObj = useRef<any>(null)
@@ -38,23 +38,6 @@ export function AdminUserGroupsView() {
       updateData()
     }
   }, []);
-
-  // 表格
-
-  const columns: ProColumns[] = [
-    { title: '排序', dataIndex: 'show_order', className: 'drag-visible', },
-    { title: '用户组 ID', key: 'id', dataIndex: 'id', },
-    { title: '名称', key: 'name', dataIndex: 'name', },
-    { title: '用户数量', key: 'user_count', dataIndex: 'user_count' },
-    {
-      title: '操作', key: 'action', dataIndex: 'id', renderText: function (e: number) {
-        return <Flex gap={8}>
-          <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editUserGroup(findObjByIdId(data, e))} /></Tooltip>
-          <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deleteUserGroup(e)} /></Tooltip>
-        </Flex>
-      }
-    },
-  ];
 
   function editUserGroup(obj: any, isNew?: boolean) {
     obj = clone(obj)
@@ -124,13 +107,24 @@ export function AdminUserGroupsView() {
             </div>
           })}>查看说明</Button>
         </Flex>
-        <DragSortTable
+        <AntDragSortTable
           rowKey="id"
           pagination={false}
-          search={false}
-          options={false}
           loading={loading}
-          columns={columns}
+          columns={[
+            { title: '排序', key: "show_order", dataIndex: 'show_order', render: () => <DragHandle /> },
+            { title: '用户组 ID', key: 'id', dataIndex: 'id', },
+            { title: '名称', key: 'name', dataIndex: 'name', },
+            { title: '用户数量', key: 'user_count', dataIndex: 'user_count' },
+            {
+              title: '操作', key: 'action', dataIndex: 'id', render: function (e: number) {
+                return <Flex gap={8}>
+                  <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editUserGroup(findObjByIdId(data, e))} /></Tooltip>
+                  <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deleteUserGroup(e)} /></Tooltip>
+                </Flex>
+              }
+            },
+          ]}
           dataSource={data}
           dragSortKey="show_order"
           onDragSortEnd={handleDragSortEnd}

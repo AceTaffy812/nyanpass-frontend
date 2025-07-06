@@ -11,8 +11,8 @@ import { clone } from 'lodash-es';
 import { newPromiseRejectNow } from '../util/promise';
 import { byteConverter, formatBoolean, formatInfoTraffic } from '../util/format';
 import { PlanType, translatePlanType } from '../api/model_front';
-import { DragSortTable, ProColumns } from '@ant-design/pro-components';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
+import { AntDragSortTable, DragHandle } from '../widget/AntDragSortTable';
 
 export function AdminPlansView() {
   const editingObj = useRef<any>(null)
@@ -43,28 +43,6 @@ export function AdminPlansView() {
       updateData()
     }
   }, []);
-
-  // 表格
-
-  const columns: ProColumns[] = [
-    { title: '排序', dataIndex: 'show_order', className: 'drag-visible', },
-    { title: '名称', key: 'id', dataIndex: 'display_name', },
-    { title: '类型', key: 'type', dataIndex: 'id', renderText: e => translatePlanType(findObjByIdId(data, e)) },
-    { title: '分配用户组', key: 'group_id', dataIndex: 'group_id' },
-    { title: '可用流量', key: 'liuliang', dataIndex: 'display_traffic' },
-    { title: '规则数', key: 'max_rules', dataIndex: 'max_rules' },
-    { title: '价格', key: 'price', dataIndex: 'price', renderText: (e: any) => e + " " + displayCurrency },
-    { title: '隐藏', key: 'hide', dataIndex: 'hide', renderText: formatBoolean },
-    {
-      title: '操作', key: 'action', dataIndex: 'id', renderText: function (e: number) {
-        return <Flex gap={8}>
-          <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editPlan(findObjByIdId(data, e))} /></Tooltip>
-          <Tooltip title="推送套餐更新"><Button icon={<UploadOutlined />} onClick={() => pushPlan(findObjByIdId(data, e))} /></Tooltip>
-          <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deletePlan(e)} /></Tooltip>
-        </Flex>
-      }
-    },
-  ];
 
   function editPlan(obj: any, isNew?: boolean) {
     obj = clone(obj)
@@ -289,13 +267,29 @@ export function AdminPlansView() {
         <Flex>
           <Button icon={<FileAddOutlined />} onClick={() => editPlan(null, true)}>添加套餐</Button>
         </Flex>
-        <DragSortTable
+        <AntDragSortTable
           rowKey="id"
           pagination={false}
-          search={false}
-          options={false}
           loading={loading}
-          columns={columns}
+          columns={[
+            { title: '排序', key: "show_order", dataIndex: 'show_order', render: () => <DragHandle /> },
+            { title: '名称', key: 'id', dataIndex: 'display_name', },
+            { title: '类型', key: 'type', dataIndex: 'id', render: (e: any) => translatePlanType(findObjByIdId(data, e)) },
+            { title: '分配用户组', key: 'group_id', dataIndex: 'group_id' },
+            { title: '可用流量', key: 'liuliang', dataIndex: 'display_traffic' },
+            { title: '规则数', key: 'max_rules', dataIndex: 'max_rules' },
+            { title: '价格', key: 'price', dataIndex: 'price', render: (e: any) => e + " " + displayCurrency },
+            { title: '隐藏', key: 'hide', dataIndex: 'hide', render: formatBoolean },
+            {
+              title: '操作', key: 'action', dataIndex: 'id', render: function (e: number) {
+                return <Flex gap={8}>
+                  <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editPlan(findObjByIdId(data, e))} /></Tooltip>
+                  <Tooltip title="推送套餐更新"><Button icon={<UploadOutlined />} onClick={() => pushPlan(findObjByIdId(data, e))} /></Tooltip>
+                  <Tooltip title="删除"><Button icon={<DeleteOutlined />} onClick={() => deletePlan(e)} /></Tooltip>
+                </Flex>
+              }
+            },
+          ]}
           dataSource={data}
           dragSortKey="show_order"
           onDragSortEnd={handleDragSortEnd}

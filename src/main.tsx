@@ -7,9 +7,6 @@ import { initConfig } from './config.ts';
 import { initMyVar, myvar } from './myvar.ts';
 import { App } from 'antd';
 import { MyConfigProvider } from './util/reactw.tsx';
-import useMessage from 'antd/es/message/useMessage';
-import useModal from 'antd/es/modal/useModal/index';
-import { setModalCtx } from './util/MyModal.tsx';
 import { FrontSiteInfo } from './api/model_front.ts';
 import { isNotBlank } from './util/misc.ts';
 
@@ -97,16 +94,8 @@ function Main() {
     }
   }, [])
 
-  const [modal, ctxHolder1] = useModal();
-  const [message, ctxHolder2] = useMessage();
-  setModalCtx(modal, message)
-
   return <>
     <MyConfigProvider isDarkMode={mainIsDark} isTransparentMode={mainIsTransparent} >
-      <MyConfigProvider isDarkMode={mainIsDark} isTransparentMode={false} >
-        {ctxHolder1}
-        {ctxHolder2}
-      </MyConfigProvider>
       <App
         className={`fullscreen-app ${mainIsTransparent ? "my-theme-trans" : ""}  ${mainIsDark ? "my-theme-dark" : ""}`}
         style={{
