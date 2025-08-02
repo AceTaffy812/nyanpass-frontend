@@ -1,7 +1,7 @@
 import { ConfigProvider, theme, ThemeConfig } from "antd";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import zhCN from 'antd/locale/zh_CN';
+import zhCN from 'antd/es/locale/zh_CN';
 import { myvar } from "../myvar";
 
 export function MyConfigProvider(props: { children: React.ReactNode, isDarkMode: boolean, isTransparentMode: boolean }) {
@@ -29,6 +29,9 @@ export function MyConfigProvider(props: { children: React.ReactNode, isDarkMode:
             Layout: {
                 siderBg: props.isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
                 // colorBgLayout: 'transparent',
+            },
+            Table: {
+                filterDropdownBg: props.isDarkMode ? 'black' : 'white',
             },
         }
     }

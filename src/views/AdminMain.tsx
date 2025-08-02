@@ -111,7 +111,7 @@ export function AdminMainView() {
           <Col span={12}>
             <Card bordered={false}>
               <Statistic
-                title="今日收入"
+                title="今日充值"
                 value={ignoreError(() => statistic.income_today)}
                 precision={2}
                 suffix="CNY"
@@ -121,7 +121,7 @@ export function AdminMainView() {
           <Col span={12}>
             <Card bordered={false}>
               <Statistic
-                title="昨日收入"
+                title="昨日充值"
                 value={ignoreError(() => statistic.income_yesterday)}
                 precision={2}
                 suffix="CNY"
@@ -131,7 +131,7 @@ export function AdminMainView() {
           <Col span={12}>
             <Card bordered={false}>
               <Statistic
-                title="本月收入"
+                title="本月充值"
                 value={ignoreError(() => statistic.income_this_month)}
                 precision={2}
                 suffix="CNY"
@@ -141,7 +141,7 @@ export function AdminMainView() {
           <Col span={12}>
             <Card bordered={false}>
               <Statistic
-                title="上月收入"
+                title="上月充值"
                 value={ignoreError(() => statistic.income_last_month)}
                 precision={2}
                 suffix="CNY"

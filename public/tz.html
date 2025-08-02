@@ -598,7 +598,7 @@
             });
         }
         function kick(server) {
-            const text = `IP: ${server.BackendObj.ip4}`
+            const text = `IP: ${server.BackendObj.ip4}<br><br><button onclick="kickOfflineServer()">删除所有离线服务器</button>`
             const title = "删除离线服务器: " + server.Name
             alertDialog = mdui.confirm(text, title, () => {
                 fetch("/api/v1/system/node/kick/" + server.SessionId, {
@@ -611,6 +611,19 @@
                 confirmText: "确认",
                 cancelText: "取消",
             });
+        }
+        function kickOfflineServer() {
+            try { alertDialog.close() } catch (a) { }
+            fetch("/api/v1/system/node/kick/offline", {
+                method: "POST",
+                headers: {
+                    'Authorization': localStorage.getItem('Authorization'),
+                },
+            }).then((rsp) => {
+                rsp.json().then((data) => {
+                    mdui.alert(data.msg, "请求成功")
+                }).catch(() => mdui.alert("请求失败"))
+            }).catch(() => mdui.alert("请求失败"))
         }
         function setWeight(server) {
             const text = `IP: ${server.BackendObj.ip4}<br>当前权重: ${server.BackendObj.weight}<br><br>权重 0 即不在隧道转发中使用此服务器。<br><br>建议: 组内配置最低的机器设置为 1 权重，高配机器根据 CPU 核心数等适量增加权重。`
@@ -651,7 +664,6 @@
             });
             window.isAdmin = !window.isAdmin;
         }
-
         function toggleDarkMode() {
             document.body.classList.toggle("mdui-theme-layout-dark");
         }

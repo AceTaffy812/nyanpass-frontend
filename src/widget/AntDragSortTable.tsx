@@ -129,6 +129,8 @@ export function AntDragSortTable<T extends { key: React.Key }>(
         props.onDragSortEnd?.(oldIndex, newIndex, reordered);
     };
 
+    const isEmpty = sortedData == null || sortedData.length == 0;
+
     return (
         <DndContext modifiers={[restrictToVerticalAxis]} onDragEnd={onDragEnd}>
             <SortableContext
@@ -136,7 +138,7 @@ export function AntDragSortTable<T extends { key: React.Key }>(
                 strategy={verticalListSortingStrategy}
             >
                 <Table
-                    components={{ body: { row: Row } }}
+                    components={isEmpty ? undefined : { body: { row: Row } }}
                     columns={columns}
                     dataSource={sortedData}
                     {...restProps}

@@ -1,14 +1,31 @@
 import path from 'path'
-import { defineConfig, splitVendorChunkPlugin } from 'vite'
+import { defineConfig, splitVendorChunkPlugin, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer';
 import { cdn } from "vite-plugin-cdn2";
 import { defineResolve, type HTMLTagDescriptor } from 'vite-plugin-cdn2/resolve'
 // import { cdnjs } from 'vite-plugin-cdn2/resolver/cdnjs'
 import externalGlobals from 'rollup-plugin-external-globals';
-import { createHtmlPlugin } from 'vite-plugin-html'
+import { minify } from 'html-minifier-terser';
 
 const isProduction = process.env.NODE_ENV === "production";
+
+function myHtmlMinify(): Plugin {
+  return {
+    name: 'custom-html-minify',
+    apply: 'build',
+    async transformIndexHtml(html) {
+      return await minify(html, {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        useShortDoctype: true,
+        minifyCSS: true,
+        minifyJS: true,
+      });
+    },
+  };
+}
 
 export function myCdnjs(options: HTMLTagDescriptor = {}) {
   const { injectTo = 'head-prepend', attrs = {} } = options
@@ -52,6 +69,9 @@ const globals = externalGlobals((id: string) => {
   if (id == "@ant-design/charts") {
     return "Charts"
   }
+  // if (id.includes("antd")) {
+  //   console.log(id)
+  // }
 });
 
 export default defineConfig(({ command }) => {
@@ -71,9 +91,7 @@ export default defineConfig(({ command }) => {
         resolve: myCdnjs(),
       } : {}),
       visualizer({ template: "treemap" }),
-      createHtmlPlugin({
-        minify: true,
-      }),
+      myHtmlMinify(),
     ],
     build: {
       reportCompressedSize: false,
