@@ -185,14 +185,6 @@ export class apiAdmin {
         return processJson(rsp);
     }
 
-    async search_rules(req: ReqSearchRules): Promise<any> {
-        var rsp = await fetchApi("/api/v1/admin/user/0/forward/search_rules", {
-            method: "POST",
-            body: JSON.stringify(req),
-        });
-        return processJson(rsp);
-    }
-
     async aff_log(qs: string): Promise<any> {
         var rsp = await fetchApi("/api/v1/admin/aff/log?" + qs);
         return processJson(rsp);

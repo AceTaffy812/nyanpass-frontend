@@ -1,4 +1,4 @@
-import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
+import { BackwardOutlined, BarChartOutlined, CheckSquareOutlined, CopyOutlined, DeleteOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, PauseCircleOutlined, PlayCircleOutlined, QuestionCircleOutlined, SearchOutlined, SwapOutlined, SyncOutlined } from "@ant-design/icons";
 import { Button, Card, Collapse, CollapseProps, Flex, FloatButton, Input, InputNumber, Modal, Select, Table, Tag, Tooltip, Typography, message } from "antd";
 import { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { FilterValue, SorterResult } from "antd/es/table/interface";
@@ -353,6 +353,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
     }
     const configObj = new FrontForwardConfig;
 
+    ids = batchIds(ids)
+
     const selectedObjects: any[] = []
     data.forEach(obj => {
       if (ids.includes(obj.id)) selectedObjects.push({
@@ -360,7 +362,6 @@ export function ForwardRulesView(props: { userInfo: any }) {
         config: JSON.parse(obj.config)
       });
     })
-    ids = batchIds(ids)
 
     let collaspedItems: CollapseProps['items'] = [
       {
@@ -476,8 +477,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
         </Flex>
         <Collapse items={collaspedItems} style={{ width: "100%" }} />
         <Flex className="ant-flex2">
-          <Button icon={<PauseCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(selectedRowKeys, true) }}>批量暂停选中规则</Button>
-          <Button icon={<PlayCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(selectedRowKeys, false) }}>批量恢复选中规则</Button>
+          <Button icon={<PauseCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(ids, true) }}>批量暂停选中规则</Button>
+          <Button icon={<PlayCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(ids, false) }}>批量恢复选中规则</Button>
         </Flex>
       </Flex>,
       onOk: () => {
@@ -634,7 +635,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
         devWtf.port_range = fw.listen_port
         devWtf.display_name = fw.display_name
         return <Flex vertical gap={1}>
-          <Typography.Text>入口: {ignoreError(() => devWtf.name, "#" + fw.device_group_in)}</Typography.Text>
+          <Tooltip title={'#' + fw.device_group_in}>
+            <Typography.Text>入口: {ignoreError(() => devWtf.name, "#" + fw.device_group_in)}</Typography.Text>
+          </Tooltip>
           <IPPortWidget data={devWtf} canOnlyPort={true} />
         </Flex>
 
@@ -643,7 +646,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
     {
       title: '出口', key: 'device_group_out', dataIndex: 'id', render: function (e: number) {
         let fw = findObjByIdId(data, e)
-        const chukou = <Typography.Text >出口: {ignoreError(() => findObjByIdId(deviceGroupList, fw.device_group_out).name, "#" + fw.device_group_out)}</Typography.Text>
+        const chukou = <Tooltip title={'#' + fw.device_group_out}>
+          <Typography.Text >出口: {ignoreError(() => findObjByIdId(deviceGroupList, fw.device_group_out).name, "加载失败 #" + fw.device_group_out)}</Typography.Text>
+        </Tooltip>
         const luodi = <Typography.Text>{formatDests(fw.config)}</Typography.Text>
         if (fw.device_group_out == 0) {
           return luodi
@@ -694,8 +699,9 @@ export function ForwardRulesView(props: { userInfo: any }) {
 
   function editRule(obj: any, isCopy?: boolean) {
     let isCreate = false
-    let isBatch = obj == "batchAdd"
-    if (isBatch) {
+    let isBatchImport = obj == "batchImport"
+    let isBatchChange = obj == "batchChange"
+    if (isBatchImport || isBatchChange) {
       obj = null
     } else {
       obj = clone(obj)
@@ -800,7 +806,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         </Flex >
       },
     ];
-    if (isBatch) {
+    if (isBatchImport) {
       collaspedItems = [{
         key: '2',
         label: 'JSON 设置',
@@ -812,10 +818,16 @@ export function ForwardRulesView(props: { userInfo: any }) {
           ></Input.TextArea>
         </Flex>
       }]
+    } else if (isBatchChange) {
+      collaspedItems = [{
+        key: '1',
+        label: '批量导入（修改）使用说明',
+        children: <Typography.Text>首先选定一个入口，然后粘贴您的批量规则。提交后，后端将对批量规则的每一行与该入口已有的规则进行端口匹配，并按照行中的信息修改转发规则。</Typography.Text>
+      }]
     }
     //
     const renderDiZhi = () => {
-      if (isBatch) {
+      if (isBatchImport || isBatchChange) {
         return <>
           <Typography.Text strong>批量规则</Typography.Text>
           <Input.TextArea
@@ -838,9 +850,26 @@ export function ForwardRulesView(props: { userInfo: any }) {
     //
     MyModal.confirm({
       icon: <p />,
-      title: isCreate ? "添加规则" : "编辑规则 " + obj.display_name,
+      title: (() => {
+        if (isBatchImport) {
+          return <Flex className='neko-settings-flex-line'>
+            <span>批量导入</span>
+            <Tooltip title="切换为：批量导入（修改）">
+              <SwapOutlined style={{ marginLeft: 4, cursor: 'pointer' }} onClick={() => { editRule("batchChange") }} />
+            </Tooltip>
+          </Flex>
+        } else if (isBatchChange) {
+          return <Flex className='neko-settings-flex-line'>
+            <span>批量导入（修改）</span>
+            <Tooltip title="切换为：批量导入">
+              <SwapOutlined style={{ marginLeft: 4, cursor: 'pointer' }} onClick={() => { editRule("batchImport") }} />
+            </Tooltip>
+          </Flex>
+        }
+        return isCreate ? "添加规则" : "编辑规则 " + obj.display_name
+      })(),
       content: <Flex vertical>
-        <Flex className='neko-settings-flex-line' style={isBatch ? { display: "none" } : {}}>
+        <Flex className='neko-settings-flex-line' style={isBatchImport || isBatchChange ? { display: "none" } : {}}>
           <Typography.Text strong>名称</Typography.Text>
           <Input
             defaultValue={obj.name}
@@ -861,7 +890,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             <div id="id-rkxx" className="always-wrap-text" />
           </Card>
         </Flex>
-        <Flex className='neko-settings-flex-line' style={isBatch ? { display: "none" } : {}} >
+        <Flex className='neko-settings-flex-line' style={isBatchImport || isBatchChange ? { display: "none" } : {}} >
           <Typography.Text strong >监听端口</Typography.Text>
           <div id="id-rkdk" className="left-margin" />
           <Input // 允许留空，所以不能用 InputNumber
@@ -870,7 +899,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             onChange={(e) => editingObj.current.listen_port = Number(e.target.value)}
           ></Input>
         </Flex>
-        <div id="id-chukou" style={{ width: "100%" }}></div>
+        <div id={isBatchChange ? "id-chukou-do-not-show" : "id-chukou"} style={{ width: "100%" }}></div>
         <Flex className='neko-settings-flex-line' id="id-ljxx-flex" style={{ display: "none" }}>
           <Typography.Text strong>连接信息</Typography.Text>
           <Card bodyStyle={{ padding: "1em" }}>
@@ -888,13 +917,13 @@ export function ForwardRulesView(props: { userInfo: any }) {
           editingForwardConfig.current.proxy_protocol = undefined
         }
         editingObj.current.config = JSON.stringify(cleanupDefaultValue(editingForwardConfig.current));
-        if (isBatch) {
+        if (isBatchImport || isBatchChange) {
           if (isNotBlank(editingObj.current.json_settings)) {
             editingObj.current.config = editingObj.current.json_settings
           } else {
             editingObj.current.config = null
           }
-          return promiseFetchJson(forward.forward_batch_create(editingObj.current), (ret) => {
+          return promiseFetchJson(isBatchChange ? forward.forward_batch_change(editingObj.current) : forward.forward_batch_create(editingObj.current), (ret) => {
             showCommonError(ret, ["规则更新成功", "规则更新失败"], updateData)
           })
         }
@@ -985,7 +1014,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           {renderTags()}
           <Flex className="ant-flex2" style={myvar.isMobileSize ? { display: "none" } : {}} >
             <Button icon={<FileAddOutlined />} onClick={() => editRule(null)} >添加规则</Button>
-            <Button icon={<FileAddOutlined />} onClick={() => editRule("batchAdd")} >批量导入</Button>
+            <Button icon={<FileAddOutlined />} onClick={() => editRule("batchImport")} >批量导入</Button>
             <Button icon={<CopyOutlined />} onClick={() => copyRules(selectedRowKeys)}>批量导出</Button>
             <Button icon={<CheckSquareOutlined />} onClick={() => batchUpdateRules(selectedRowKeys)}>批量切换</Button>
             <Button icon={<FireOutlined />} onClick={() => resetTraffic(selectedRowKeys)}>清空流量</Button>
@@ -1007,7 +1036,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <FloatButton shape="square" icon={<FileAddOutlined />} description="单条" onClick={() => editRule(null)}></FloatButton>
         </Tooltip>
         <Tooltip title="批量导入规则">
-          <FloatButton shape="square" icon={<FileAddOutlined />} description="批量" onClick={() => editRule("batchAdd")}></FloatButton>
+          <FloatButton shape="square" icon={<FileAddOutlined />} description="批量" onClick={() => editRule("batchImport")}></FloatButton>
         </Tooltip>
         <Tooltip title="批量导出规则">
           <FloatButton shape="square" icon={<CopyOutlined />} description="导出" onClick={() => copyRules(selectedRowKeys)}></FloatButton>

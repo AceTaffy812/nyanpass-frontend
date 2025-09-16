@@ -56,6 +56,16 @@ export class apiForward {
         return processJson(rsp);
     }
 
+    async forward_batch_change(obj: any): Promise<any> {
+        let url = "/api/v1/user/forward/batch_change"
+        if (this.affectId != null) url = "/api/v1/admin/user/" + this.affectId + "/forward/batch_change"
+        var rsp = await fetchApi(url, {
+            method: "POST",
+            body: JSON.stringify(obj)
+        });
+        return processJson(rsp);
+    }
+
     async forward_update(id: number, obj: any): Promise<any> {
         let url = "/api/v1/user/forward/" + id
         if (this.affectId != null) url = "/api/v1/admin/user/" + this.affectId + "/forward" + "/" + id

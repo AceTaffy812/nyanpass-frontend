@@ -1,28 +1,30 @@
-import { Button, Card, Checkbox, DatePicker, Flex, Input, InputNumber, Select, Switch, Table, Tooltip, Typography } from 'antd';
+import { Button, Card, Checkbox, Collapse, CollapseProps, DatePicker, Flex, Input, InputNumber, Select, Switch, Table, Tooltip, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { byteConverter, formatDests, formatBoolean, formatInfoTraffic, formatUnix, strongColor } from '../util/format';
-import { allFalseMap, findObjByIdId, isNotBlank, myFilter } from '../util/misc';
-import { BackwardOutlined, DeleteOutlined, DisconnectOutlined, EditOutlined, PaperClipOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
+import { allFalseMap, batchIds, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter } from '../util/misc';
+import { BackwardOutlined, CheckSquareOutlined, DeleteOutlined, DisconnectOutlined, EditOutlined, PaperClipOutlined, PauseCircleOutlined, PlayCircleOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
 import { commonEx, showCommonError } from '../util/commonError';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
-import { myvar, reloadMyVar } from '../myvar';
-import { MyMessage, MyModal } from '../util/MyModal';
+import { reloadMyVar } from '../myvar';
+import { closeCurrentDialog, MyMessage, MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
-import { displayCurrency, filtersBoolean, getPageSize, renderSelectIdName, setPageSize, tableSearchDropdown, tableShowTotal } from '../util/ui';
+import { displayCurrency, filtersBoolean, getPageSize, renderSelectBackendString, renderSelectIdName, setPageSize, tableSearchDropdown, tableShowTotal } from '../util/ui';
 import { ReqSearchRules, TableParams, tableParams2Qs } from '../api/model_api';
 import dayjs, { unix } from 'dayjs';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
-import { DeviceGroupType, FrontInviteConfig, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, FrontForwardConfig, FrontInviteConfig, SelectorType, translateBackendString } from '../api/model_front';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 import { apiForward } from '../api/forward';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
 
 export function AdminUsersView(props: { userInfo: any }) {
+  const forward = new apiForward("0") // 影响全局的转发规则接口
+
   const newUsername = useRef("")
-  const searchObj = useRef(new ReqSearchRules())
+  const searchObj = useRef<ReqSearchRules | null>(null)
   const [searched, setSearched] = useState(false);
   const [searchedRules, setSearchedRules] = useState<any[]>([]);
   const [searchedSelectedRowKeys, setSearchedSelectedRowKeys] = useState<React.Key[]>([]);
@@ -47,50 +49,87 @@ export function AdminUsersView(props: { userInfo: any }) {
     },
   });
 
-  const updateData = () => {
-    setSearched(false);
-    setLoading(true);
-    asyncFetchJson(api.admin.user_list(tableParams2Qs(tableParams)), (ret) => {
-      if (ret.data != null) {
-        setData(ret.data)
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            showTotal: tableShowTotal, // 这种黄色的可能不能... 而是要自己指定
-            total: ret.count,
-          },
-        })
-      }
-    }, undefined, () => setLoading(false))
-    asyncFetchJson(api.admin.shop_plan_list(), (ret) => {
-      if (ret.data != null) {
+  // 处理后端返回的搜索结果
+  function searchedRetProcess(newSearch: boolean) {
+    return (ret: any) => {
+      if (ret.code == 0) {
+        if (ret.data.length == 0) {
+          searchObj.current = null;
+          MyMessage.info("没有符合该条件的规则")
+          if (!newSearch) {
+            setSearched(false); updateData(); //退回全部规则
+          } else {
+            throw commonEx
+          }
+        }
         for (let i = 0; i < ret.data.length; i++) {
           ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
           ret.data[i].display_traffic = formatInfoTraffic(ret.data[i], true)
         }
-        setPlans(ret.data)
-      }
-    })
-    asyncFetchJson(api.admin.devicegroup_list(""), (ret) => {
-      if (ret.data != null) {
-        const newData: any[] = []
-        for (let i = 0; i < ret.data.length; i++) {
-          ret.data[i].name = ret.data[i].name + " (#" + ret.data[i].id + ")" // 这里直接改name
-          newData.push(ret.data[i])
+        setSearchedRules(ret.data) // 与 ForwardRules 不同
+        setSearched(true)
+        if (newSearch) MyMessage.info(`找到 ${ret.data.length} 条规则`)
+      } else {
+        searchObj.current = null;
+        MyMessage.error(`搜索出错: ${ret.code} ${ret.msg}`)
+        if (!newSearch) {
+          setSearched(false); updateData(); //退回全部规则
+        } else {
+          throw commonEx
         }
-        setDeviceGroupList(newData)
       }
-    })
-    asyncFetchJson(api.admin.usergroup_list(), (ret) => {
-      if (ret.data != null) {
-        for (let i = 0; i < ret.data.length; i++) {
-          ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
-          if (ret.data[i].id == 0) ret.data[i].display_name = "0"
+    }
+  }
+
+  const updateData = () => {
+    setLoading(true);
+    if (searchObj.current != null) {
+      asyncFetchJson(forward.search_rules(searchObj.current, ''), (ret) => {
+        searchedRetProcess(false)(ret)
+      }, undefined, () => setLoading(false))
+    } else {
+      asyncFetchJson(api.admin.user_list(tableParams2Qs(tableParams)), (ret) => {
+        if (ret.data != null) {
+          setData(ret.data)
+          setTableParams({
+            ...tableParams,
+            pagination: {
+              ...tableParams.pagination,
+              showTotal: tableShowTotal, // 这种黄色的可能不能... 而是要自己指定
+              total: ret.count,
+            },
+          })
         }
-        setUserGroups(ret.data)
-      }
-    })
+      }, undefined, () => setLoading(false))
+      asyncFetchJson(api.admin.shop_plan_list(), (ret) => {
+        if (ret.data != null) {
+          for (let i = 0; i < ret.data.length; i++) {
+            ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
+            ret.data[i].display_traffic = formatInfoTraffic(ret.data[i], true)
+          }
+          setPlans(ret.data)
+        }
+      })
+      asyncFetchJson(api.admin.devicegroup_list(""), (ret) => {
+        if (ret.data != null) {
+          const newData: any[] = []
+          for (let i = 0; i < ret.data.length; i++) {
+            ret.data[i].name = ret.data[i].name + " (#" + ret.data[i].id + ")" // 这里直接改name
+            newData.push(ret.data[i])
+          }
+          setDeviceGroupList(newData)
+        }
+      })
+      asyncFetchJson(api.admin.usergroup_list(), (ret) => {
+        if (ret.data != null) {
+          for (let i = 0; i < ret.data.length; i++) {
+            ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
+            if (ret.data[i].id == 0) ret.data[i].display_name = "0"
+          }
+          setUserGroups(ret.data)
+        }
+      })
+    }
   }
   useEffect(updateData, [tableParams2Qs(tableParams)]);
 
@@ -118,7 +157,7 @@ export function AdminUsersView(props: { userInfo: any }) {
   }
 
   function btn_search_rules_onclick() {
-    searchObj.current = new ReqSearchRules()
+    const obj = new ReqSearchRules()
     MyModal.confirm({
       icon: <p />,
       title: "搜索用户规则",
@@ -126,20 +165,20 @@ export function AdminUsersView(props: { userInfo: any }) {
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>规则名称 (模糊)</Typography.Text>
           <Input
-            onChange={(e) => searchObj.current.name = e.target.value} />
+            onChange={(e) => obj.name = e.target.value} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>入口</Typography.Text>
           <Select
             options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
-            onChange={(e) => { searchObj.current.gid_in = e }}
+            onChange={(e) => { obj.gid_in = e }}
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>出口</Typography.Text>
           <Select
             options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser]))}
-            onChange={(e) => { searchObj.current.gid_out = e }}
+            onChange={(e) => { obj.gid_out = e }}
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
@@ -147,33 +186,17 @@ export function AdminUsersView(props: { userInfo: any }) {
           <InputNumber style={{ width: "100%" }}
             min="1"
             step="1"
-            onChange={(e) => searchObj.current.listen_port = Number(e)} />
+            onChange={(e) => obj.listen_port = Number(e)} />
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>目标地址或端口 (模糊)</Typography.Text>
           <Input
-            onChange={(e) => searchObj.current.dest = e.target.value} />
+            onChange={(e) => obj.dest = e.target.value} />
         </Flex>
       </Flex>,
       onOk: () => {
-        return promiseFetchJson(api.admin.search_rules(searchObj.current), (ret) => {
-          if (ret.code == 0) {
-            if (ret.data.length == 0) {
-              MyMessage.info("没有符合该条件的规则")
-              throw commonEx
-            }
-            for (let i = 0; i < ret.data.length; i++) {
-              ret.data[i].display_name = ret.data[i].name + " (#" + ret.data[i].id + ")"
-              ret.data[i].display_traffic = formatInfoTraffic(ret.data[i], true)
-            }
-            setSearchedSelectedRowKeys([])
-            setSearchedRules(ret.data)
-            setSearched(true)
-          } else {
-            MyMessage.error(`搜索出错: ${ret.code} ${ret.msg}`)
-            throw commonEx
-          }
-        })
+        searchObj.current = obj
+        return promiseFetchJson(forward.search_rules(obj, ""), searchedRetProcess(true))
       }
     })
   }
@@ -550,14 +573,13 @@ export function AdminUsersView(props: { userInfo: any }) {
 
   function deleteRules(e: string[] | number[] | React.Key[]) {
     if (e.length == 0) return
-    const apiFw = new apiForward("0");
     let content = <p>你确定要删除 {e.length} 条规则吗？</p>
     MyModal.confirm({
       icon: <p />,
       title: "删除规则",
       content: content,
       onOk: () => {
-        return promiseFetchJson(apiFw.forward_delete(e), (ret) => {
+        return promiseFetchJson(forward.forward_delete(e), (ret) => {
           showCommonError(ret, ["", "删除规则失败"], updateData)
         })
       }
@@ -573,6 +595,191 @@ export function AdminUsersView(props: { userInfo: any }) {
         return promiseFetchJson(api.admin.user_delete([e]), (ret) => {
           showCommonError(ret, ["", "删除用户失败"], updateData)
         })
+      }
+    })
+  }
+
+  function pauseRules(ids: any[], pause: boolean) {
+    if (ids.length == 0) return;
+    return promiseFetchJson(forward.batch_update([{ ids: ids, column: "paused", value: pause }]), (ret) => {
+      showCommonError(ret, ["", "规则更新失败"], updateData)
+    })
+  }
+
+  function batchUpdateRules(ids: any[]) {
+    if (ids.length == 0) return;
+    const obj = {
+      qdDgIn: "",
+      qdDgOut: "",
+    }
+    const configObj = new FrontForwardConfig;
+
+    ids = batchIds(ids)
+
+    const selectedObjects: any[] = []
+    searchedRules.forEach(obj => { // 与 ForwardRules 不同
+      if (ids.includes(obj.id)) selectedObjects.push({
+        ...obj,
+        config: JSON.parse(obj.config)
+      });
+    })
+
+    let collaspedItems: CollapseProps['items'] = [
+      {
+        key: '1',
+        label: '高级选项 (留空不更新)',
+        children: <Flex vertical>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>负载均衡策略</Typography.Text>
+            <Select
+              defaultValue={undefined}
+              options={renderSelectBackendString(SelectorType)}
+              onChange={(e) => configObj.dest_policy = e}
+            ></Select>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              接受 Proxy Protocol
+              <MyQuestionMark title="如果打开，用户在连接时必须发送 Proxy 头，否则连接将失败。" />
+            </Typography.Text>
+            <Select
+              defaultValue={undefined}
+              options={[
+                { value: 0, label: "关闭" },
+                { value: 1, label: "开启 (TCP)" },
+              ]}
+              onChange={(e) => configObj.accept_proxy_protocol = e}
+            ></Select>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              发送 Proxy Protocol
+              <MyQuestionMark title="如果打开，转发目标必须支持读取 Proxy 头，否则连接将失败。" />
+            </Typography.Text>
+            <Select
+              defaultValue={undefined}
+              options={[
+                { value: 0, label: "关闭" },
+                { value: 1, label: "v1 (TCP)" },
+                { value: 2, label: "v2 (TCP+UDP)" },
+                { value: 3, label: "v2 (TCP)" },
+              ]}
+              onChange={(e) => configObj.proxy_protocol = e}
+            ></Select>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              规则限速
+              <MyQuestionMark title="0 表示不限速; 单一入口下，所有规则的总速率不会超过用户的限速。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                addonAfter="Mbps"
+                min="0"
+                step="1"
+                defaultValue={undefined}
+                onChange={(e) => configObj.speed_limit = Math.round(byteConverter(Number(e), "M_Net", true))}
+              ></InputNumber>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              IP 限制
+              <MyQuestionMark title="0 表示不限，单一入口下，同时受用户的限制。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                min="0"
+                step="1"
+                defaultValue={undefined}
+                onChange={(e) => configObj.ip_limit = Number(e)}
+              ></InputNumber>
+            </div>
+          </Flex>
+          <Flex className='neko-settings-flex-line'>
+            <Typography.Text strong>
+              连接数限制
+              <MyQuestionMark title="0 表示不限，单一入口下，同时受用户的限制。" />
+            </Typography.Text>
+            <div className='dq-3'>
+              <InputNumber
+                min="0"
+                step="1"
+                defaultValue={undefined}
+                onChange={(e) => configObj.connection_limit = Number(e)}
+              ></InputNumber>
+            </div>
+          </Flex>
+        </Flex>
+      },
+    ];
+    MyModal.confirm({
+      icon: <p />,
+      title: `批量更新 ${ids.length} 条规则`,
+      content: <Flex vertical>
+        <h3>注意：在此页面操作规则时，不会检查每个规则所在用户的权限。如果用户无权使用某个入口或出口，切换之后可能导致规则失效，请小心操作。</h3>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>入口 (留空不更新)</Typography.Text>
+          <Select
+            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
+            onChange={(e) => { obj.qdDgIn = String(e) }}
+          ></Select>
+        </Flex>
+        <Flex className='neko-settings-flex-line'>
+          <Typography.Text strong>出口 (留空不更新)</Typography.Text>
+          <Select
+            options={(() => {
+              const list: any[] = [{ value: "0", label: "#0 (无需出口)" }]
+              list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])))
+              return list
+            })()}
+            onChange={(e) => { obj.qdDgOut = String(e) }}
+          ></Select>
+        </Flex>
+        <Collapse items={collaspedItems} style={{ width: "100%" }} />
+        <Flex className="ant-flex2">
+          <Button icon={<PauseCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(ids, true) }}>批量暂停选中规则</Button>
+          <Button icon={<PlayCircleOutlined />} onClick={() => { closeCurrentDialog(); pauseRules(ids, false) }}>批量恢复选中规则</Button>
+        </Flex>
+      </Flex>,
+      onOk: () => {
+        const req: any[] = []
+        if (isNotBlank(obj.qdDgIn)) req.push({ ids: ids, column: "device_group_in", value: obj.qdDgIn })
+        if (isNotBlank(obj.qdDgOut)) req.push({ ids: ids, column: "device_group_out", value: obj.qdDgOut })
+
+        let needUpdateConfig = false;
+        for (const key in configObj) {
+          //@ts-ignore
+          if (configObj[key] !== undefined) {
+            needUpdateConfig = true;
+            break;
+          }
+        }
+
+        const overwriteCfg = {
+          ...(configObj.dest_policy !== undefined ? { dest_policy: configObj.dest_policy } : {}),
+          ...(configObj.accept_proxy_protocol !== undefined ? { accept_proxy_protocol: configObj.accept_proxy_protocol } : {}),
+          ...(configObj.proxy_protocol !== undefined ? { proxy_protocol: configObj.proxy_protocol } : {}),
+          ...(configObj.speed_limit !== undefined ? { speed_limit: configObj.speed_limit } : {}),
+          ...(configObj.ip_limit !== undefined ? { ip_limit: configObj.ip_limit } : {}),
+          ...(configObj.connection_limit !== undefined ? { connection_limit: configObj.connection_limit } : {})
+        }
+
+        if (needUpdateConfig) {
+          selectedObjects.forEach(obj => {
+            obj.config = {
+              ...obj.config,
+              ...overwriteCfg
+            }
+            req.push({ ids: [obj.id], column: 'config', value: JSON.stringify(cleanupDefaultValue(obj.config)) })
+          })
+        }
+
+        if (req.length > 0) {
+          return promiseFetchJson(forward.batch_update(req), (ret) => {
+            showCommonError(ret, ["更新成功", "更新失败"], updateData)
+          })
+        }
       }
     })
   }
@@ -621,6 +828,7 @@ export function AdminUsersView(props: { userInfo: any }) {
         <Flex vertical>
           <Flex>
             <Button icon={<BackwardOutlined />} onClick={() => setSearched(false)}>返回所有用户</Button>
+            <Button icon={<CheckSquareOutlined />} onClick={() => batchUpdateRules(searchedSelectedRowKeys)}>批量切换</Button>
             <Button icon={<DeleteOutlined />} onClick={() => deleteRules(searchedSelectedRowKeys)}>删除选中</Button>
           </Flex>
           <Table

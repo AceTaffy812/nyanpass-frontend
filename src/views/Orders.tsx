@@ -114,15 +114,24 @@ export function OrdersView(props: { type: number }) {
   // 表格
 
   const columns: ColumnsType<any> = [
-    { title: '订单号', key: 'order_no', dataIndex: 'order_no' },
+    {
+      title: '订单号', key: 'order_no', dataIndex: 'order_no',
+      filterDropdown: tableSearchDropdown("搜索订单号")
+    },
     {
       title: '用户', key: 'uid', dataIndex: 'display_username',
       filterDropdown: tableSearchDropdown("搜索 UID")
     },
     { title: '创建时间', key: 'open_time', dataIndex: 'open_time', render: (e: number) => formatUnix(e, { no1970: true }) },
     { title: '支付时间', key: 'paid_time', dataIndex: 'paid_time', render: (e: number) => formatUnix(e, { no1970: true }) },
-    { title: '订单信息', key: 'message', dataIndex: 'message' },
-    { title: '金额', key: 'amount', dataIndex: 'amount', render: (e: any) => e + " " + displayCurrency },
+    {
+      title: '订单信息', key: 'message', dataIndex: 'message',
+      filterDropdown: tableSearchDropdown("搜索订单信息")
+    },
+    {
+      title: '金额', key: 'amount', dataIndex: 'amount', render: (e: any) => e + " " + displayCurrency,
+      filterDropdown: tableSearchDropdown("搜索订单金额")
+    },
     {
       title: '类型', key: 'type', dataIndex: 'type', render: (e: any) => translateBackendString(e),
       filters: renderFilterBackendString(isAff ? AffLogType : OrderType),
