@@ -4,7 +4,7 @@ import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { api } from '../api/api';
 import { allFalseMap, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter, tryParseJSONObject } from '../util/misc';
 import { showCommonError } from '../util/commonError';
-import { DeviceGroupType, DeviceGroupType_AdminCanAdd, HideInServerStatus, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, DeviceGroupType_AdminCanAdd, DirectPolicy, HideInServerStatus, translateBackendString } from '../api/model_front';
 import { copyToClipboard, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
 import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
@@ -68,8 +68,16 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
       title: '类型', key: 'type', dataIndex: 'id', render: (e: number) => {
         const obj = findObjByIdId(data, e)
         const config = tryParseJSONObject(obj.config)
-        if (obj.type == DeviceGroupType.Inbound && config.direct) {
-          return "入口(直出)"
+        if (obj.type == DeviceGroupType.Inbound) {
+          if (config.direct_policy == 1) {
+            return "入口(可选直出)"
+          }
+          if (config.direct_policy == 2) {
+            return "入口(强制直出)"
+          }
+          if (config.direct) {
+            return "入口(旧直出)"
+          }
         }
         return translateBackendString(obj.type)
       }
@@ -152,18 +160,6 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     }
   }
 
-  // 开启了直出?
-  const onDirectChange = (e: boolean) => {
-    editingObjConfig.current.direct = e
-    // 更新可视
-    const visSuidao = document.querySelectorAll(".vis-suidao")
-    if (e || editingObj.current.type != DeviceGroupType.Inbound) {
-      visSuidao.forEach((el) => (el as HTMLElement).style.display = "none")
-    } else {
-      visSuidao.forEach((el) => (el as HTMLElement).style.display = "")
-    }
-  }
-
   function renderYJYC() {
     return <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
       <Typography.Text className='dq-1' strong>
@@ -185,7 +181,6 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     if (props.isAdmin && !isNew) {
       setTimeout(() => {
         onTypeChange(editingObj.current.type)
-        onDirectChange(editingObjConfig.current.direct)
       }, 300);
     }
     const beizhu = props.isAdmin ? "备注 (仅管理员可见)" : "备注 (仅自己可见)"
@@ -233,7 +228,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Select>
         </Flex>
         {/* 入口 */}
-        <Flex className='neko-settings-flex-line vis-inbound vis-suidao' style={{ display: "none" }}>
+        <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
           <Typography.Text strong>
             限制出口
             <MyQuestionMark title={<div>
@@ -271,14 +266,21 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             onChange={(e) => editingObj.current.port_range = e.target.value}
           ></Input>
         </Flex>
-        <Flex className='neko-settings-flex-line vis-inbound' style={{ display: "none" }}>
-          <Typography.Text className='dq-1'>
-            直接转发 / 入口直出 (专线)
+        <Flex className='neko-settings-flex-line vis-inbound' style={props.isAdmin ? {} : { display: "none" }}>
+          <Typography.Text strong style={{ paddingRight: "1em" }}>
+            直接转发 / 入口直出策略
             <MyQuestionMark title='无需出口节点，不使用隧道，而是由入口直接转发。适用于入口机器可以直接访问国际互联网的情景。' />
           </Typography.Text>
-          <Switch
-            defaultChecked={editingObjConfig.current.direct}
-            onChange={onDirectChange} />
+          <div style={{ flex: 1 }}>
+            <Select
+              defaultValue={editingObjConfig.current.direct_policy ?? 0}
+              options={renderSelect2(DirectPolicy)}
+              onChange={(e) => {
+                editingObjConfig.current.direct_policy = e;
+                editingObjConfig.current.direct = undefined;
+              }}
+            ></Select>
+          </div>
         </Flex>
         {renderYJYC()}
         {/* 出口 */}

@@ -127,6 +127,12 @@ export const HideInServerStatus = [
     [2, "对所有用户隐藏"],
 ]
 
+export const DirectPolicy = [
+    [0, "禁止直接转发"],
+    [1, "可选直接转发"],
+    [2, "强制直接转发"],
+]
+
 export const ThemePolicy = [
     [0, "仅允许经典主题"],
     [1, "仅允许透明主题"],

@@ -22,6 +22,8 @@ import { MEditor, getEditor } from "../widget/MEditor";
 import MySyntaxHighlighter from "../widget/MySyntaxHighlither";
 import { MyQuestionMark } from "../widget/MyQuestionMark";
 
+export const directOutMenuItem = { value: 0, label: "#0 不使用隧道，直接转发" }
+
 export function ForwardRulesView(props: { userInfo: any }) {
   const { userInfo } = props;
 
@@ -92,18 +94,6 @@ export function ForwardRulesView(props: { userInfo: any }) {
         }
       }
       {
-        const chukou = document.getElementById("id-chukou")
-        if (chukou != null) {
-          if (dgInConfig.direct) {
-            chukou.style.display = "none"
-            editingObj.current.device_group_out = null
-            setCurrentOutboundDgId(0)
-          } else {
-            chukou.style.display = ""
-          }
-        }
-      }
-      {
         const ljxx = document.getElementById("id-ljxx")
         const ljxxFlex = document.getElementById("id-ljxx-flex")
         if (ljxx != null && ljxxFlex != null) {
@@ -116,18 +106,12 @@ export function ForwardRulesView(props: { userInfo: any }) {
               str.push("协议: WS 隧道")
             } else if (dgOut.display_protocol == "http") {
               str.push("协议: HTTP 隧道")
-            } else if (dgOut.display_protocol == "direct") {
-              str.push("协议: 直接转发")
-              disable_mux = true
             } else {
               str.push("协议: 未知")
             }
             if (disable_mux != true) {
               str.push("延迟优化: 开启")
             }
-          }
-          if (dgInConfig.direct) {
-            str.push("转发类型: 入口直出")
           }
           // 更新出口信息
           if (str.length == 0) {
@@ -144,6 +128,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     // TODO 啊？
     try {
       const dgIn = findObjByIdId(deviceGroupList, currentInboundDgId);
+      const dgInConfig = dgIn.config_parsed
       const dgOutList1 = myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite]);
       const dgOutList2: any[] = [];
       for (const o of dgOutList1) {
@@ -166,6 +151,21 @@ export function ForwardRulesView(props: { userInfo: any }) {
       const disallowUserOutbound = dgIn != null && String(dgIn.allowed_out).includes("禁止单端")
       if (!disallowUserOutbound) {
         options.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundByUser])));
+      }
+      if (dgInConfig.direct) {
+        dgInConfig.direct_policy = 2
+        MyMessage.info("此条规则所在的入口暂未完成「新版入口直出」升级，建议先不要编辑，等待站点管理员完成升级，以免出现问题。");
+      }
+      // 入口直出策略
+      if (dgInConfig.direct_policy == 1) {
+        options.unshift(directOutMenuItem);
+      } else if (dgInConfig.direct_policy == 2) {
+        options = [directOutMenuItem];
+        editingObj.current.device_group_out = 0
+        setCurrentOutboundDgId(0)
+      } else if (editingObj.current.device_group_out == 0) {
+        editingObj.current.device_group_out = null
+        setCurrentOutboundDgId(-1)
       }
       // console.log(options)
       render2Node(<Flex className='neko-settings-flex-line'>
@@ -468,7 +468,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <Typography.Text strong>出口 (留空不更新)</Typography.Text>
           <Select
             options={(() => {
-              const list: any[] = [{ value: "0", label: "#0 (无需出口)" }]
+              const list: any[] = [directOutMenuItem]
               list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])))
               return list
             })()}

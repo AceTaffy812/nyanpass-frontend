@@ -19,6 +19,7 @@ import { DeviceGroupType, FrontForwardConfig, FrontInviteConfig, SelectorType, t
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 import { apiForward } from '../api/forward';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
+import { directOutMenuItem } from './ForwardRules';
 
 export function AdminUsersView(props: { userInfo: any }) {
   const forward = new apiForward("0") // 影响全局的转发规则接口
@@ -729,7 +730,7 @@ export function AdminUsersView(props: { userInfo: any }) {
           <Typography.Text strong>出口 (留空不更新)</Typography.Text>
           <Select
             options={(() => {
-              const list: any[] = [{ value: "0", label: "#0 (无需出口)" }]
+              const list: any[] = [directOutMenuItem]
               list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])))
               return list
             })()}
