@@ -101,10 +101,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
           let str = []
           let disable_mux = dgInConfig.disable_mux
           if (dgOut != null) {
-            let dg = dgIn;
+            let dg = dgOut;
             if (group_checker(dgInConfig.reverse_group, currentOutboundDgId)) {
               str.push("隧道反向连接")
-              dg = dgOut;
+              dg = dgIn;
             }
             if (dg.display_protocol == "tls" || dg.display_protocol == "tls_simple") {
               str.push("协议: TLS 隧道")
