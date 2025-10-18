@@ -185,4 +185,17 @@ export class apiUser {
         });
         return processJson(rsp);
     }
+
+    async notification_settings_get(): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/notification/settings");
+        return processJson(rsp);
+    }
+
+    async notification_settings_put(obj: any): Promise<any> {
+        var rsp = await fetchApi("/api/v1/user/notification/settings", {
+            method: "PUT",
+            body: JSON.stringify(obj)
+        });
+        return processJson(rsp);
+    }
 }

@@ -2,19 +2,24 @@ import { useRef, useEffect, useState } from 'react';
 import { api } from '../api/api';
 import { asyncFetchJson, promiseFetchJson } from '../util/fetch';
 import { byteConverter, formatInfoTraffic, formatUnix } from '../util/format';
-import { ignoreError, ignoreErrorAndBlank } from '../util/promise';
+import { ignoreError, ignoreErrorAndBlank, newPromiseRejectNow } from '../util/promise';
 import { Button, Card, Flex, Form, Input, InputNumber, Popconfirm, Select, SelectProps, Space, Switch, Tag, Typography } from 'antd';
 import { DisconnectOutlined, LinkOutlined, LockOutlined, PlusCircleOutlined, SettingOutlined, SyncOutlined } from '@ant-design/icons';
-import { MyModal } from '../util/MyModal';
+import { MyMessage, MyModal } from '../util/MyModal';
 import { showCommonError } from '../util/commonError';
 import { displayCurrency } from '../util/ui';
 import { myvar, reloadMyVar } from '../myvar';
 import { FrontInviteConfig } from '../api/model_front';
-import { generateBigCharacter, isNotBlank } from '../util/misc';
+import { generateBigCharacter } from '../util/misc';
+import UserNotificationSettingsEditor, { UserNotificationSettingsEditorRef } from '../widget/NotificationSettings';
 
-const telegramReceiveOptions: SelectProps['options'] = [
-  { label: "收款信息", value: "income" },
-  { label: "设备离线与恢复", value: "updown" },
+const msgTypes: SelectProps['options'] = [
+  { label: "收款信息", value: "income", haveList: false },
+  { label: "设备离线与恢复", value: "updown", haveList: true, helpMsg: "List 应该填写设备组 ID 数字" },
+];
+
+const channels: SelectProps['options'] = [
+  { label: "Telegram", value: 0 },
 ];
 
 export function UserInfoView(props: { userInfo: any }) {
@@ -118,27 +123,35 @@ export function UserInfoView(props: { userInfo: any }) {
     })
   }
 
-  function btn_telegram_notify_onclick() {
-    MyModal.confirm({
-      icon: <p />,
-      title: "Telegram 推送设置",
-      content: <Flex vertical>
-        <Flex className='neko-settings-flex-line'>
-          <Typography.Text strong>接受的推送类型</Typography.Text>
-          <Select
-            mode="multiple"
-            allowClear
-            defaultValue={isNotBlank(userInfo.telegram_notify) ? userInfo.telegram_notify.split(",") : []}
-            onChange={e => userInfo.telegram_notify = e.join(",")}
-            options={telegramReceiveOptions}
-          />
-        </Flex>
-      </Flex>,
-      onOk: () => {
-        return promiseFetchJson(api.user.update_column("telegram_notify", userInfo.telegram_notify), (ret) => {
-          showCommonError(ret, ["设置成功", "设置失败"], () => reloadMyVar({ userInfo: true }))
-        })
-      }
+  const editorRef = useRef<UserNotificationSettingsEditorRef>(null);
+
+  function btn_notify_settings_onclick() {
+    asyncFetchJson(api.user.notification_settings_get(), (ret) => {
+      MyModal.confirm({
+        width: 600,
+        icon: <p />,
+        title: "推送设置",
+        content: <UserNotificationSettingsEditor
+          ref={editorRef}
+          initialSettings={ret.data}
+          availableMsgTypes={msgTypes}
+          availableChannels={channels}
+        />,
+        onOk: () => {
+          const settings = editorRef.current?.getSettings();
+          if (settings) {
+            return promiseFetchJson(api.user.notification_settings_put(settings), (ret) => {
+              showCommonError(ret, true);
+              if (ret.code == 0) {
+                reloadMyVar({ userInfo: true })
+              }
+            })
+          } else {
+            MyMessage.error("无法获取编辑器引用。");
+            return newPromiseRejectNow(null);
+          }
+        }
+      })
     })
   }
 
@@ -183,9 +196,9 @@ export function UserInfoView(props: { userInfo: any }) {
     <Typography.Text strong>连接数限制</Typography.Text>
     <Typography.Text>{ignoreError(() => userInfo.connection_limit)}</Typography.Text>
   </Flex> : <></>
-  const tgNotify = ignoreError(() => userInfo.admin) == true ? <Flex className='ant-flex3'>
-    <Typography.Text strong>Telegram 推送信息</Typography.Text>
-    <Button icon={<SettingOutlined />} onClick={btn_telegram_notify_onclick}>设置</Button>
+  const notify_settings = ignoreError(() => userInfo.admin) == true ? <Flex className='ant-flex3'>
+    <Typography.Text strong>推送信息</Typography.Text>
+    <Button icon={<SettingOutlined />} onClick={btn_notify_settings_onclick}>设置</Button>
   </Flex> : <></>
 
   const invite_code = ignoreError(() => userInfo.invite_code, "");
@@ -249,7 +262,7 @@ export function UserInfoView(props: { userInfo: any }) {
               <Button danger icon={<DisconnectOutlined />}>取消关联</Button>
             </Popconfirm>
           </Flex>
-          {tgNotify}
+          {notify_settings}
         </Space>
       </Card>
       <Card title="账户设置">

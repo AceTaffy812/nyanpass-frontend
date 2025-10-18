@@ -1,3 +1,4 @@
+import { clone } from "lodash"
 import { ignoreError } from "../util/promise"
 
 export class FrontSiteInfo {
@@ -64,13 +65,15 @@ export const DeviceGroupType = {
     AgentOnly: "DeviceGroupType_AgentOnly",
     Inbound: "DeviceGroupType_Inbound",
     OutboundBySite: "DeviceGroupType_OutboundBySite",
-    OutboundByUser: "DeviceGroupType_OutboundByUser"
+    OutboundByUser: "DeviceGroupType_OutboundByUser",
+    ChainOutbound: "DeviceGroupType_ChainOutbound",
 }
 
 export const DeviceGroupType_AdminCanAdd = {
     AgentOnly: "DeviceGroupType_AgentOnly",
     Inbound: "DeviceGroupType_Inbound",
     OutboundBySite: "DeviceGroupType_OutboundBySite",
+    ChainOutbound: "DeviceGroupType_ChainOutbound",
 }
 
 export const PlanType = {
@@ -145,6 +148,7 @@ const ConstTextMap = {
     "DeviceGroupType_Inbound": "入口",
     "DeviceGroupType_OutboundBySite": "出口",
     "DeviceGroupType_OutboundByUser": "单端出口",
+    "DeviceGroupType_ChainOutbound": "链式出口",
     "ForwardRuleStatus_Unsync": "未同步",
     "ForwardRuleStatus_Normal": "正常",
     "ForwardRuleStatus_Failed": "同步失败",
@@ -188,4 +192,26 @@ export function translatePlanType(obj: any): string {
         default:
             return translateBackendString(obj.type)
     }
+}
+
+export function processDeviceGroup(data: any, needClone?: boolean) {
+    if (data == null) {
+        data = [];
+    }
+    if (needClone) {
+        data = clone(data);
+    }
+    return data.map((item: any) => {
+        if (item.type === DeviceGroupType.ChainOutbound) {
+            item.dispay_type = "链式出口";
+        } else if (item.type === DeviceGroupType.OutboundByUser) {
+            item.dispay_type = "用户自带设备";
+        }
+        const haveDev = item.display_num > 0;
+        if (item.type !== DeviceGroupType.ChainOutbound && !haveDev) {
+            item.dispay_warning = "无设备";
+        }
+        item.config_parsed = ignoreError(() => JSON.parse(item.config), {});
+        return item;
+    });
 }

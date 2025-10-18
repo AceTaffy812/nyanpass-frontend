@@ -629,12 +629,18 @@
             const text = `IP: ${server.BackendObj.ip4}<br>当前权重: ${server.BackendObj.weight}<br><br>权重 0 即不在隧道转发中使用此服务器。<br><br>建议: 组内配置最低的机器设置为 1 权重，高配机器根据 CPU 核心数等适量增加权重。`
             const title = "更改权重"
             mdui.prompt(text, title, (value) => {
-                value = String(value).trim();
-                const n = Number(value);
-                if (!Number.isInteger(n) || n < 0 || n > 10) {
-                    mdui.alert("错误: 权重必须是 0~10 的整数。")
-                    return
+                // 1. 修剪输入值，确保它是一个字符串
+                value = String(value || "").trim();
+
+                // 2. 检查是否为清空操作
+                if (value != "") {
+                    const n = Number(value);
+                    if (!Number.isInteger(n) || n < 0 || n > 10) {
+                        mdui.alert("错误: 权重必须是 0~10 的整数。")
+                        return
+                    }
                 }
+
                 fetch("/api/v1/system/node/weight/" + server.gid + "/" + server.SessionId, {
                     method: "PUT",
                     headers: {

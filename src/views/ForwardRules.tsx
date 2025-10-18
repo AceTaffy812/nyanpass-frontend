@@ -7,20 +7,21 @@ import React, { useEffect, useRef, useState } from "react";
 import { api } from "../api/api";
 import { apiForward } from "../api/forward";
 import { ReqSearchRules, TableParams, tableParams2Qs } from "../api/model_api";
-import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, translateBackendString } from "../api/model_front";
+import { DeviceGroupType, FrontForwardConfig, SelectorType, parseFrontForwardConfig, processDeviceGroup, translateBackendString } from "../api/model_front";
 import { myLodash, myvar, reloadMyVar } from "../myvar";
 import { commonEx, showCommonError } from "../util/commonError";
 import { asyncFetchJson, promiseFetchJson } from "../util/fetch";
 import { byteConverter, formatDests, formatInfoTraffic, formatUnix, strongColor } from "../util/format";
-import { batchIds, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter, string2IntArray, tryParseJSONObject } from "../util/misc";
+import { batchIds, cleanupDefaultValue, findObjByIdId, group_checker, isNotBlank, myFilter, string2IntArray, tryParseJSONObject } from "../util/misc";
 import { MyMessage, MyModal, closeCurrentDialog } from "../util/MyModal";
 import { ignoreError, ignoreErrorAndBlank } from "../util/promise";
 import { render2Node } from "../util/reactw";
-import { copyToClipboard, getPageSize, renderP, renderSelectBackendString, renderSelectIdName, setPageSize, tableShowTotal } from "../util/ui";
+import { copyToClipboard, getPageSize, renderP, renderSelect4, renderSelectBackendString, setPageSize, tableShowTotal } from "../util/ui";
 import { IPPortWidget } from "../widget/IPPortWidget";
 import { MEditor, getEditor } from "../widget/MEditor";
-import MySyntaxHighlighter from "../widget/MySyntaxHighlither";
 import { MyQuestionMark } from "../widget/MyQuestionMark";
+import { showDiagnoseResult } from "../widget/DiagnoseResult";
+import { DeviceGroupWidget } from "../widget/DeviceGroupWidget";
 
 export const directOutMenuItem = { value: 0, label: "#0 不使用隧道，直接转发" }
 
@@ -100,11 +101,16 @@ export function ForwardRulesView(props: { userInfo: any }) {
           let str = []
           let disable_mux = dgInConfig.disable_mux
           if (dgOut != null) {
-            if (dgOut.display_protocol == "tls" || dgOut.display_protocol == "tls_simple") {
+            let dg = dgIn;
+            if (group_checker(dgInConfig.reverse_group, currentOutboundDgId)) {
+              str.push("隧道反向连接")
+              dg = dgOut;
+            }
+            if (dg.display_protocol == "tls" || dg.display_protocol == "tls_simple") {
               str.push("协议: TLS 隧道")
-            } else if (dgOut.display_protocol == "ws" || dgOut.display_protocol == "ws2") {
+            } else if (dg.display_protocol == "ws") {
               str.push("协议: WS 隧道")
-            } else if (dgOut.display_protocol == "http") {
+            } else if (dg.display_protocol == "http") {
               str.push("协议: HTTP 隧道")
             } else {
               str.push("协议: 未知")
@@ -114,7 +120,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
             }
           }
           // 更新出口信息
-          if (str.length == 0) {
+          if (str.length == 0 || dgOut.type == DeviceGroupType.ChainOutbound) {
             ljxxFlex.style.display = "none"
           } else {
             ljxxFlex.style.display = ""
@@ -129,7 +135,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     try {
       const dgIn = findObjByIdId(deviceGroupList, currentInboundDgId);
       const dgInConfig = dgIn.config_parsed
-      const dgOutList1 = myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite]);
+      const dgOutList1 = myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.ChainOutbound]);
       const dgOutList2: any[] = [];
       for (const o of dgOutList1) {
         let canUseThisOutbound = true;
@@ -142,7 +148,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           dgOutList2.push(o)
         }
       }
-      let options = renderSelectIdName(dgOutList2);
+      let options = renderSelect4(dgOutList2);
       // 有设置限制出口
       if (dgIn != null && isNotBlank(dgIn.allowed_out)) {
         const allowed = string2IntArray(dgIn.allowed_out);
@@ -150,7 +156,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
       }
       const disallowUserOutbound = dgIn != null && String(dgIn.allowed_out).includes("禁止单端")
       if (!disallowUserOutbound) {
-        options.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundByUser])));
+        options.push(...renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundByUser])));
       }
       if (dgInConfig.direct) {
         dgInConfig.direct_policy = 2
@@ -262,18 +268,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     // 还有其他要东西加载。。。
     asyncFetchJson(forward.affectId ? api.admin.devicegroup_list("uid=" + forward.affectId) : api.user.devicegroup_list(), (ret) => {
       if (ret.data != null) {
-        for (let i = 0; i < ret.data.length; i++) {
-          // 不post这个对象，可以安全乱改
-          if (ret.data[i].type == DeviceGroupType.OutboundByUser) {
-            ret.data[i].name = ret.data[i].name + " (用户自带设备)"
-          } else {
-            ret.data[i].name = ret.data[i].name + " (倍率 " + ret.data[i].ratio + ")"
-          }
-          const haveOnline = ret.data[i].display_num > 0
-          if (!haveOnline) ret.data[i].name = "[无在线设备] " + ret.data[i].name
-          ret.data[i].config_parsed = ignoreError(() => JSON.parse(ret.data[i].config), {})
-        }
-        setDeviceGroupList(ret.data)
+        setDeviceGroupList(processDeviceGroup(ret.data));
       }
     })
   }
@@ -460,7 +455,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>入口 (留空不更新)</Typography.Text>
           <Select
-            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
             onChange={(e) => { obj.qdDgIn = String(e) }}
           ></Select>
         </Flex>
@@ -469,7 +464,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <Select
             options={(() => {
               const list: any[] = [directOutMenuItem]
-              list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])))
+              list.push(...renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser, DeviceGroupType.ChainOutbound])))
               return list
             })()}
             onChange={(e) => { obj.qdDgOut = String(e) }}
@@ -526,11 +521,11 @@ export function ForwardRulesView(props: { userInfo: any }) {
   function diagnose(e: number) {
     if (e <= 0) return
     asyncFetchJson(forward.forward_diagnose(e), (ret) => {
-      MyModal.info({
-        width: 800,
-        title: "诊断结果 (#" + e + ")",
-        content: <MySyntaxHighlighter>{ret.msg}</MySyntaxHighlighter>
-      })
+      if (ret.code == 0) {
+        showDiagnoseResult("诊断结果 (#" + e + ")", ret.data)
+      } else {
+        showCommonError(ret, true)
+      }
     })
   }
 
@@ -575,14 +570,14 @@ export function ForwardRulesView(props: { userInfo: any }) {
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>入口</Typography.Text>
           <Select
-            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
             onChange={(e) => { obj.gid_in = e }}
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>出口</Typography.Text>
           <Select
-            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser, DeviceGroupType.ChainOutbound]))}
             onChange={(e) => { obj.gid_out = e }}
           ></Select>
         </Flex>
@@ -623,36 +618,39 @@ export function ForwardRulesView(props: { userInfo: any }) {
   const columns: ColumnsType<any> = [
     { title: '规则名', key: 'name', dataIndex: 'display_name', sorter: true },
     {
-      title: '入口', key: 'device_group_in', dataIndex: 'id', render: function (e: number) {
+      title: '入口', key: 'device_group_in', dataIndex: 'id',
+      render: (e: number): React.ReactNode => {
         let fw = findObjByIdId(data, e)
-        if (fw == null) return <Typography.Text>加载失败</Typography.Text>
+        if (fw == null) return <Typography.Text>加载失败</Typography.Text>;
         let devWtf = findObjByIdId(deviceGroupList, fw.device_group_in)
         if (devWtf == null) {
-          devWtf = { name: "加载失败 #" + fw.device_group_in, connect_host: "加载失败" }
+          return <Flex vertical gap={4} >
+            <span>入口: 加载失败 #{fw.device_group_in}</span>
+            <span>端口: {fw.listen_port}</span>
+          </Flex>
         } else {
           devWtf = clone(devWtf) // 乱改对象之前，先复制
         }
-        devWtf.port_range = fw.listen_port
-        devWtf.display_name = fw.display_name
-        return <Flex vertical gap={1}>
-          <Tooltip title={'#' + fw.device_group_in}>
-            <Typography.Text>入口: {ignoreError(() => devWtf.name, "#" + fw.device_group_in)}</Typography.Text>
-          </Tooltip>
-          <IPPortWidget data={devWtf} canOnlyPort={true} />
-        </Flex>
+        devWtf.port_range = fw.listen_port;
 
-      }, sorter: true
+        return (
+          <Flex vertical gap={4} >
+            <DeviceGroupWidget prefix="入口: " data={devWtf} />
+            <IPPortWidget data={devWtf} canOnlyPort={true} />
+          </Flex>
+        );
+      },
+      sorter: true
     },
     {
       title: '出口', key: 'device_group_out', dataIndex: 'id', render: function (e: number) {
         let fw = findObjByIdId(data, e)
-        const chukou = <Tooltip title={'#' + fw.device_group_out}>
-          <Typography.Text >出口: {ignoreError(() => findObjByIdId(deviceGroupList, fw.device_group_out).name, "加载失败 #" + fw.device_group_out)}</Typography.Text>
-        </Tooltip>
         const luodi = <Typography.Text>{formatDests(fw.config)}</Typography.Text>
         if (fw.device_group_out == 0) {
           return luodi
         }
+        const devWtf = findObjByIdId(deviceGroupList, fw.device_group_out)
+        const chukou = <DeviceGroupWidget prefix="出口: " data={devWtf} />
         return <Flex vertical gap={1}>
           {chukou}
           {luodi}
@@ -880,7 +878,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
           <Typography.Text strong>入口</Typography.Text>
           <Select
             defaultValue={obj.device_group_in}
-            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
             onChange={(e) => { editingObj.current.device_group_in = e; setCurrentInboundDgId(e) }}
           ></Select>
         </Flex>
@@ -982,8 +980,8 @@ export function ForwardRulesView(props: { userInfo: any }) {
       {title2}
       {search}
       <Button icon={<SyncOutlined />} onClick={() => {
-        updateData()
-        reloadMyVar({ userInfo: true })
+        updateData();
+        if (affectId == null) reloadMyVar({ userInfo: true });
       }}>刷新</Button>
       {tjsjButton}
     </Flex>

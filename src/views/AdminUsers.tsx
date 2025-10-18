@@ -11,15 +11,17 @@ import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { reloadMyVar } from '../myvar';
 import { closeCurrentDialog, MyMessage, MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
-import { displayCurrency, filtersBoolean, getPageSize, renderSelectBackendString, renderSelectIdName, setPageSize, tableSearchDropdown, tableShowTotal } from '../util/ui';
+import { displayCurrency, filtersBoolean, getPageSize, renderSelect4, renderSelectBackendString, renderSelectIdName, setPageSize, tableSearchDropdown, tableShowTotal } from '../util/ui';
 import { ReqSearchRules, TableParams, tableParams2Qs } from '../api/model_api';
 import dayjs, { unix } from 'dayjs';
 import { FilterValue, SorterResult } from 'antd/es/table/interface';
-import { DeviceGroupType, FrontForwardConfig, FrontInviteConfig, SelectorType, translateBackendString } from '../api/model_front';
+import { DeviceGroupType, FrontForwardConfig, FrontInviteConfig, processDeviceGroup, SelectorType, translateBackendString } from '../api/model_front';
 import { InviteSettings, editingInviteSettings } from '../widget/InviteSettings';
 import { apiForward } from '../api/forward';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
 import { directOutMenuItem } from './ForwardRules';
+import { DeviceGroupWidget } from '../widget/DeviceGroupWidget';
+import { IPPortWidget } from '../widget/IPPortWidget';
 
 export function AdminUsersView(props: { userInfo: any }) {
   const forward = new apiForward("0") // 影响全局的转发规则接口
@@ -113,12 +115,7 @@ export function AdminUsersView(props: { userInfo: any }) {
       })
       asyncFetchJson(api.admin.devicegroup_list(""), (ret) => {
         if (ret.data != null) {
-          const newData: any[] = []
-          for (let i = 0; i < ret.data.length; i++) {
-            ret.data[i].name = ret.data[i].name + " (#" + ret.data[i].id + ")" // 这里直接改name
-            newData.push(ret.data[i])
-          }
-          setDeviceGroupList(newData)
+          setDeviceGroupList(processDeviceGroup(ret.data));
         }
       })
       asyncFetchJson(api.admin.usergroup_list(), (ret) => {
@@ -171,14 +168,14 @@ export function AdminUsersView(props: { userInfo: any }) {
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>入口</Typography.Text>
           <Select
-            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.Inbound]))}
             onChange={(e) => { obj.gid_in = e }}
           ></Select>
         </Flex>
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>出口</Typography.Text>
           <Select
-            options={renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser]))}
             onChange={(e) => { obj.gid_out = e }}
           ></Select>
         </Flex>
@@ -591,7 +588,7 @@ export function AdminUsersView(props: { userInfo: any }) {
     MyModal.confirm({
       icon: <p />,
       title: "删除用户",
-      content: <p>你确定要删除用户 {findObjByIdId(data, e).username} 吗？</p>,
+      content: <p>你确定要删除用户 {findObjByIdId(data, e).username} (UID={e}) 吗？</p>,
       onOk: () => {
         return promiseFetchJson(api.admin.user_delete([e]), (ret) => {
           showCommonError(ret, ["", "删除用户失败"], updateData)
@@ -837,10 +834,46 @@ export function AdminUsersView(props: { userInfo: any }) {
             columns={[
               { title: '用户', key: 'user', dataIndex: 'display_username' },
               { title: '规则名', key: 'name', dataIndex: 'display_name' },
-              { title: '入口', key: 'listen_port', dataIndex: 'display_in' },
-              { title: '监听端口', key: 'listen_port', dataIndex: 'listen_port' },
-              { title: '出口', key: 'listen_port', dataIndex: 'display_out' },
-              { title: '目标地址', key: 'lddz', dataIndex: 'config', render: (config: string) => formatDests(config) },
+              {
+                title: '入口', key: 'device_group_in', dataIndex: 'id',
+                render: (e: number): React.ReactNode => {
+                  let fw = findObjByIdId(searchedRules, e)
+                  if (fw == null) return <Typography.Text>加载失败</Typography.Text>;
+                  let devWtf = findObjByIdId(deviceGroupList, fw.device_group_in)
+                  if (devWtf == null) {
+                    return <Flex vertical gap={4} >
+                      <span>入口: 加载失败 #{fw.device_group_in}</span>
+                      <span>端口: {fw.listen_port}</span>
+                    </Flex>
+                  } else {
+                    devWtf = clone(devWtf) // 乱改对象之前，先复制
+                  }
+                  devWtf.port_range = fw.listen_port;
+
+                  return (
+                    <Flex vertical gap={4} >
+                      <DeviceGroupWidget prefix="入口: " data={devWtf} />
+                      <IPPortWidget data={devWtf} canOnlyPort={true} />
+                    </Flex>
+                  );
+                },
+                sorter: true
+              },
+              {
+                title: '出口', key: 'device_group_out', dataIndex: 'id', render: function (e: number) {
+                  let fw = findObjByIdId(searchedRules, e)
+                  const luodi = <Typography.Text>{formatDests(fw.config)}</Typography.Text>
+                  if (fw.device_group_out == 0) {
+                    return luodi
+                  }
+                  const devWtf = findObjByIdId(deviceGroupList, fw.device_group_out)
+                  const chukou = <DeviceGroupWidget prefix="出口: " data={devWtf} />
+                  return <Flex vertical gap={1}>
+                    {chukou}
+                    {luodi}
+                  </Flex>
+                }, sorter: true
+              },
               { title: '已用流量', key: 'traffic_used', dataIndex: 'display_traffic' },
               {
                 title: '状态', key: 'status', dataIndex: 'id', render: (e: any) => {

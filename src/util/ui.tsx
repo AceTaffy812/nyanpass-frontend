@@ -4,6 +4,8 @@ import { MyMessage, MyModal } from "./MyModal";
 import MySyntaxHighlighter from "../widget/MySyntaxHighlither";
 import { FilterDropdownProps } from "antd/es/table/interface";
 import { ignoreError } from "./promise";
+import { findObjByIdId } from "./misc";
+import { DeviceGroupWidget } from "../widget/DeviceGroupWidget";
 
 export var displayCurrency = "元"
 
@@ -37,6 +39,24 @@ export function renderP(str: any) {
 }
 
 // 选择、过滤
+
+export function renderSelect4(dgList: any[]) {
+    return renderSelect3(dgList, (id: number) => {
+        let devWtf = findObjByIdId(dgList, id)
+        if (devWtf != null) {
+            return <DeviceGroupWidget data={devWtf} />
+        }
+        return "#" + id
+    })
+}
+
+export function renderSelect3(arr: any[], render: (id: number) => React.ReactNode) {
+    const ret = new Array();
+    arr.forEach((element: any) => {
+        ret.push({ value: element.id, label: render(element.id) })
+    })
+    return ret
+}
 
 export function renderSelectIdName(arr: any[], name?: string, showId?: boolean) {
     if (name == null) name = "name"

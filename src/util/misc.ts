@@ -156,3 +156,16 @@ export function string2IntArray(str: string): number[] {
         return n
     })
 }
+
+// group_checker 与后端相同逻辑
+export function group_checker(g: (number | string)[] | null | undefined, outGroupId: number | string): boolean {
+    if (!g || g.length === 0) {
+        return false;
+    }
+
+    if (g[0] === 0) {
+        return !g.includes(outGroupId);
+    }
+
+    return g.includes(outGroupId);
+}

@@ -1,5 +1,5 @@
 import path from 'path'
-import { defineConfig, splitVendorChunkPlugin, Plugin } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer';
 import { cdn } from "vite-plugin-cdn2";
@@ -79,7 +79,6 @@ export default defineConfig(({ command }) => {
     base: "./", // 相对路径
     plugins: [
       react(),
-      // splitVendorChunkPlugin(),
       cdn(isProduction ? { // 自动引入
         modules: [
           { name: 'dayjs', relativeModule: './dayjs.min.js' }, // antd 依赖，要放前面

@@ -12,11 +12,13 @@ import { clone } from 'lodash-es';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { formatInfoTraffic } from '../util/format';
 import { MEditor, getEditor } from '../widget/MEditor';
-import { myvar } from '../myvar';
+import { myLodash, myvar } from '../myvar';
 import { noDistConfig } from '../distConfig';
 import { IPPortWidget } from '../widget/IPPortWidget';
 import { MyQuestionMark } from '../widget/MyQuestionMark';
 import { AntDragSortTable, DragHandle } from '../widget/AntDragSortTable';
+import { render2Node } from '../util/reactw';
+import { checkChain, StatefulOutboundEditorWrapper } from '../widget/ChainOutbound';
 
 export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutbound: boolean }) {
   const api2 = props.isAdmin ? api.admin : api.user
@@ -140,23 +142,37 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
   if (!props.isAdmin) columns.splice(5 - 2, 1) // 隐藏列
 
   const onTypeChange = (e: string) => {
-    editingObj.current.type = e
+    e = String(e)
     // 更新可视
     const visFw = document.querySelectorAll(".vis-fw")
+    const visTz = document.querySelectorAll(".vis-tz")
     const visInbound = document.querySelectorAll(".vis-inbound")
     const visOutbound = document.querySelectorAll(".vis-outbound")
+    const visChain = document.querySelectorAll(".vis-chain")
     if (e == DeviceGroupType.Inbound) {
+      visTz.forEach((el) => (el as HTMLElement).style.display = "")
       visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visChain.forEach((el) => (el as HTMLElement).style.display = "none")
+    } else if (e.includes("Chain")) {
+      visTz.forEach((el) => (el as HTMLElement).style.display = "none")
+      visFw.forEach((el) => (el as HTMLElement).style.display = "")
+      visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visChain.forEach((el) => (el as HTMLElement).style.display = "")
     } else if (e.includes("Outbound")) {
+      visTz.forEach((el) => (el as HTMLElement).style.display = "")
       visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "")
+      visChain.forEach((el) => (el as HTMLElement).style.display = "none")
     } else {
+      visTz.forEach((el) => (el as HTMLElement).style.display = "")
       visFw.forEach((el) => (el as HTMLElement).style.display = "none")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visChain.forEach((el) => (el as HTMLElement).style.display = "none")
     }
   }
 
@@ -178,7 +194,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     editingObj.current = obj
     editingObjConfig.current = ignoreError(() => JSON.parse(obj.config), {})
     // 啊啊啊
-    if (props.isAdmin && !isNew) {
+    if (props.isAdmin) {
       setTimeout(() => {
         onTypeChange(editingObj.current.type)
       }, 300);
@@ -199,7 +215,12 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
           <Typography.Text strong>
             用户组 ID
-            <MyQuestionMark title={"有权使用此组转发的用户组 ID (使用英文逗号分割， 0 表示无套餐用户可以查看探针。)"} />
+            <MyQuestionMark title={
+              <div>
+                <p>有权使用此组转发的用户组 ID (使用英文逗号分割， 0 表示无套餐用户可以查看探针)</p>
+                <p>格式填错可能导致无法创建转发规则。</p>
+              </div>
+            } />
           </Typography.Text>
           <Input
             defaultValue={obj.enable_for_gid}
@@ -224,7 +245,11 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             disabled={!isNew}
             defaultValue={obj.type}
             options={renderSelectBackendString(DeviceGroupType_AdminCanAdd)}
-            onChange={onTypeChange}
+            onChange={(e) => {
+              editingObj.current.type = e
+              myLodash.unset(editingObjConfig.current, 'chain')
+              onTypeChange(e)
+            }}
           ></Select>
         </Flex>
         {/* 入口 */}
@@ -340,7 +365,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           ></Select>
         </Flex>
         {/* 最后 */}
-        <Flex className='neko-settings-flex-line' style={props.isAdmin ? {} : { display: "none" }}>
+        <Flex className='neko-settings-flex-line vis-tz' style={props.isAdmin ? {} : { display: "none" }}>
           <Typography.Text strong style={{ paddingRight: "1em" }}>在探针中隐藏</Typography.Text>
           <div style={{ flex: 1 }}>
             <Select
@@ -357,8 +382,26 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
             onChange={(e) => editingObj.current.note = e.target.value.trim()}
           ></Input.TextArea>
         </Flex>
+        <div id='id-chain' className='vis-chain' style={{ display: "none" }}>
+          <Button onClick={() => {
+            render2Node(<StatefulOutboundEditorWrapper
+              title='链式出口配置'
+              initialChain={editingObjConfig.current.chain}
+              onChange={(e) => {
+                editingObjConfig.current.chain = e
+                // console.log(e)
+              }}
+              outbounds={myFilter(data, "type", [DeviceGroupType.OutboundBySite])}
+            />, document.getElementById("id-chain")!!)
+          }}>打开链式出口配置</Button>
+        </div>
       </Flex>,
       onOk: () => {
+        if (editingObjConfig.current.chain != null) {
+          if (checkChain(editingObjConfig.current.chain) !== true) {
+            return newPromiseRejectNow(null)
+          }
+        }
         if (!allFalseMap(editingError.current)) return newPromiseRejectNow(null)
         editingObj.current.config = JSON.stringify(cleanupDefaultValue(editingObjConfig.current))
         return promiseFetchJson(isNew ? api2.devicegroup_create(editingObj.current) : api2.devicegroup_update(obj.id, editingObj.current), (ret) => {

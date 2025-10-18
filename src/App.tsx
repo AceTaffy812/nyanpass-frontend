@@ -24,6 +24,7 @@ import { AdminMainView } from './views/AdminMain';
 import { AdminUserGroupsView } from './views/AdminUserGroup';
 import { AdminRedeemCode } from './views/AdminRedeemCode';
 import { resolveFailedToFetch } from './myvarinit';
+import { AdminPushChannelConfigView } from './views/AdminPushChannelConfig';
 
 export function MyApp(props: { isDarkMode: boolean }) {
   const url = new URL(location as any)
@@ -188,6 +189,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
         children: [
           getItem(nav, "side", "/admin/main"),
           getItem(nav, "side", "/admin/settings"),
+          getItem(nav, "side", "/admin/push_settings"),
           getItem(nav, "side", "/admin/users"),
           getItem(nav, "side", "/admin/user_group"),
           getItem(nav, "side", "/admin/orders"),
@@ -286,6 +288,7 @@ export function MyApp(props: { isDarkMode: boolean }) {
               <Route path="/looking_glass" element={<LookingGlassView />} />
               <Route path="/admin/main" element={<AdminMainView />} />
               <Route path="/admin/settings" element={<AdminSettingsView userInfo={userInfo} siteInfo={siteInfo} />} />
+              <Route path="/admin/push_settings" element={<AdminPushChannelConfigView />} />
               <Route path="/admin/users" element={<AdminUsersView userInfo={userInfo} />} />
               <Route path="/admin/user_group" element={<AdminUserGroupsView />} />
               <Route path="/admin/device_group" element={<DeviceGroupsView isAdmin={true} adminShowUserOutbound={false} />} />

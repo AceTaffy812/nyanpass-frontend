@@ -1,6 +1,7 @@
 import { NavigateFunction } from "react-router-dom";
 import { ignoreError } from "./util/promise";
-import { AimOutlined, CloudServerOutlined, DashboardOutlined, DesktopOutlined, HomeOutlined, OrderedListOutlined, RedEnvelopeOutlined, SettingOutlined, ShoppingOutlined, TagsOutlined, TeamOutlined, TransactionOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
+import { AimOutlined, CloudServerOutlined, DashboardOutlined, DesktopOutlined, HomeOutlined, NotificationOutlined, OrderedListOutlined, RedEnvelopeOutlined, SettingOutlined, ShoppingOutlined, TagsOutlined, TeamOutlined, TransactionOutlined, UnorderedListOutlined, UserOutlined } from "@ant-design/icons";
+import { AdminPushChannelConfigView } from "./views/AdminPushChannelConfig";
 
 export function myNavFactory(nav: NavigateFunction, setBreadTitle: (t: string) => void, callback: () => void) {
     return function (to: string, onlyUpdateTitle?: boolean) {
@@ -28,6 +29,7 @@ export const myNavMap: any = {
     "/looking_glass": ["LookingGlass", < AimOutlined />],
     "/admin/main": ["管理/仪表盘", <DashboardOutlined />],
     "/admin/settings": ["管理/站点设置", <SettingOutlined />],
+    "/admin/push_settings": ["管理/推送通道", <NotificationOutlined />],
     "/admin/users": ["管理/用户管理", <UserOutlined />],
     "/admin/user_group": ["管理/用户组管理", <TeamOutlined />],
     "/admin/orders": ["管理/订单管理", <OrderedListOutlined />],
