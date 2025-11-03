@@ -5,7 +5,7 @@ import { api } from '../api/api';
 import { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { byteConverter, formatDests, formatBoolean, formatInfoTraffic, formatUnix, strongColor } from '../util/format';
 import { allFalseMap, batchIds, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter } from '../util/misc';
-import { BackwardOutlined, CheckSquareOutlined, DeleteOutlined, DisconnectOutlined, EditOutlined, PaperClipOutlined, PauseCircleOutlined, PlayCircleOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
+import { BackwardOutlined, CheckSquareOutlined, DeleteOutlined, DisconnectOutlined, EditOutlined, PaperClipOutlined, PauseCircleOutlined, PlayCircleOutlined, RedEnvelopeOutlined, SearchOutlined, ShoppingOutlined, SyncOutlined, UserAddOutlined, UserOutlined } from '@ant-design/icons';
 import { commonEx, showCommonError } from '../util/commonError';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
 import { reloadMyVar } from '../myvar';
@@ -57,10 +57,11 @@ export function AdminUsersView(props: { userInfo: any }) {
     return (ret: any) => {
       if (ret.code == 0) {
         if (ret.data.length == 0) {
-          searchObj.current = null;
           MyMessage.info("没有符合该条件的规则")
           if (!newSearch) {
-            setSearched(false); updateData(); //退回全部规则
+            //退回全部规则
+            searchObj.current = null;
+            setSearched(false);
           } else {
             throw commonEx
           }
@@ -73,10 +74,11 @@ export function AdminUsersView(props: { userInfo: any }) {
         setSearched(true)
         if (newSearch) MyMessage.info(`找到 ${ret.data.length} 条规则`)
       } else {
-        searchObj.current = null;
         MyMessage.error(`搜索出错: ${ret.code} ${ret.msg}`)
         if (!newSearch) {
-          setSearched(false); updateData(); //退回全部规则
+          //退回全部规则
+          searchObj.current = null;
+          setSearched(false);
         } else {
           throw commonEx
         }
@@ -811,6 +813,7 @@ export function AdminUsersView(props: { userInfo: any }) {
             <Button icon={<SearchOutlined />} onClick={btn_search_rules_onclick}>搜索规则</Button>
             <Button icon={<DeleteOutlined />} onClick={btn_delete_unused_onclick}>清理无效用户</Button>
             <Button icon={<DeleteOutlined />} onClick={btn_delete_unused_rules_onclick}>清理无效规则</Button>
+            <Button icon={<SyncOutlined />} onClick={() => { updateData(); }}>刷新</Button>
           </Flex>
           <Table
             rowKey="id"
@@ -825,7 +828,7 @@ export function AdminUsersView(props: { userInfo: any }) {
       <Card title={`找到 ${searchedRules.length} 条规则`} style={{ display: searched ? "" : "none" }}>
         <Flex vertical>
           <Flex>
-            <Button icon={<BackwardOutlined />} onClick={() => setSearched(false)}>返回所有用户</Button>
+            <Button icon={<BackwardOutlined />} onClick={() => { searchObj.current = null; setSearched(false); }}>返回所有用户</Button>
             <Button icon={<CheckSquareOutlined />} onClick={() => batchUpdateRules(searchedSelectedRowKeys)}>批量切换</Button>
             <Button icon={<DeleteOutlined />} onClick={() => deleteRules(searchedSelectedRowKeys)}>删除选中</Button>
           </Flex>

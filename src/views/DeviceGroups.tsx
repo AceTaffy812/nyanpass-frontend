@@ -6,7 +6,7 @@ import { allFalseMap, cleanupDefaultValue, findObjByIdId, isNotBlank, myFilter, 
 import { showCommonError } from '../util/commonError';
 import { DeviceGroupType, DeviceGroupType_AdminCanAdd, DirectPolicy, HideInServerStatus, translateBackendString } from '../api/model_front';
 import { copyToClipboard, renderSelect2, renderSelectBackendString, renderSelectIdName } from '../util/ui';
-import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { CopyOutlined, DeleteOutlined, DisconnectOutlined, EditFilled, EditOutlined, FileAddOutlined, FireOutlined, InboxOutlined, InfoCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { MyModal } from '../util/MyModal';
 import { clone } from 'lodash-es';
 import { ignoreError, newPromiseRejectNow } from '../util/promise';
@@ -91,44 +91,46 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     { title: '备注', key: 'note', dataIndex: 'note', render: (n: any) => n ? String(n).split("\n")[0] : "" },
     {
       title: '操作', key: 'action', dataIndex: 'id', render: function (e: number) {
+        const obj = findObjByIdId(data, e)
+        const duijieButton = obj.type == DeviceGroupType.ChainOutbound ? null : <Dropdown
+          menu={{
+            items: [
+              {
+                key: '1',
+                label: obj.display_name,
+                disabled: true,
+              },
+              {
+                type: 'divider',
+              },
+              {
+                key: "copyCommand1",
+                icon: <CopyOutlined />,
+                label: "复制在线安装命令 (自动探测线路)",
+                onClick: () => copyOnekeyCommand(obj, false)
+              },
+              {
+                key: "copyCommand2",
+                icon: <CopyOutlined />,
+                label: "复制在线安装命令 (海外主线路)",
+                onClick: () => copyOnekeyCommand(obj, true)
+              },
+              {
+                key: "offlineCommand",
+                icon: <InboxOutlined />,
+                label: "离线部署",
+                onClick: () => offlineCommand(obj)
+              },
+              {
+                key: "openConfig",
+                icon: <InfoCircleOutlined />,
+                label: "查看节点配置（调试用）",
+                onClick: () => window.open("/api/v1/client/config_v2?token=" + obj.token, '_blank')
+              }
+            ]
+          }}><Button>对接</Button></Dropdown>
         return <Flex gap={8}>
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: '1',
-                  label: findObjByIdId(data, e).display_name,
-                  disabled: true,
-                },
-                {
-                  type: 'divider',
-                },
-                {
-                  key: "copyCommand1",
-                  icon: <CopyOutlined />,
-                  label: "复制在线安装命令 (自动探测线路)",
-                  onClick: () => copyOnekeyCommand(findObjByIdId(data, e), false)
-                },
-                {
-                  key: "copyCommand2",
-                  icon: <CopyOutlined />,
-                  label: "复制在线安装命令 (海外主线路)",
-                  onClick: () => copyOnekeyCommand(findObjByIdId(data, e), true)
-                },
-                {
-                  key: "offlineCommand",
-                  icon: <InboxOutlined />,
-                  label: "离线部署",
-                  onClick: () => offlineCommand(findObjByIdId(data, e))
-                },
-                {
-                  key: "openConfig",
-                  icon: <InfoCircleOutlined />,
-                  label: "查看节点配置（调试用）",
-                  onClick: () => window.open("/api/v1/client/config_v2?token=" + findObjByIdId(data, e).token, '_blank')
-                }
-              ]
-            }}><Button>对接</Button></Dropdown>
+          {duijieButton}
           <Tooltip title="重置 token"><Button icon={<DisconnectOutlined />} onClick={() => resetToken(e)} /></Tooltip>
           <Tooltip title="编辑"><Button icon={<EditOutlined />} onClick={() => editDeviceGroup(findObjByIdId(data, e))} /></Tooltip>
           <Tooltip title="高级编辑"><Button icon={<EditFilled />} onClick={() => expertEdit(findObjByIdId(data, e))} /></Tooltip>
@@ -148,30 +150,35 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
     const visTz = document.querySelectorAll(".vis-tz")
     const visInbound = document.querySelectorAll(".vis-inbound")
     const visOutbound = document.querySelectorAll(".vis-outbound")
+    const visOutbound2 = document.querySelectorAll(".vis-outbound2") // 链式转发也展示
     const visChain = document.querySelectorAll(".vis-chain")
     if (e == DeviceGroupType.Inbound) {
       visTz.forEach((el) => (el as HTMLElement).style.display = "")
       visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visOutbound2.forEach((el) => (el as HTMLElement).style.display = "none")
       visChain.forEach((el) => (el as HTMLElement).style.display = "none")
     } else if (e.includes("Chain")) {
       visTz.forEach((el) => (el as HTMLElement).style.display = "none")
       visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visOutbound2.forEach((el) => (el as HTMLElement).style.display = "")
       visChain.forEach((el) => (el as HTMLElement).style.display = "")
     } else if (e.includes("Outbound")) {
       visTz.forEach((el) => (el as HTMLElement).style.display = "")
       visFw.forEach((el) => (el as HTMLElement).style.display = "")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "")
+      visOutbound2.forEach((el) => (el as HTMLElement).style.display = "")
       visChain.forEach((el) => (el as HTMLElement).style.display = "none")
     } else {
       visTz.forEach((el) => (el as HTMLElement).style.display = "")
       visFw.forEach((el) => (el as HTMLElement).style.display = "none")
       visInbound.forEach((el) => (el as HTMLElement).style.display = "none")
       visOutbound.forEach((el) => (el as HTMLElement).style.display = "none")
+      visOutbound2.forEach((el) => (el as HTMLElement).style.display = "none")
       visChain.forEach((el) => (el as HTMLElement).style.display = "none")
     }
   }
@@ -309,7 +316,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
         </Flex>
         {renderYJYC()}
         {/* 出口 */}
-        <Flex className='neko-settings-flex-line vis-outbound' style={props.isAdmin ? {} : { display: "none" }}>
+        <Flex className='neko-settings-flex-line vis-outbound2' style={props.isAdmin ? {} : { display: "none" }}>
           <Typography.Text strong>
             限制入口
             <MyQuestionMark title={<div>
@@ -577,6 +584,7 @@ export function DeviceGroupsView(props: { isAdmin: boolean, adminShowUserOutboun
           <Flex>
             <Button icon={<FileAddOutlined />} onClick={() => editDeviceGroup(null, true)}>添加设备组</Button>
             <Button icon={<FireOutlined />} onClick={() => resetTraffic(selectedRowKeys)}>清空流量</Button>
+            <Button icon={<SyncOutlined />} onClick={() => { updateData(); }}>刷新</Button>
           </Flex>
           <AntDragSortTable
             rowKey="id"

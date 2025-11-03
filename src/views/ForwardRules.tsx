@@ -182,6 +182,17 @@ export function ForwardRulesView(props: { userInfo: any }) {
           onChange={(e) => { editingObj.current.device_group_out = e; setCurrentOutboundDgId(e) }}
         ></Select>
       </Flex>, document.getElementById("id-chukou")!)
+      const renderPauseStatus = () => {
+        render2Node(<Tag color={editingObj.current.paused ? 'red' : 'green'}
+          style={{ marginLeft: 8 }} // <--- 增加间距
+          onClick={() => {
+            editingObj.current.paused = !editingObj.current.paused;
+            renderPauseStatus()
+          }}>
+          {editingObj.current.paused ? "保存后暂停规则" : "保存后启用规则"}
+        </Tag>, document.getElementById("id-paused-status")!)
+      }
+      renderPauseStatus()
     } catch (error) {
       console.log(error)
     }
@@ -208,10 +219,12 @@ export function ForwardRulesView(props: { userInfo: any }) {
     return (ret: any) => {
       if (ret.code == 0) {
         if (ret.data.length == 0) {
-          searchObj.current = null;
           MyMessage.info("没有符合该条件的规则")
           if (!newSearch) {
-            setSearched(false); updateData(); //退回全部规则
+            //退回全部规则
+            searchObj.current = null;
+            setSearched(false);
+            updateData();
           } else {
             throw commonEx
           }
@@ -227,7 +240,10 @@ export function ForwardRulesView(props: { userInfo: any }) {
         searchObj.current = null;
         MyMessage.error(`搜索出错: ${ret.code} ${ret.msg}`)
         if (!newSearch) {
-          setSearched(false); updateData(); //退回全部规则
+          //退回全部规则
+          searchObj.current = null;
+          setSearched(false);
+          updateData();
         } else {
           throw commonEx
         }
@@ -889,13 +905,19 @@ export function ForwardRulesView(props: { userInfo: any }) {
           </Card>
         </Flex>
         <Flex className='neko-settings-flex-line' style={isBatchImport || isBatchChange ? { display: "none" } : {}} >
+          {/* --- 第 1 行：标签 --- */}
           <Typography.Text strong >监听端口</Typography.Text>
           <div id="id-rkdk" className="left-margin" />
-          <Input // 允许留空，所以不能用 InputNumber
-            placeholder="留空则随机"
-            defaultValue={obj.listen_port}
-            onChange={(e) => editingObj.current.listen_port = Number(e.target.value)}
-          ></Input>
+          {/* --- 第 2 行：输入框和按钮的容器 --- */}
+          <Flex style={{ width: '100%' }} align="center">
+            <Input
+              style={{ flex: 1 }} // <--- 关键改动
+              placeholder="留空则随机"
+              defaultValue={obj.listen_port}
+              onChange={(e) => editingObj.current.listen_port = Number(e.target.value)}
+            />
+            <div id="id-paused-status" />
+          </Flex>
         </Flex>
         <div id={isBatchChange ? "id-chukou-do-not-show" : "id-chukou"} style={{ width: "100%" }}></div>
         <Flex className='neko-settings-flex-line' id="id-ljxx-flex" style={{ display: "none" }}>
@@ -971,7 +993,7 @@ export function ForwardRulesView(props: { userInfo: any }) {
     let title2 = <span>{title}</span>
     // 用户规则搜索按钮
     let search = <Button icon={<SearchOutlined />} onClick={btn_search_rules_onclick}>搜索规则</Button>
-    if (searched) search = <Button icon={<BackwardOutlined />} onClick={() => { searchObj.current = null; setSearched(false); updateData() }}>返回所有规则</Button>
+    if (searched) search = <Button icon={<BackwardOutlined />} onClick={() => { searchObj.current = null; setSearched(false); updateData(); }}>返回所有规则</Button>
     if (gotoId != null) search = <></>
     // 统计数据按钮
     let tjsjButton = <Button icon={<BarChartOutlined />} onClick={showUserStatistic}>统计数据</Button>
