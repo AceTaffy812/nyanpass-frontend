@@ -177,7 +177,7 @@ export function AdminUsersView(props: { userInfo: any }) {
         <Flex className='neko-settings-flex-line'>
           <Typography.Text strong>出口</Typography.Text>
           <Select
-            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser]))}
+            options={renderSelect4(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser, DeviceGroupType.ChainOutbound]))}
             onChange={(e) => { obj.gid_out = e }}
           ></Select>
         </Flex>
@@ -730,7 +730,7 @@ export function AdminUsersView(props: { userInfo: any }) {
           <Select
             options={(() => {
               const list: any[] = [directOutMenuItem]
-              list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser])))
+              list.push(...renderSelectIdName(myFilter(deviceGroupList, "type", [DeviceGroupType.OutboundBySite, DeviceGroupType.OutboundByUser, DeviceGroupType.ChainOutbound])))
               return list
             })()}
             onChange={(e) => { obj.qdDgOut = String(e) }}
